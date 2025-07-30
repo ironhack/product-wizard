@@ -71,10 +71,26 @@ def handle_mention(event, say):
     process_message(event, say)
 
 @slack_app.event("message")
-def handle_direct_message(event, say):
-    # Only handle direct messages (not channel messages)
+def handle_message(event, say):
+    # Skip messages from bots (including our own) to prevent loops
+    if event.get('bot_id'):
+        return
+    
+    # Handle direct messages (always respond in DMs)
     if event.get('channel_type') == 'im':
         process_message(event, say)
+        return
+    
+    # Handle thread replies in channels (only if we've already participated in this thread)
+    elif event.get('thread_ts'):
+        thread_id = event['thread_ts']
+        if thread_id in thread_mapping:
+            # This is a reply in a thread where we've already participated
+            process_message(event, say)
+        # If thread_id not in thread_mapping, ignore it (not our conversation)
+    
+    # For regular channel messages without thread_ts, ignore them
+    # (only mentions should trigger responses in channels)
 
 flask_app = Flask(__name__)
 
