@@ -34,6 +34,8 @@ def process_message(event, say):
         conversation_id = event['ts']
         logger.info(f"New conversation. Message ID: {conversation_id}")
     
+    logger.info(f"Current thread_mapping keys: {list(thread_mapping.keys())}")
+    
     # Get or create OpenAI thread for this Slack thread
     if conversation_id not in thread_mapping:
         # Create new OpenAI thread for this Slack thread
@@ -74,14 +76,14 @@ def process_message(event, say):
         say(assistant_message, thread_ts=event['thread_ts'])
         logger.info(f"Replied in thread: {event['thread_ts']}")
     else:
-        # When starting a new thread, add the new thread ID to our mapping
-        # so future replies in this thread will be detected
+        # When starting a new thread, we need to map the new thread ID back to the original conversation
+        # The new thread ID will be the bot's response timestamp
         new_thread_ts = event['ts']
-        if new_thread_ts not in thread_mapping:
-            thread_mapping[new_thread_ts] = thread_mapping[conversation_id]
-            logger.info(f"Added new thread {new_thread_ts} to mapping for conversation {conversation_id}")
+        logger.info(f"Starting new thread with ID: {new_thread_ts}")
+        # Don't add this to mapping - the original conversation_id should remain the key
         say(assistant_message, thread_ts=event['ts'])
         logger.info(f"Started new thread: {event['ts']}")
+        logger.info(f"Thread mapping after response: {list(thread_mapping.keys())}")
 
 @slack_app.event("app_mention")
 def handle_mention(event, say):
@@ -90,7 +92,7 @@ def handle_mention(event, say):
 
 @slack_app.event("message")
 def handle_message(event, say):
-    logger.info(f"Message event received - Channel: {event.get('channel')}, Thread: {event.get('thread_ts')}, Type: {event.get('channel_type')}")
+    logger.info(f"Message event received - Channel: {event.get('channel')}, Thread: {event.get('thread_ts')}, Type: {event.get('channel_type')}, Text: {event.get('text', '')[:50]}...")
     
     # Skip messages from bots (including our own) to prevent loops
     if event.get('bot_id'):
@@ -107,6 +109,7 @@ def handle_message(event, say):
     elif event.get('thread_ts'):
         thread_id = event['thread_ts']
         logger.info(f"Thread reply detected. Thread ID: {thread_id}, In mapping: {thread_id in thread_mapping}")
+        logger.info(f"Available thread mappings: {list(thread_mapping.keys())}")
         if thread_id in thread_mapping:
             # This is a reply in a thread where we've already participated
             logger.info("Processing thread reply")
