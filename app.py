@@ -3,6 +3,11 @@ from slack_bolt.adapter.flask import SlackRequestHandler
 from flask import Flask, request
 import openai
 import os
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 slack_app = App(
     token=os.environ["SLACK_BOT_TOKEN"],
@@ -23,18 +28,22 @@ def process_message(event, say):
     if event.get('thread_ts'):
         # This is a reply in a thread - use the thread timestamp as the conversation ID
         conversation_id = event['thread_ts']
+        logger.info(f"Thread reply detected. Thread ID: {conversation_id}")
     else:
         # This is a new message - use the message timestamp as the conversation ID
         conversation_id = event['ts']
+        logger.info(f"New conversation. Message ID: {conversation_id}")
     
     # Get or create OpenAI thread for this Slack thread
     if conversation_id not in thread_mapping:
         # Create new OpenAI thread for this Slack thread
         openai_thread = openai.beta.threads.create()
         thread_mapping[conversation_id] = openai_thread.id
+        logger.info(f"Created new OpenAI thread: {openai_thread.id} for conversation: {conversation_id}")
     else:
         # Use existing OpenAI thread for this Slack thread
         openai_thread_id = thread_mapping[conversation_id]
+        logger.info(f"Using existing OpenAI thread: {openai_thread_id} for conversation: {conversation_id}")
     
     # Add the user message to the OpenAI thread
     openai.beta.threads.messages.create(
@@ -63,34 +72,53 @@ def process_message(event, say):
     # Reply in the same thread if this was a thread reply, otherwise start a new thread
     if event.get('thread_ts'):
         say(assistant_message, thread_ts=event['thread_ts'])
+        logger.info(f"Replied in thread: {event['thread_ts']}")
     else:
+        # When starting a new thread, add the new thread ID to our mapping
+        # so future replies in this thread will be detected
+        new_thread_ts = event['ts']
+        if new_thread_ts not in thread_mapping:
+            thread_mapping[new_thread_ts] = thread_mapping[conversation_id]
+            logger.info(f"Added new thread {new_thread_ts} to mapping for conversation {conversation_id}")
         say(assistant_message, thread_ts=event['ts'])
+        logger.info(f"Started new thread: {event['ts']}")
 
 @slack_app.event("app_mention")
 def handle_mention(event, say):
+    logger.info(f"App mention event received: {event.get('text', '')}")
     process_message(event, say)
 
 @slack_app.event("message")
 def handle_message(event, say):
+    logger.info(f"Message event received - Channel: {event.get('channel')}, Thread: {event.get('thread_ts')}, Type: {event.get('channel_type')}")
+    
     # Skip messages from bots (including our own) to prevent loops
     if event.get('bot_id'):
+        logger.info("Skipping bot message")
         return
     
     # Handle direct messages (always respond in DMs)
     if event.get('channel_type') == 'im':
+        logger.info("Processing direct message")
         process_message(event, say)
         return
     
     # Handle thread replies in channels (only if we've already participated in this thread)
     elif event.get('thread_ts'):
         thread_id = event['thread_ts']
+        logger.info(f"Thread reply detected. Thread ID: {thread_id}, In mapping: {thread_id in thread_mapping}")
         if thread_id in thread_mapping:
             # This is a reply in a thread where we've already participated
+            logger.info("Processing thread reply")
             process_message(event, say)
+        else:
+            logger.info("Thread not in mapping, ignoring")
         # If thread_id not in thread_mapping, ignore it (not our conversation)
     
     # For regular channel messages without thread_ts, ignore them
     # (only mentions should trigger responses in channels)
+    else:
+        logger.info("Regular channel message, ignoring")
 
 flask_app = Flask(__name__)
 
