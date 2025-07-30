@@ -31,8 +31,8 @@ def clean_citations(response_text):
         # If it's just "source", remove it entirely
         if citation_content.lower() == 'source':
             return ''
-        # Otherwise, show the filename in parentheses
-        return f'({citation_content})'
+        # Otherwise, show the filename in parentheses with a space before it
+        return f' ({citation_content})'
     
     # Replace citations with just the filename in parentheses, or remove if it's "source"
     cleaned_response = re.sub(citation_pattern, replace_citation, response_text)
