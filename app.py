@@ -12,36 +12,69 @@ handler = SlackRequestHandler(slack_app)
 openai.api_key = os.environ["OPENAI_API_KEY"]
 ASSISTANT_ID = os.environ["OPENAI_ASSISTANT_ID"]
 
-@slack_app.event("app_mention")
-def handle_mention(event, say):
+# Store thread to OpenAI thread mapping for context retention
+thread_mapping = {}
+
+def process_message(event, say):
+    """Common function to process messages from both mentions and DMs"""
     user_message = event['text']
-    # Send to OpenAI Assistant API
-    thread = openai.beta.threads.create()
     
-    # Add the user message to the thread
+    # Determine the conversation thread
+    if event.get('thread_ts'):
+        # This is a reply in a thread - use the thread timestamp as the conversation ID
+        conversation_id = event['thread_ts']
+    else:
+        # This is a new message - use the message timestamp as the conversation ID
+        conversation_id = event['ts']
+    
+    # Get or create OpenAI thread for this Slack thread
+    if conversation_id not in thread_mapping:
+        # Create new OpenAI thread for this Slack thread
+        openai_thread = openai.beta.threads.create()
+        thread_mapping[conversation_id] = openai_thread.id
+    else:
+        # Use existing OpenAI thread for this Slack thread
+        openai_thread_id = thread_mapping[conversation_id]
+    
+    # Add the user message to the OpenAI thread
     openai.beta.threads.messages.create(
-        thread_id=thread.id,
+        thread_id=thread_mapping[conversation_id],
         role="user",
         content=user_message
     )
     
     # Run the assistant
     run = openai.beta.threads.runs.create(
-        thread_id=thread.id,
+        thread_id=thread_mapping[conversation_id],
         assistant_id=ASSISTANT_ID
     )
     
     # Wait for the run to complete
     while run.status == "queued" or run.status == "in_progress":
         run = openai.beta.threads.runs.retrieve(
-            thread_id=thread.id,
+            thread_id=thread_mapping[conversation_id],
             run_id=run.id
         )
     
     # Get the assistant's response
-    messages = openai.beta.threads.messages.list(thread_id=thread.id)
+    messages = openai.beta.threads.messages.list(thread_id=thread_mapping[conversation_id])
     assistant_message = messages.data[0].content[0].text.value
-    say(assistant_message)
+    
+    # Reply in the same thread if this was a thread reply, otherwise start a new thread
+    if event.get('thread_ts'):
+        say(assistant_message, thread_ts=event['thread_ts'])
+    else:
+        say(assistant_message, thread_ts=event['ts'])
+
+@slack_app.event("app_mention")
+def handle_mention(event, say):
+    process_message(event, say)
+
+@slack_app.event("message")
+def handle_direct_message(event, say):
+    # Only handle direct messages (not channel messages)
+    if event.get('channel_type') == 'im':
+        process_message(event, say)
 
 flask_app = Flask(__name__)
 
