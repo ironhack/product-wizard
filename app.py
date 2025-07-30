@@ -16,14 +16,32 @@ ASSISTANT_ID = os.environ["OPENAI_ASSISTANT_ID"]
 def handle_mention(event, say):
     user_message = event['text']
     # Send to OpenAI Assistant API
-    thread = openai.beta.threads.create(messages=[{"role": "user", "content": user_message}])
-    response = openai.beta.assistants.messages.create(
-        assistant_id=ASSISTANT_ID,
+    thread = openai.beta.threads.create()
+    
+    # Add the user message to the thread
+    openai.beta.threads.messages.create(
         thread_id=thread.id,
-        messages=[{"role": "user", "content": user_message}]
+        role="user",
+        content=user_message
     )
-    answer = response.data[0]['content']
-    say(answer)
+    
+    # Run the assistant
+    run = openai.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=ASSISTANT_ID
+    )
+    
+    # Wait for the run to complete
+    while run.status == "queued" or run.status == "in_progress":
+        run = openai.beta.threads.runs.retrieve(
+            thread_id=thread.id,
+            run_id=run.id
+        )
+    
+    # Get the assistant's response
+    messages = openai.beta.threads.messages.list(thread_id=thread.id)
+    assistant_message = messages.data[0].content[0].text.value
+    say(assistant_message)
 
 flask_app = Flask(__name__)
 
