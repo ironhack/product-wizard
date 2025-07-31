@@ -5,6 +5,8 @@ import openai
 import os
 import logging
 import re
+import time
+from collections import OrderedDict
 
 # Set up logging - show info level for debugging
 logging.basicConfig(level=logging.INFO)
@@ -17,6 +19,58 @@ slack_app = App(
 handler = SlackRequestHandler(slack_app)
 openai.api_key = os.environ["OPENAI_API_KEY"]
 ASSISTANT_ID = os.environ["OPENAI_ASSISTANT_ID"]
+
+# Message deduplication cache to prevent processing the same message twice
+# This helps when Heroku dyno wakes up and receives duplicate webhook events
+class MessageDeduplicationCache:
+    def __init__(self, max_size=1000, ttl_seconds=300):  # 5 minutes TTL
+        self.cache = OrderedDict()
+        self.max_size = max_size
+        self.ttl_seconds = ttl_seconds
+    
+    def is_processed(self, message_id):
+        """Check if message has been processed recently"""
+        current_time = time.time()
+        
+        # Clean expired entries
+        expired_keys = [k for k, v in self.cache.items() if current_time - v > self.ttl_seconds]
+        for key in expired_keys:
+            del self.cache[key]
+        
+        # Check if message exists and is not expired
+        if message_id in self.cache:
+            if current_time - self.cache[message_id] <= self.ttl_seconds:
+                return True
+            else:
+                # Remove expired entry
+                del self.cache[message_id]
+        
+        return False
+    
+    def mark_processed(self, message_id):
+        """Mark message as processed"""
+        current_time = time.time()
+        
+        # Add to cache
+        self.cache[message_id] = current_time
+        
+        # Remove oldest entries if cache is full
+        while len(self.cache) > self.max_size:
+            self.cache.popitem(last=False)
+    
+    def get_stats(self):
+        """Get cache statistics for debugging"""
+        current_time = time.time()
+        active_entries = sum(1 for v in self.cache.values() if current_time - v <= self.ttl_seconds)
+        return {
+            'total_entries': len(self.cache),
+            'active_entries': active_entries,
+            'max_size': self.max_size,
+            'ttl_seconds': self.ttl_seconds
+        }
+
+# Initialize message deduplication cache
+message_cache = MessageDeduplicationCache()
 
 # Store thread to OpenAI thread mapping for context retention
 import json
@@ -111,6 +165,23 @@ def clean_citations(response_text):
 def process_message(event, say):
     """Common function to process messages from both mentions and DMs"""
     user_message = event['text']
+    
+    # Create a unique message ID for deduplication
+    # Use combination of channel, timestamp, and user to ensure uniqueness
+    message_id = f"{event.get('channel', '')}_{event.get('ts', '')}_{event.get('user', '')}"
+    
+    # Check if this message has already been processed (deduplication)
+    if message_cache.is_processed(message_id):
+        logger.info(f"Message already processed, skipping: {message_id}")
+        cache_stats = message_cache.get_stats()
+        logger.info(f"Cache stats: {cache_stats}")
+        return
+    
+    # Mark message as processed before processing to prevent race conditions
+    message_cache.mark_processed(message_id)
+    logger.info(f"Processing message with deduplication ID: {message_id}")
+    cache_stats = message_cache.get_stats()
+    logger.info(f"Cache stats: {cache_stats}")
     
     # Determine the conversation thread
     if event.get('thread_ts'):
