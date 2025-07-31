@@ -24,46 +24,84 @@ ASSISTANT_ID = os.environ["OPENAI_ASSISTANT_ID"]
 # This helps when Heroku dyno wakes up and receives duplicate webhook events
 class MessageDeduplicationCache:
     def __init__(self, max_size=1000, ttl_seconds=300):  # 5 minutes TTL
-        self.cache = OrderedDict()
         self.max_size = max_size
         self.ttl_seconds = ttl_seconds
+        self.cache_file = os.path.join(tempfile.gettempdir(), 'message_cache.json')
+    
+    def load_cache(self):
+        """Load cache from file with file locking"""
+        try:
+            if os.path.exists(self.cache_file):
+                with open(self.cache_file, 'r') as f:
+                    fcntl.flock(f.fileno(), fcntl.LOCK_SH)  # Shared lock for reading
+                    try:
+                        return json.load(f)
+                    finally:
+                        fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+        except Exception as e:
+            logger.error(f"Error loading message cache: {str(e)}")
+        return {}
+    
+    def save_cache(self, cache):
+        """Save cache to file with file locking"""
+        try:
+            # Clean up old entries (keep only last max_size to prevent file from growing too large)
+            if len(cache) > self.max_size:
+                # Keep the most recent entries
+                sorted_items = sorted(cache.items(), key=lambda x: x[1], reverse=True)
+                cache = dict(sorted_items[:self.max_size])
+                logger.info(f"Cleaned up message cache, kept {len(cache)} entries")
+            
+            with open(self.cache_file, 'w') as f:
+                fcntl.flock(f.fileno(), fcntl.LOCK_EX)  # Exclusive lock for writing
+                try:
+                    json.dump(cache, f)
+                    f.flush()  # Ensure data is written to disk
+                    os.fsync(f.fileno())  # Force sync to disk
+                finally:
+                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)
+        except Exception as e:
+            logger.error(f"Error saving message cache: {str(e)}")
     
     def is_processed(self, message_id):
         """Check if message has been processed recently"""
         current_time = time.time()
+        cache = self.load_cache()
         
         # Clean expired entries
-        expired_keys = [k for k, v in self.cache.items() if current_time - v > self.ttl_seconds]
+        expired_keys = [k for k, v in cache.items() if current_time - v > self.ttl_seconds]
         for key in expired_keys:
-            del self.cache[key]
+            del cache[key]
         
         # Check if message exists and is not expired
-        if message_id in self.cache:
-            if current_time - self.cache[message_id] <= self.ttl_seconds:
+        if message_id in cache:
+            if current_time - cache[message_id] <= self.ttl_seconds:
                 return True
             else:
                 # Remove expired entry
-                del self.cache[message_id]
+                del cache[message_id]
+                self.save_cache(cache)
         
         return False
     
     def mark_processed(self, message_id):
         """Mark message as processed"""
         current_time = time.time()
+        cache = self.load_cache()
         
         # Add to cache
-        self.cache[message_id] = current_time
+        cache[message_id] = current_time
         
-        # Remove oldest entries if cache is full
-        while len(self.cache) > self.max_size:
-            self.cache.popitem(last=False)
+        # Save updated cache
+        self.save_cache(cache)
     
     def get_stats(self):
         """Get cache statistics for debugging"""
         current_time = time.time()
-        active_entries = sum(1 for v in self.cache.values() if current_time - v <= self.ttl_seconds)
+        cache = self.load_cache()
+        active_entries = sum(1 for v in cache.values() if current_time - v <= self.ttl_seconds)
         return {
-            'total_entries': len(self.cache),
+            'total_entries': len(cache),
             'active_entries': active_entries,
             'max_size': self.max_size,
             'ttl_seconds': self.ttl_seconds
