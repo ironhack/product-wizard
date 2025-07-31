@@ -6,6 +6,9 @@ import os
 import logging
 import re
 import time
+import json
+import tempfile
+import fcntl
 from collections import OrderedDict
 
 # Set up logging - show info level for debugging
@@ -111,9 +114,6 @@ class MessageDeduplicationCache:
 message_cache = MessageDeduplicationCache()
 
 # Store thread to OpenAI thread mapping for context retention
-import json
-import tempfile
-import fcntl
 
 THREAD_MAPPING_FILE = os.path.join(tempfile.gettempdir(), 'thread_mapping.json')
 
@@ -199,6 +199,70 @@ def clean_citations(response_text):
     cleaned_response = re.sub(citation_pattern, replace_citation, response_text)
     
     return cleaned_response
+
+def convert_markdown_to_slack(response_text):
+    """Convert markdown formatting to Slack-compatible formatting"""
+    # Use placeholders to protect formatting
+    header_placeholders = {}
+    bold_placeholders = {}
+    placeholder_counter = 0
+    
+    # First, replace headers with placeholders
+    def header_replacer(match):
+        nonlocal placeholder_counter
+        placeholder = f"HEADER_PLACEHOLDER_{placeholder_counter}_END"
+        header_placeholders[placeholder] = f"\n*{match.group(1)}*\n"
+        placeholder_counter += 1
+        return placeholder
+    
+    # Replace bold text with placeholders to protect them
+    def bold_replacer(match):
+        nonlocal placeholder_counter
+        placeholder = f"BOLD_PLACEHOLDER_{placeholder_counter}_END"
+        bold_placeholders[placeholder] = f"*{match.group(1)}*"
+        placeholder_counter += 1
+        return placeholder
+    
+    response_text = re.sub(r'^###\s+(.+)$', header_replacer, response_text, flags=re.MULTILINE)
+    response_text = re.sub(r'^##\s+(.+)$', header_replacer, response_text, flags=re.MULTILINE)
+    response_text = re.sub(r'^#\s+(.+)$', header_replacer, response_text, flags=re.MULTILINE)
+    
+    # Convert bold markdown (**text** or __text__) to placeholders first
+    response_text = re.sub(r'\*\*(.*?)\*\*', bold_replacer, response_text)
+    response_text = re.sub(r'__(.*?)__', bold_replacer, response_text)
+    
+    # Convert italic markdown (*text* or _text_) to Slack italic (_text_)
+    # Now safe to do since bold text is protected by placeholders
+    response_text = re.sub(r'(?<!\*)\*([^*\n]+)\*(?!\*)', r'_\1_', response_text)
+    response_text = re.sub(r'(?<!_)_([^_\n]+)_(?!_)', r'_\1_', response_text)
+    
+    # Convert markdown lists (- item or * item) to Slack lists
+    response_text = re.sub(r'^[-*]\s+(.+)$', r'• \1', response_text, flags=re.MULTILINE)
+    
+    # Convert numbered lists (1. item) to Slack numbered lists
+    response_text = re.sub(r'^(\d+)\.\s+(.+)$', r'\1. \2', response_text, flags=re.MULTILINE)
+    
+    # Convert markdown code blocks (```code```) to Slack code blocks
+    response_text = re.sub(r'```([^`]*)```', r'`\1`', response_text, flags=re.DOTALL)
+    
+    # Convert inline code (`code`) to Slack inline code
+    response_text = re.sub(r'`([^`]+)`', r'`\1`', response_text)
+    
+    # Restore bold text from placeholders
+    for placeholder, bold_text in bold_placeholders.items():
+        response_text = response_text.replace(placeholder, bold_text)
+    
+    # Restore headers from placeholders
+    for placeholder, header_text in header_placeholders.items():
+        response_text = response_text.replace(placeholder, header_text)
+    
+    # Clean up extra newlines that might have been created
+    response_text = re.sub(r'\n{3,}', r'\n\n', response_text)
+    
+    # Remove any trailing whitespace
+    response_text = response_text.rstrip()
+    
+    return response_text
 
 def process_message(event, say):
     """Common function to process messages from both mentions and DMs"""
@@ -289,8 +353,9 @@ def process_message(event, say):
         say("I'm sorry, I encountered an error processing your request. Please try again.")
         return
     
-    # Clean up citations in the response
+    # Clean up citations and convert markdown to Slack formatting
     cleaned_message = clean_citations(assistant_message)
+    cleaned_message = convert_markdown_to_slack(cleaned_message)
     
     # Reply in the same thread if this was a thread reply, otherwise start a new thread
     if event.get('thread_ts'):
