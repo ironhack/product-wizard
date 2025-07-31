@@ -223,11 +223,13 @@ def convert_markdown_to_slack(response_text):
         placeholder_counter += 1
         return placeholder
     
+    response_text = re.sub(r'^####\s+(.+)$', header_replacer, response_text, flags=re.MULTILINE)
     response_text = re.sub(r'^###\s+(.+)$', header_replacer, response_text, flags=re.MULTILINE)
     response_text = re.sub(r'^##\s+(.+)$', header_replacer, response_text, flags=re.MULTILINE)
     response_text = re.sub(r'^#\s+(.+)$', header_replacer, response_text, flags=re.MULTILINE)
     
-    # Convert bold markdown (**text** or __text__) to placeholders first
+    # Convert bold markdown (***text***, **text**, or __text__) to placeholders first
+    response_text = re.sub(r'\*\*\*(.*?)\*\*\*', bold_replacer, response_text)
     response_text = re.sub(r'\*\*(.*?)\*\*', bold_replacer, response_text)
     response_text = re.sub(r'__(.*?)__', bold_replacer, response_text)
     
