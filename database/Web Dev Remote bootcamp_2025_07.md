@@ -3,52 +3,39 @@ Course contents
 
 **Table of contents**
 
-[**Course Duration	2**](#course-duration)
+ - [Course Duration](#course-duration)
+ - [Course Overview](#course-overview)
+ - [General Structure](#general-structure)
+ - [Learning Outcomes](#learning-outcomes)
+ - [Course Details](#course-details)
+   - [Unit 0: Prework (40 hours)](#unit-0-prework-40-hours)
+   - [Unit 1: Frontend Fundamentals (40 hours)](#unit-1-frontend-fundamentals-40-hours)
+   - [Unit 2: JavaScript Deep Dive (40 hours)](#unit-2-javascript-deep-dive-40-hours)
+   - [Project 1: Game (40 hours)](#project-1-game-40-hours)
+   - [Unit 3: React Basics (40 hours)](#unit-3-react-basics-40-hours)
+   - [Unit 4: React Advanced and front/back integration (30 hours)](#unit-4-react-advanced-and-frontback-integration-30-hours)
+   - [Project 2: React App (50 hours)](#project-2-react-app-50-hours)
+   - [Unit 5: Backend & Full-stack Fundamentals (50 hours)](#unit-5-backend-full-stack-fundamentals-50-hours)
+   - [Capstone/Project 3: Full-stack App (70 hours)](#capstoneproject-3-full-stack-app-70-hours)
 
-[**Course Overview	2**](#course-overview)
-
-[**General Structure	2**](#general-structure)
-
-[**Learning Outcomes	3**](#learning-outcomes)
-
-[**Course Details	4**](#course-details)
-
-[Unit 0: Prework (40 hours)	4](#unit-0:-prework-\(40-hours\))
-
-[Unit 1: Frontend Fundamentals (40 hours)	5](#unit-1:-frontend-fundamentals-\(40-hours\))
-
-[Unit 2: JavaScript Deep Dive (40 hours)	5](#unit-2:-javascript-deep-dive-\(40-hours\))
-
-[Project 1: Game (40 hours)	6](#project-1:-game-\(40-hours\))
-
-[Unit 3: React Basics (40 hours)	7](#unit-3:-react-basics-\(40-hours\))
-
-[Unit 4: React Advanced and front/back integration (30 hours)	7](#unit-4:-react-advanced-and-front/back-integration-\(30-hours\))
-
-[Project 2: React App (50 hours)	8](#project-2:-react-app-\(50-hours\))
-
-[Unit 5: Backend & Full-stack Fundamentals (50 hours)	9](#unit-5:-backend-&-full-stack-fundamentals-\(50-hours\))
-
-[Capstone/Project 3: Full-stack App (70 hours)	10](#capstone/project-3:-full-stack-app-\(70-hours\))
-
-## **Course Duration** {#course-duration}
+## **Course Duration**
 
 Duration: 360 hours
 
-## **Course Overview** {#course-overview}
+## **Course Overview**
 
 This course is designed to provide a thorough full-stack development experience, using the versatility and power of JavaScript. Participants will start their journey covering the essentials of web programming with HTML, CSS and JavaScript and then go through advanced JavaScript functionalities to master React to build dynamic user interfaces. The curriculum also covers server-side development using Node.js and Express, alongside database management with MongoDB.
 
 Structured around a combination of lectures, practical labs, collaborative activities, and a capstone project, this course ensures that participants gain hands-on experience in both frontend and backend development. The course aims to prepare participants for the challenges of modern software development, equipping them with the skills to design, develop, and deploy comprehensive web applications. Graduates of this course will emerge as proficient full-stack developers, ready to contribute effectively to the tech industry with their expertise in creating responsive and user-centric web solutions.
 
-## **General Structure** {#general-structure}
+## **General Structure**
 
 * **Class Format**: Engaging mix of interactive lectures, hands-on lab assignments, collaborative projects, and individual assessments.  
 * **Materials Provided**: Lecture slides, coding exercises, project templates, additional reading materials, and access to a wide range of development tools.  
 * **Tools Used**: HTML & CSS, JavaScript (ES6+), Node.js, Express.js, React, MongoDB, Mongo Atlas, Mongoose, Git, GitHub, Postman, Visual Studio Code (VS Code), NPM (Node Package Manager), Fly.io & Netlify  
 * **Feedback Mechanism**: Continuous feedback during lab assignments and projects, and formal evaluations via quizzes and coding assignments.
 
-## **Learning Outcomes** {#learning-outcomes}
+## **Learning Outcomes**
 
 By the end of this course, participants will be able to:
 
@@ -69,9 +56,9 @@ By the end of this course, participants will be able to:
 * Use Agile & Lean as frameworks for product management: standups, retros, MVP, constraints vs. scope, etc., to ensure good collaboration and workflow  
 * Employ communication, critical thinking, professionalism and teamwork skills in a project-based setting.
 
-## **Course Details** {#course-details}
+## **Course Details**
 
-### **Unit 0: Prework (40 hours)**  {#unit-0:-prework-(40-hours)}
+### **Unit 0: Prework (40 hours)**
 
 **Objective**: By the end of this unit, participants should have a solid understanding of JavaScript basics, command line operations, version control with Git and GitHub, and the workflows that will be essential for success in the full-stack bootcamp. This foundation will enable them to tackle more complex web development challenges, including those involving React, in the subsequent chapters of the bootcamp.
 
@@ -86,7 +73,7 @@ Practice & Assessment:
 * 7x Exercises  
 * 5x Assessments
 
-### **Unit 1: Frontend Fundamentals (40 hours)**  {#unit-1:-frontend-fundamentals-(40-hours)}
+### **Unit 1: Frontend Fundamentals (40 hours)**
 
 **Objective**: The primary objective of this unit is to establish a solid foundation in web development for the participants. This involves introducing them to the basics of web structure and styling, version control systems, and the fundamentals of programming with JavaScript. The week is designed to equip participants with the essential tools and knowledge they'll need to build and style simple web pages, understand how to collaborate on code projects and begin programming with JavaScript.
 
@@ -105,9 +92,9 @@ Practice & Assessment:
 * 9x Labs  
 * 1x Assessment
 
-### 
+ 
 
-### **Unit 2: JavaScript Deep Dive (40 hours)**  {#unit-2:-javascript-deep-dive-(40-hours)}
+### **Unit 2: JavaScript Deep Dive (40 hours)**
 
 **Objective**: The primary goal of this unit is to deepen participants’ understanding of JavaScript, focusing on advanced programming concepts such as Object-Oriented Programming (OOP), functional programming techniques, and an introduction to the Document Object Model (DOM API) for web page interaction. This week aims to equip participants with the skills needed to build more complex and interactive web applications, laying the groundwork for full-stack development.
 
@@ -123,7 +110,7 @@ Practice & Assessment:
 * 5x Labs  
 * 2x Assessments
 
-### **Project 1: Game (40 hours)**  {#project-1:-game-(40-hours)}
+### **Project 1: Game (40 hours)**
 
 **Objective**: Project 1's objective is for participants to apply and consolidate their knowledge and skills in web development by creating a browser-based game. This project encompasses using HTML, CSS, JavaScript, DOM API, DOM Events, and Object-Oriented Programming (OOP) to construct an engaging, interactive, and user-friendly game.
 
@@ -132,7 +119,7 @@ Practice & Assessment:
 * 1x Project  
 * 4x Katas
 
-### **Unit 3: React Basics (40 hours)**  {#unit-3:-react-basics-(40-hours)}
+### **Unit 3: React Basics (40 hours)**
 
 **Objective**: The primary objective for this unit is to introduce and immerse participants in React, a powerful JavaScript library for building user interfaces, particularly single-page applications. The week starts with an introduction to Node.js and Node Package Manager used for running frontend-frameworks and tooling. The objective of the week is to equip participants with foundational knowledge and practical skills in React to enable them to start building interactive and dynamic web applications using the React framework. The unit concludes with discussions on modern JavaScript features like destructuring,  spread operator, and rest parameters operator, which are crucial for effective React development.
 
@@ -151,7 +138,7 @@ Practice & Assessment:
 * 4x Mini-projects  
 * 8x Labs
 
-### **Unit 4: React Advanced and front/back integration (30 hours)**  {#unit-4:-react-advanced-and-front/back-integration-(30-hours)}
+### **Unit 4: React Advanced and front/back integration (30 hours)**
 
 **Objective**: The unit starts with an introduction to JavaScript’s Fetch API, promises, and async/await, which allow for making requests to servers and retrieving data from APIs.  This unit goes deeper into React's advanced features, emphasizing hooks and lifecycle management, which are pivotal for building dynamic and responsive user interfaces. It also introduces the integration of React applications with back-end services, teaching participants how to create a seamless full-stack workflow. This week marks the transition towards practical application of skills through the initiation of a new project, aimed at reinforcing the real-world applicability of the concepts learned.
 
@@ -170,9 +157,9 @@ Practice & Assessment:
 * 2x Labs  
 * 2x Assessments
 
-### 
+ 
 
-### **Project 2: React App (50 hours)**  {#project-2:-react-app-(50-hours)}
+### **Project 2: React App (50 hours)**
 
 **Objective**: Project 2 focuses on creating a comprehensive React application that showcases the integration with a backend, either through a mock backend or an external API. 
 
@@ -185,7 +172,7 @@ Practice & Assessment:
 * 1x Project  
 * 4x Katas
 
-### **Unit 5: Backend & Full-stack Fundamentals (50 hours)**  {#unit-5:-backend-&-full-stack-fundamentals-(50-hours)}
+### **Unit 5: Backend & Full-stack Fundamentals (50 hours)**
 
 **Objective**: This unit focuses on backend development with Node.js and Express, and transitions into advanced frontend topics like the React Context API and token-based authentication for full-stack development. 
 
@@ -211,7 +198,7 @@ Practice & Assessment:
 * 3x Labs  
 * 1x Assessment
 
-### **Capstone/Project 3: Full-stack App (70 hours)**  {#capstone/project-3:-full-stack-app-(70-hours)}
+### **Capstone/Project 3: Full-stack App (70 hours)**
 
 **Objective**: The final project is a chance for participants to demonstrate their comprehensive understanding and skills by developing a full-stack application using the MERN stack (MongoDB, Express, React, Node.js). This capstone project is conducted as a group project, where participants work as a part of a team replicating a professional work setting.
 

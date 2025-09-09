@@ -3,43 +3,28 @@ Course contents-Standard Master
 
 **Table of contents**
 
-[**Course Duration	2**](#course-duration)
+ - [Course Duration](#course-duration)
+ - [Course Overview](#course-overview)
+ - [General Structure](#general-structure)
+ - [Learning Outcomes](#learning-outcomes)
+ - [Course Details](#course-details)
+   - [Unit 0: Prework (30 hours)](#unit-0-prework-30-hours)
+   - [Unit 1: Introduction to Python (40 hours)](#unit-1-introduction-to-python-40-hours)
+   - [Unit 2: DW & Retrieval (40 hours)](#unit-2-dw-retrieval-40-hours)
+   - [Project 1: Data Wrangling and Retrieval (40 hours)](#project-1-data-wrangling-and-retrieval-40-hours)
+   - [Unit 3: SQL (40 hours)](#unit-3-sql-40-hours)
+   - [Unit 4: EDA and Inferential Stats (20 hours)](#unit-4-eda-and-inferential-stats-20-hours)
+   - [Unit 5: Tableau (20 hours)](#unit-5-tableau-20-hours)
+   - [Project 2: EDA & Tableau (40 hours)](#project-2-eda-tableau-40-hours)
+   - [Unit 6: Machine Learning (40 hours)](#unit-6-machine-learning-40-hours)
+   - [Unit 7: LLMs, Cloud Computing (10 hours)](#unit-7-llms-cloud-computing-10-hours)
+   - [Final/Capstone project (70 hours)](#finalcapstone-project-70-hours)
 
-[**Course Overview	2**](#course-overview)
-
-[**General Structure	3**](#general-structure)
-
-[**Learning Outcomes	3**](#learning-outcomes)
-
-[**Course Details	5**](#course-details)
-
-[Unit 0: Prework (30 hours)	5](#unit-0:-prework-\(30-hours\))
-
-[Unit 1: Introduction to Python (40 hours)	6](#unit-1:-introduction-to-python-\(40-hours\))
-
-[Unit 2: DW & Retrieval (40 hours)	7](#unit-2:-dw-&-retrieval-\(40-hours\))
-
-[Project 1: Data Wrangling and Retrieval (40 hours)	8](#project-1:-data-wrangling-and-retrieval-\(40-hours\))
-
-[Unit 3: SQL (40 hours)	8](#unit-3:-sql-\(40-hours\))
-
-[Unit 4: EDA and Inferential Stats (20 hours)	10](#unit-4:-eda-and-inferential-stats-\(20-hours\))
-
-[Unit 5: Tableau (20 hours)	11](#unit-5:-tableau-\(20-hours\))
-
-[Project 2: EDA & Tableau (40 hours)	12](#project-2:-eda-&-tableau-\(40-hours\))
-
-[Unit 6: Machine Learning (40 hours)	13](#unit-6:-machine-learning-\(40-hours\))
-
-[Unit 7: LLMs, Cloud Computing (10 hours)	14](#unit-7:-llms,-cloud-computing-\(10-hours\))
-
-[Final/Capstone project  (70 hours)	15](#final/capstone-project-\(70-hours\))
-
-## **Course Duration** {#course-duration}
+## **Course Duration**
 
 Duration: 360 hours \+ 30 hours of prework
 
-## **Course Overview** {#course-overview}
+## **Course Overview**
 
 The Data Analytics course is created to transition beginners into highly skilled data analysts capable of navigating the vast landscape of data analysis with confidence and expertise. 
 
@@ -49,14 +34,14 @@ The curriculum is designed to cover the entire data analytics process, from data
 
 By the end of this intensive bootcamp, learners will have developed a robust portfolio of projects demonstrating their readiness to tackle data challenges in a professional environment, equipped with the skills to continue learning and adapting in the fast-evolving field of data analytics.
 
-## **General Structure** {#general-structure}
+## **General Structure**
 
 * **Class Format**: Engaging mix of interactive lectures, hands-on lab sessions, collaborative projects, and individual assessments.  
 * **Materials Provided**: Lecture slides, coding exercises, project templates, additional reading materials, and access to a wide range of development tools.  
 * **Tools Used**: Python, Git, GitHub, Pandas, SQL, APIs, Web Scraping, Tableau, Machine Learning libraries (Scikit Learn), Large Language Models (LLMs), Cloud Computing platforms.  
 * **Feedback Mechanism**: Continuous feedback during lab sessions, peer reviews during projects, and get instant feedback with Ironhack AI tool.formal evaluations via quizzes and labs assignments.
 
-## **Learning Outcomes** {#learning-outcomes}
+## **Learning Outcomes**
 
 By the end of this course, participants will be able to:
 
@@ -79,9 +64,9 @@ By the end of this course, participants will be able to:
 * Apply Agile methodologies, such as Scrum, to real-world projects that involve participating in different rituals such as daily stand-ups and sprint retrospectives.  
 * Write clean, modular, and efficient code following best practices	
 
-## **Course Details** {#course-details}
+## **Course Details**
 
-### **Unit 0: Prework (30 hours)**  {#unit-0:-prework-(30-hours)}
+### **Unit 0: Prework (30 hours)**
 
 **Objective**: The Prework is designed to set a solid foundation for aspiring data professionals, equipping them with the essential skills, tools, and mindset needed for success in the dynamic field of data analytics. This crucial initial phase aims to familiarize participants with the fundamental concepts, technical environment, and learning approaches that will be employed throughout their data analytics journey. By the end of this unit, participants will have a clear understanding of the course objectives, the essential tools for data analysis, and the foundational knowledge of Python programming, preparing them for the more advanced topics in data analytics (and machine learning).
 
@@ -98,9 +83,9 @@ Practice & Assessment:
 * 2x Labs  
 * 2x Assessments
 
-### 
+ 
 
-### **Unit 1: Introduction to Python (40 hours)**  {#unit-1:-introduction-to-python-(40-hours)}
+### **Unit 1: Introduction to Python (40 hours)**
 
 **Objective**: This unit is designed to provide participants with a robust foundational understanding of Python programming, a critical skill in the toolkit of a data analyst. This unit aims to equip learners with the necessary knowledge and skills to write efficient Python code for data analysis tasks. By the end of this unit, participants will have a solid grasp of Python's core data structures, control flow mechanisms, functions, and more advanced concepts like list comprehension, lambda functions, and object-oriented programming (OOP). The unit is structured to ensure participants not only learn Python syntax but also develop the ability to think like a programmer, solving data-related problems and implementing solutions effectively.
 
@@ -121,7 +106,7 @@ Practice & Assessment:
 * 1x Mini project  
 * 1x Assessment
 
-### **Unit 2: DW & Retrieval (40 hours)**  {#unit-2:-dw-&-retrieval-(40-hours)}
+### **Unit 2: DW & Retrieval (40 hours)**
 
 **Objective**: This unit aims to equip participants with the necessary skills to collect, clean, and prepare data for analysis. This unit is designed to teach the art and science of transforming raw data into a format that is ready for analysis, which is a critical step in the data analytics process. By the end of this unit, participants will be proficient in using Pandas for data manipulation, understand the principles of data cleaning and manipulation, and be able to retrieve data from various sources using APIs and web scraping techniques. This foundational knowledge will enable participants to handle, prepare and retrieve and prepare data effectively, setting the stage for insightful data analysis.
 
@@ -143,9 +128,9 @@ Practice & Assessment:
 * 1x Mini project  
 * 1x Assessment
 
-### 
+ 
 
-### **Project 1: Data Wrangling and Retrieval (40 hours)**  {#project-1:-data-wrangling-and-retrieval-(40-hours)}
+### **Project 1: Data Wrangling and Retrieval (40 hours)**
 
 **Objective**: The objective of Project 1 is for participants to apply and consolidate their knowledge and skills in Data Wrangling and Retrieval, marking a significant milestone in the data analytics journey. This unit is designed to provide participants with a real-world, hands-on experience that consolidates and applies their learning from previous units. The objective is to engage participants in a comprehensive project that encompasses data collection, cleaning, manipulation, and analysis, using the tools and techniques they've learned, particularly Python and Pandas for data wrangling.
 
@@ -153,9 +138,9 @@ Practice & Assessment:
 
 * 1x Project
 
-### 
+ 
 
-### **Unit 3: SQL (40 hours)**  {#unit-3:-sql-(40-hours)}
+### **Unit 3: SQL (40 hours)**
 
 **Objective**: This unit is designed to immerse participants in the world of databases, specifically focusing on mastering Structured Query Language (SQL), the standard language for relational database management and data manipulation. This unit aims to equip participants with comprehensive skills in creating, querying, and manipulating databases using SQL. By the end of this unit, participants will have a solid understanding of database fundamentals, be proficient in executing complex SQL queries, and capable of integrating SQL with Python for data analytics projects, preparing them for data retrieval and manipulation tasks in real-world scenarios.
 
@@ -177,9 +162,9 @@ Practice & Assessment:
 * 1x Mini project  
 * 1x Assessment
 
-### 
+ 
 
-### **Unit 4: EDA and Inferential Stats (20 hours)**  {#unit-4:-eda-and-inferential-stats-(20-hours)}
+### **Unit 4: EDA and Inferential Stats (20 hours)**
 
 **Objective**: This unit is structured to introduce participants to the essential concepts and practices of Exploratory Data Analysis (EDA) and foundational inferential statistics, crucial for making informed decisions based on data insights. This unit aims to equip participants with the analytical skills needed to conduct thorough data analysis, from understanding data distributions and relationships to applying statistical methods to infer trends and patterns. By integrating hands-on projects, labs, and theoretical knowledge, participants will learn to uncover hidden insights in data and apply statistical reasoning to validate hypotheses and inform business strategies.
 
@@ -196,7 +181,7 @@ Practice & Assessment:
 
 * 4x Labs
 
-### **Unit 5: Tableau (20 hours)**  {#unit-5:-tableau-(20-hours)}
+### **Unit 5: Tableau (20 hours)**
 
 **Objective**: This unit is strategically designed to advance participants' skills in data visualization and storytelling using Tableau, one of the leading tools in the industry for creating compelling data visualizations and dashboards. It aims to consolidate the participants' learning by applying exploratory data analysis (EDA) techniques in a second project, emphasizing the power of visual storytelling to communicate data insights effectively. Through a combination of theoretical lessons, hands-on labs, and project work, participants will master the art of visual data communication, learn to present complex analysis with clarity and develop a project that showcases their ability to transform data into actionable insights.
 
@@ -215,7 +200,7 @@ Practice & Assessment:
 * 2x Labs  
 * 1x Assessment (EDA)
 
-### **Project 2: EDA & Tableau (40 hours)**  {#project-2:-eda-&-tableau-(40-hours)}
+### **Project 2: EDA & Tableau (40 hours)**
 
 **Objective**: The objective of Project 2 is to challenge participants to utilize exploratory data analysis (EDA), performance metrics evaluation, hypothesis testing, and the creation of interactive data visualizations using Tableau. Specifically, the project involves analyzing the outcomes of an A/B testing experiment aimed at determining if a redesigned user interface (UI) encourages more clients to complete an online process.
 
@@ -229,7 +214,7 @@ Practice & Assessment:
 
 ### 
 
-### **Unit 6: Machine Learning (40 hours)**  {#unit-6:-machine-learning-(40-hours)}
+### **Unit 6: Machine Learning (40 hours)**
 
 **Objective**: This unit introduces and delves into the core concepts and applications of machine learning (ML), encompassing both theory and hands-on practice. Through these key topics, participants will not only gain a solid foundation in machine learning principles but also develop practical skills in data preprocessing, model selection, model optimization, and evaluation, preparing them for more advanced studies or careers in data science and machine learning.
 
@@ -248,7 +233,7 @@ Practice & Assessment:
 * 1x Mini project  
 * 1x Assessment
 
-### **Unit 7: LLMs, Cloud Computing (10 hours)**  {#unit-7:-llms,-cloud-computing-(10-hours)}
+### **Unit 7: LLMs, Cloud Computing (10 hours)**
 
 **Objective**: The unit's objective focuses on introducing participants to the advanced technologies of Large Language Models (LLMs) and Cloud Computing, showcasing their impact, applications, and the skills required to leverage them effectively. This unit aims to equip participants with an understanding of how LLMs and cloud computing are transforming the tech landscape, providing them with the skills to utilize these advanced technologies in their future projects or careers.
 
@@ -263,7 +248,7 @@ Practice & Assessment:
 
 * 2x Mini projects
 
-### **Final/Capstone project  (70 hours)**  {#final/capstone-project-(70-hours)}
+### **Final/Capstone project  (70 hours)**
 
 **Objective**: The objective of the final capstone project is to synthesize and apply the comprehensive range of skills learned throughout the course into an end-to-end data analytics or data science project. This project is an opportunity for participants to demonstrate their ability to tackle real-world data challenges by conducting a thorough analysis from start to finish. Depending on their focus, participants can choose between two case studies:
 

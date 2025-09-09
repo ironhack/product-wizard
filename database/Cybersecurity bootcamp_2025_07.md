@@ -3,60 +3,43 @@ Course contents
 
 **Table of contents**
 
-[**Course Duration	2**](#course-duration)
+ - [Course Duration](#course-duration)
+ - [Course Overview](#course-overview)
+ - [General Structure](#general-structure)
+ - [Learning Outcomes](#learning-outcomes)
+ - [Course Details](#course-details)
+   - [Unit 0: Prework (40 hours)](#unit-0-prework-40-hours)
+   - [Unit 1: Network Administration and Cybersecurity Principles (40 hours)](#unit-1-network-administration-and-cybersecurity-principles-40-hours)
+   - [Unit 2: Application Security (40 hours)](#unit-2-application-security-40-hours)
+   - [Unit 3: Incident Handling (40 hours)](#unit-3-incident-handling-40-hours)
+   - [Unit 4: CY Awareness & Forensics (40 hours)](#unit-4-cy-awareness-forensics-40-hours)
+   - [Unit 5: Malware Analysis (40 hours)](#unit-5-malware-analysis-40-hours)
+   - [Unit 6: Ethical Hacking & Incident Response (40 hours)](#unit-6-ethical-hacking-incident-response-40-hours)
+   - [Unit 7: Design Principles & Risk Management (40 hours)](#unit-7-design-principles-risk-management-40-hours)
+   - [Unit 8: Threat Intelligence & Programming basics (40 hours)](#unit-8-threat-intelligence-programming-basics-40-hours)
+   - [Unit 9: Final Scenarios & Career support (40 hours)](#unit-9-final-scenarios-career-support-40-hours)
+   - [Final Scenarios/evaluation](#final-scenariosevaluation)
+   - [Extra content: CompTIA Security+ Preparation](#extra-content-comptia-security-preparation)
+   - [Extra Content: RNCP Certification Alignment](#extra-content-rncp-certification-alignment)
 
-[**Course Overview	2**](#course-overview)
-
-[**General Structure	2**](#general-structure)
-
-[**Learning Outcomes	3**](#learning-outcomes)
-
-[**Course Details	4**](#course-details)
-
-[Unit 0: Prework (40 hours)	4](#unit-0:-prework-\(40-hours\))
-
-[Unit 1: Network Administration and Cybersecurity Principles (40 hours)	5](#unit-1:-network-administration-and-cybersecurity-principles-\(40-hours\))
-
-[Unit 2: Application Security (40 hours)	6](#unit-2:-application-security-\(40-hours\))
-
-[Unit 3: Incident Handling (40 hours)	7](#unit-3:-incident-handling-\(40-hours\))
-
-[Unit 4: CY Awareness & Forensics (40 hours)	8](#unit-4:-cy-awareness-&-forensics-\(40-hours\))
-
-[Unit 5: Malware Analysis (40 hours)	9](#unit-5:-malware-analysis-\(40-hours\))
-
-[Unit 6: Ethical Hacking & Incident Response (40 hours)	10](#unit-6:-ethical-hacking-&-incident-response-\(40-hours\))
-
-[Unit 7: Design Principles & Risk Management (40 hours)	11](#unit-7:-design-principles-&-risk-management-\(40-hours\))
-
-[Unit 8: Threat Intelligence & Programming basics (40 hours)	12](#unit-8:-threat-intelligence-&-programming-basics-\(40-hours\))
-
-[Unit 9: Final Scenarios & Career support (40 hours)	13](#unit-9:-final-scenarios-&-career-support-\(40-hours\))
-
-[Final Scenarios/evaluation	13](#final-scenarios/evaluation)
-
-[Extra content: CompTIA Security+ Preparation	15](#extra-content:-comptia-security+-preparation)
-
-[Extra Content: RNCP Certification Alignment	16](#extra-content:-rncp-certification-alignment)
-
-## **Course Duration** {#course-duration}
+## **Course Duration**
 
 Duration: 360 hours \+ 40 hours of prework
 
-## **Course Overview** {#course-overview}
+## **Course Overview**
 
 This cybersecurity course equips participants with the comprehensive skills and knowledge needed to navigate the complexities of modern cyber threats and defense mechanisms. The curriculum progresses through a deep dive into the latest cybersecurity attacks, threat vectors, and the practical application of essential security tools like SIEM, Firewalls, and IDS/IPS, starting with fundamental network traffic and configuration monitoring. Participants will also engage in hands-on practice with digital forensics, dynamic and static malware analysis, and the execution of cybersecurity attacks to refine incident response strategies.
 
 Structured around interactive lectures, practical labs, and collaborative projects, including capstone scenarios, this course ensures an immersive learning experience. Students will develop the ability to implement and assess Threat Intelligence, lead cybersecurity initiatives, and collaborate effectively to solve security challenges. Upon completion, graduates will emerge as proficient cybersecurity professionals, ready to defend organizations against evolving cyber threats and contribute innovatively to the tech industry.
 
-## **General Structure** {#general-structure}
+## **General Structure**
 
 * **Class Format**: Engaging mix of interactive lectures, hands-on lab sessions, collaborative projects, and individual assessments.  
 * **Materials Provided**: Lecture slides, coding exercises, project templates, additional reading materials, and access to a wide range of development tools.  
 * **Tools Used**: TryHackMe platform, SIEM (Splunk), Firewalls, IDS/IPS (Snort), Elastic Stack (Kibana), Digital Forensics Tools (Autopsy), Malware Analysis Tools (Ghidra), Penetration Testing Tools (BurpSuite), Kali Linux OS Deployment, Python, Bash, and PowerShell  
 * **Feedback Mechanism**: Continuous feedback during lab sessions, peer reviews during projects, and formal evaluations via quizzes and labs assignments.
 
-## **Learning Outcomes** {#learning-outcomes}
+## **Learning Outcomes**
 
 By the end of this course, participants will be able to:
 
@@ -72,9 +55,9 @@ By the end of this course, participants will be able to:
 * Use Agile & Lean as frameworks for product management: standups, retros, MVP, constraints vs. scope, etc., to ensure good collaboration and workflow  
 * Employ communication, critical thinking, professionalism and teamwork skills in a project-based setting.
 
-## **Course Details** {#course-details}
+## **Course Details**
 
-### **Unit 0: Prework (40 hours)**  {#unit-0:-prework-(40-hours)}
+### **Unit 0: Prework (40 hours)**
 
 **Objective**: By covering a wide range of topics, from the basics of computing and networking to the principles of threat analysis and the practical application of cybersecurity tools, the prework phase prepares participants for the more advanced challenges they will face in their cybersecurity journey. It lays a solid foundation upon which they can build their knowledge and skills, setting the stage for a successful career in cybersecurity.
 
@@ -91,9 +74,9 @@ Practice & Assessment:
 * 9x Labs  
 * 5x Assessment
 
-### 
+ 
 
-### **Unit 1: Network Administration and Cybersecurity Principles (40 hours)**  {#unit-1:-network-administration-and-cybersecurity-principles-(40-hours)}
+### **Unit 1: Network Administration and Cybersecurity Principles (40 hours)**
 
 **Objective**: The objective of this unit is to lay a comprehensive foundation in network administration, traffic monitoring, and fundamental cybersecurity principles for participants. The unit begins by introducing the basics of network administration, exploring the roles and responsibilities of network administrators, and diving into key network concepts such as VLANs and network troubleshooting. Through a blend of theory and hands-on labs, participants will learn to run, monitor, and troubleshoot network configurations and traffic, setting the stage for more advanced cybersecurity topics. The practical labs reinforce learning by simulating real-world networking scenarios, while an assessment at the end of the unit ensures participants have grasped the essential concepts.
 
@@ -113,7 +96,7 @@ Practice & Assessment:
 * 12x Labs  
 * 1x Assessment
 
-### **Unit 2: Application Security (40 hours)**  {#unit-2:-application-security-(40-hours)}
+### **Unit 2: Application Security (40 hours)**
 
 **Objective**: This unit focuses on advancing participants' knowledge and skills in cybersecurity defenses, threat detection, prevention, and response mechanisms. It aims to deepen understanding of key security technologies like firewalls, antivirus software, IDS/IPS, DLP, SIEM, and EDR systems. Furthermore, the unit explores cryptography, access control, and the use of honeypots and DMZs for enhanced security. Through a blend of theoretical knowledge and practical application, participants will learn how to perfect cyber defense strategies, implement robust security measures, and respond effectively to cybersecurity incidents.
 
@@ -133,9 +116,9 @@ Practice & Assessment:
 * 10x Labs  
 * 1x Assessment
 
-### 
+ 
 
-### **Unit 3: Incident Handling (40 hours)**  {#unit-3:-incident-handling-(40-hours)}
+### **Unit 3: Incident Handling (40 hours)**
 
 **Objective**: This unit goes into the intricacies of Security Information and Event Management (SIEM) systems, equipping participants with the knowledge and skills necessary to utilize SIEM tools for cybersecurity defense effectively. The unit begins with an introduction to SIEM, exploring its components, log management, and tools overview. It progresses to detailed discussions on monitoring, alerting, data sources, analysis, detection, and correlation within SIEM systems. The practical application of these concepts is emphasized through labs focused on Splunk, one of the leading SIEM tools, covering basics, log analysis, and dashboard/report creation. Additionally, the unit addresses incident response, integration with other systems, compliance, and reporting capabilities, rounding off with insights on effectively leveraging SIEM for organizational security.
 
@@ -154,9 +137,9 @@ Practice & Assessment:
 * 12x Labs  
 * 1x Assessment
 
-### 
+ 
 
-### **Unit 4: CY Awareness & Forensics (40 hours)**  {#unit-4:-cy-awareness-&-forensics-(40-hours)}
+### **Unit 4: CY Awareness & Forensics (40 hours)**
 
 **Objective**: In this unit, participants will learn the depths of the realms of advanced cybersecurity threats, attack methodologies, and the foundational elements of digital forensics. This unit transitions from focusing on specific attack vectors such as Pass the Hash, LDAP insecurities, and brute force attacks, to a broader analysis of malware, including ransomware, viruses, worms, and trojans. Participants are equipped with practical skills in using tools like ffuf and Hydra for penetration testing, alongside Kerberos attack strategies. The course then shifts towards digital forensics, providing an introductory pathway to evidence acquisition, analysis, and the critical role of forensics in cybersecurity, including the use of tools for volatile and non-volatile memory analysis.
 
@@ -176,7 +159,7 @@ Practice & Assessment:
 * 2x Assessments  
 * Mid-bootcamp evaluation/assessment
 
-### **Unit 5: Malware Analysis (40 hours)**  {#unit-5:-malware-analysis-(40-hours)}
+### **Unit 5: Malware Analysis (40 hours)**
 
 **Objective**: In this unit, participants will learn about the specialized field of malware analysis and incident response, equipping participants with the skills necessary to analyze, understand, and mitigate malware threats. Starting with an introduction to malware analysis, the unit covers various techniques including static and dynamic analyses, and the tools associated with each method. Labs focus on understanding malware's history and behaviors and identifying characteristics through tools like strings and basic static analysis techniques. The course then shifts to incident response, introducing stages from preparation to post-incident activity, emphasizing practical skills for detecting, analyzing, and recovering from cybersecurity incidents.
 
@@ -195,7 +178,7 @@ Practice & Assessment:
 * 19x Labs  
 * 1x Assessment
 
-### **Unit 6: Ethical Hacking & Incident Response (40 hours)**  {#unit-6:-ethical-hacking-&-incident-response-(40-hours)}
+### **Unit 6: Ethical Hacking & Incident Response (40 hours)**
 
 **Objective**: This unit is focused on ethical hacking and penetration testing, covering fundamental concepts, methodologies, and practical skills required to conduct legal and constructive security assessments. This unit begins with an introduction to ethical hacking, differentiating between various hacker types and the ethical implications. It further delves into the penetration testing process, exploring the types of hacking and penetration testing to equip participants with a broad understanding of offensive security.
 
@@ -214,7 +197,7 @@ Practice & Assessment:
 * 20x Labs  
 * 1x Assessment
 
-### **Unit 7: Design Principles & Risk Management (40 hours)**  {#unit-7:-design-principles-&-risk-management-(40-hours)}
+### **Unit 7: Design Principles & Risk Management (40 hours)**
 
 **Objective**: This unit pivots towards a comprehensive understanding of secure design principles, system hardening, risk management, and security governance. This unit is tailored to provide an in-depth look at creating robust security frameworks that not only protect but also ensure the resilience of systems against cyber threats. 
 
@@ -234,7 +217,7 @@ Practice & Assessment:
 * 15x Labs  
 * 2x Assessments
 
-### **Unit 8: Threat Intelligence & Programming basics (40 hours)**  {#unit-8:-threat-intelligence-&-programming-basics-(40-hours)}
+### **Unit 8: Threat Intelligence & Programming basics (40 hours)**
 
 **Objective:** This unit is designed to deepen participants' understanding of threat intelligence, secure browsing practices, and introduce them to programming for cybersecurity with a focus on Python and PowerShell. It aims to equip participants with the knowledge to analyze and utilize threat intelligence effectively, understand the implications of IoT in cybersecurity, and develop scripts for penetration testing and automation tasks.
 
@@ -252,7 +235,7 @@ Practice & Assessment:
 * 15x Labs  
 * 2x Assessments
 
-### **Unit 9: Final Scenarios & Career support (40 hours)**  {#unit-9:-final-scenarios-&-career-support-(40-hours)}
+### **Unit 9: Final Scenarios & Career support (40 hours)**
 
 **Objective:** The final unit serves as the culmination of the cybersecurity course, emphasizing the practical application of skills through a series of final scenarios and projects. This unit is designed to challenge participants to apply their acquired knowledge in real-world situations, testing their abilities to secure, analyze, and respond to cyber threats. Additionally, it transitions to a focus on career development, providing guidance on cybersecurity positions, interviews, and certifications to prepare participants for their future in the cybersecurity field.
 
@@ -263,7 +246,7 @@ Key Topics:
 * Insights into cybersecurity certifications, their importance, and guidance on selecting the right certifications based on career goals.  
 * Career development strategies, including goal setting, educational path tailoring, and preparing for the cybersecurity job market.
 
-#### **Final Scenarios/evaluation** {#final-scenarios/evaluation}
+#### **Final Scenarios/evaluation**
 
 1. **Final scenario 1: Ironhackable**  
    Throughout this scenario, participants must apply a range of cybersecurity concepts from basic scanning techniques to complex exploitation and privilege escalation tactics. It tests their ability to conduct thorough reconnaissance, exploit web application vulnerabilities, and understand Linux system security to gain unauthorized access and escalate privileges within a controlled environment. This hands-on challenge encapsulates the essence of penetration testing, requiring a blend of technical knowledge, strategic thinking, and practical skills in cybersecurity.  
@@ -277,7 +260,7 @@ Key Topics:
    The scenario unfolds as a multifaceted cybersecurity challenge, guiding participants through a comprehensive journey of penetration testing and digital forensics.  Scenario masterfully combines various aspects of cybersecurity, from basic enumeration to sophisticated exploitation, offering a fully holistic and engaging learning experience. This scenario encapsulates the essence of ethical hacking, emphasizing the importance of curiosity, perseverance, and a keen eye for detail in the realm of digital security. The crown jewel from our tailored labs, replicating a real ethical hacking lab following practices for OSCP or Comptia Pentest+.  
 6. **Final evaluation/assessment**: 100-question quiz to evaluate participants’ attainment of key course learning objectives.
 
-### **Extra content: CompTIA Security+ Preparation** {#extra-content:-comptia-security+-preparation}
+### **Extra content: CompTIA Security+ Preparation**
 
 Ironhack has established a strategic partnership with CompTIA, a leading voice and advocate in the global IT ecosystem. This collaboration significantly enhances the value and effectiveness of Ironhack's cybersecurity bootcamp, as the curriculum is designed to cover more than 75% of **CompTIA Security+** certification content, ensuring a comprehensive and industry-aligned learning experience for all participants. The bootcamp's focus is not only on imparting crucial cybersecurity knowledge and skills but also on providing a structured preparation scheme for CompTIA certification. This preparation schema is meticulously crafted to guide students through the certification process, enhancing their readiness and confidence to tackle the **CompTIA Security+** exam. Through this partnership, Ironhack demonstrates its commitment to providing top-tier education that bridges the gap between academic learning and professional certification, preparing students for successful careers in the cybersecurity industry.
 
@@ -286,11 +269,9 @@ Further than **CompTIA Security+**, we are also aligned with other certification
 * **CISSP (ISC2)**  
 * **CNSS ICSI (UK)** 
 
-### 
-
-### 
-
-### **Extra Content: RNCP Certification Alignment** {#extra-content:-rncp-certification-alignment}
+ 
+ 
+### **Extra Content: RNCP Certification Alignment**
 
 **Objective:** These lessons have been included to align with the French RNCP certification standards, enriching the core cybersecurity curriculum by covering essential and advanced topics. They ensure that participants gain comprehensive knowledge and practical experience that meet the certification requirements.
 

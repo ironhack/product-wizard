@@ -2,51 +2,35 @@ Course contents
 **Data Science & Machine Learning**
 
 **Table of Contents**
+- [Course Duration](#course-duration)
+- [Course Overview](#course-overview)
+- [Learning Objectives](#learning-objectives)
+- [Course Details](#course-details)
+  - [Prework (Unit 0 / 40 hours)](#prework-unit-0-40-hours)
+  - [Unit 1: Intro to Data Science and Python Programming & Problem Solving](#unit-1-intro-to-data-science-and-python-programming-problem-solving)
+  - [Unit 2: Data Wrangling and Introduction to Exploratory Data Analysis](#unit-2-data-wrangling-and-introduction-to-exploratory-data-analysis)
+  - [Unit 3: SQL for Data Analysis](#unit-3-sql-for-data-analysis)
+  - [Unit 4: Foundations of Statistics & Introduction to Machine Learning](#unit-4-foundations-of-statistics-introduction-to-machine-learning)
+  - [Unit 5: Supervised & Unsupervised Machine Learning + Intro to Deep Learning](#unit-5-supervised-unsupervised-machine-learning-intro-to-deep-learning)
+  - [Unit 6: MLOps & Computer Vision](#unit-6-mlops-computer-vision)
+  - [Unit 7: Natural Language Processing (NLP)](#unit-7-natural-language-processing-nlp)
+  - [Unit 8: Generative AI & LLM Applications](#unit-8-generative-ai-llm-applications)
+  - [Unit 9: Capstone Project - Build End-to-End Data Science Solution](#unit-9-capstone-project---build-end-to-end-data-science-solution)
 
-[**Course Duration	2**](#course-duration)
-
-[**Course Overview	2**](#course-overview)
-
-[**Learning Objectives	2**](#learning-objectives)
-
-[**Course Details	4**](#course-details)
-
-[Prework (Unit 0 / 40 hours)	4](#prework-\(unit-0-/-40-hours\))
-
-[Unit 1: Intro to Data Science and Python Programming & Problem Solving	4](#unit-1:-intro-to-data-science-and-python-programming-&-problem-solving)
-
-[Unit 2: Data Wrangling and Introduction to Exploratory Data Analysis	6](#unit-2:-data-wrangling-and-introduction-to-exploratory-data-analysis)
-
-[Unit 3: SQL for Data Analysis	7](#unit-3:-sql-for-data-analysis)
-
-[Unit 4: Foundations of Statistics & Introduction to Machine Learning	8](#unit-4:-foundations-of-statistics-&-introduction-to-machine-learning)
-
-[Unit 5: Supervised & Unsupervised Machine Learning \+ Intro to Deep Learning	9](#unit-5:-supervised-&-unsupervised-machine-learning-+-intro-to-deep-learning)
-
-[Unit 6: MLOps & Computer Vision	10](#unit-6:-mlops-&-computer-vision)
-
-[Unit 7: Natural Language Processing (NLP)	11](#unit-7:-natural-language-processing-\(nlp\))
-
-[Unit 8: Generative AI & LLM Applications	12](#unit-8:-generative-ai-&-llm-applications)
-
-[Unit 9: Capstone Project \- Build End-to-End Data Science Solution	13](#unit-9:-capstone-project---build-end-to-end-data-science-solution)
-
-## 
-
-## **Course Duration** {#course-duration}
+## **Course Duration**
 
 Duration: 400 hours
 
 - Prework: 40 hours  
 - Course: 360 hours
 
-## **Course Overview** {#course-overview}
+## **Course Overview**
 
 This 400-hour-long course is designed to help beginners build a strong foundation in data science and machine learning. Students will learn how to program in Python, work with data using SQL and Pandas, and apply statistical methods to understand and explore data. They will also study machine learning techniques, deep learning, and natural language processing.
 
 The course includes practical work in each module, using real-world tools and cloud platforms. Students will also be introduced to MLOps and generative AI. At the end of the course, students will complete a capstone project in which they apply everything they’ve learned to solve a real-world problem.
 
-## **Learning Objectives** {#learning-objectives}
+## **Learning Objectives**
 
 By the end of this course, students will be able to:
 
@@ -63,9 +47,9 @@ By the end of this course, students will be able to:
 * Receive and apply feedback to improve solutions, workflows, and communication.  
 * Demonstrate end-to-end data science skills by completing a final capstone project that includes data handling, modeling, and deployment.
 
-## **Course Details** {#course-details}
+## **Course Details**
 
-### **Prework (Unit 0 / 40 hours)** {#prework-(unit-0-/-40-hours)}
+### **Prework (Unit 0 / 40 hours)**
 
 **Objective**: Gain an introductory understanding of the fundamentals of Data Science and Machine Learning. 
 
@@ -79,7 +63,7 @@ By the end of this course, students will be able to:
 - Inferential Statistics  
 - Math foundations (Linear algebra)
 
-### **Unit 1: Intro to Data Science and Python Programming & Problem Solving** {#unit-1:-intro-to-data-science-and-python-programming-&-problem-solving}
+### **Unit 1: Intro to Data Science and Python Programming & Problem Solving**
 
 **Objective**: Gain hands-on experience in Python fundamentals, reinforce programming logic, and develop a foundational understanding of object-oriented and functional programming.
 
@@ -109,7 +93,7 @@ By the end of this course, students will be able to:
 * Anaconda  
 * Version Control (Git / Github)
 
-### **Unit 2: Data Wrangling and Introduction to Exploratory Data Analysis** {#unit-2:-data-wrangling-and-introduction-to-exploratory-data-analysis}
+### **Unit 2: Data Wrangling and Introduction to Exploratory Data Analysis**
 
 **Objective**: Develop skills in handling, cleaning, and visualizing data using NumPy, Pandas, and basic visualization tools. Build confidence in analyzing and interpreting datasets.
 
@@ -136,7 +120,7 @@ By the end of this course, students will be able to:
 * Tableau  
 * Plotly (optional)
 
-### **Unit 3: SQL for Data Analysis** {#unit-3:-sql-for-data-analysis}
+### **Unit 3: SQL for Data Analysis**
 
 **Objective**: Learn how to manipulate and query structured data using SQL and apply it to real-world business scenarios.
 
@@ -165,7 +149,7 @@ By the end of this course, students will be able to:
 * ChatGPT (for business question generation)  
 * Workbench or any SQL client tool
 
-### **Unit 4: Foundations of Statistics & Introduction to Machine Learning** {#unit-4:-foundations-of-statistics-&-introduction-to-machine-learning}
+### **Unit 4: Foundations of Statistics & Introduction to Machine Learning**
 
 **Objective**: Develop a foundational understanding of statistics and probability concepts essential for data analysis and machine learning. Begin exploring core machine learning workflows using regression and classification models.
 
@@ -192,7 +176,7 @@ By the end of this course, students will be able to:
 
 ### 
 
-### **Unit 5: Supervised & Unsupervised Machine Learning \+ Intro to Deep Learning** {#unit-5:-supervised-&-unsupervised-machine-learning-+-intro-to-deep-learning}
+### **Unit 5: Supervised & Unsupervised Machine Learning + Intro to Deep Learning**
 
 **Objective**: Understand and apply supervised and unsupervised learning techniques, and explore the foundations of deep learning.
 
@@ -221,7 +205,7 @@ By the end of this course, students will be able to:
 
 ### 
 
-### **Unit 6: MLOps & Computer Vision** {#unit-6:-mlops-&-computer-vision}
+### **Unit 6: MLOps & Computer Vision**
 
 **Objective:** Gain hands-on experience deploying ML models on the cloud and dive into computer vision fundamentals using deep learning techniques.
 
@@ -252,7 +236,7 @@ By the end of this course, students will be able to:
 
 ## 
 
-### **Unit 7: Natural Language Processing (NLP)** {#unit-7:-natural-language-processing-(nlp)}
+### **Unit 7: Natural Language Processing (NLP)**
 
 **Objective**: Gain hands-on experience with modern NLP techniques, including traditional methods and deep learning–based approaches to language understanding and generation.
 
@@ -281,7 +265,7 @@ By the end of this course, students will be able to:
 * Word Embeddings: Word2Vec / GloVe  
 * GitHub / Jupyter Notebooks
 
-### **Unit 8: Generative AI & LLM Applications** {#unit-8:-generative-ai-&-llm-applications}
+### **Unit 8: Generative AI & LLM Applications**
 
 **Objective:** Explore the fundamentals and advanced techniques of Generative AI, including prompt engineering, fine-tuning, RAG pipelines, and deploying LLM-based solutions for real-world problems.
 
@@ -312,7 +296,7 @@ By the end of this course, students will be able to:
 
 ### 
 
-### **Unit 9: Capstone Project \- Build End-to-End Data Science Solution** {#unit-9:-capstone-project---build-end-to-end-data-science-solution}
+### **Unit 9: Capstone Project - Build End-to-End Data Science Solution**
 
 **Objective:** Apply the complete data science lifecycle (with the elements of data science) to solve a real-world problem, from ideation and planning to development, modeling, and presentation.
 

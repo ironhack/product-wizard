@@ -2,44 +2,27 @@ Course content
 **Web Development** 
 
 **Table of contents**
-
-[**Course Duration	2**](#course-duration)
-
-[**Course Overview	2**](#course-overview)
-
-[**General Structure	3**](#general-structure)
-
-[**Learning Outcomes	3**](#learning-outcomes)
-
-[**Course Details	4**](#course-details)
-
-[Unit 0: Prework (50 hours)	4](#unit-0:-prework-\(50-hours\))  
-**Module 1**
-
-[Unit 1: Frontend Fundamentals (40 hours)	5](#unit-1:-frontend-fundamentals-\(40-hours\))
-
-[Unit 2: JavaScript Deep Dive (40 hours)	6](#unit-2:-javascript-deep-dive-\(40-hours\))
-
-[Project 1: JavaScript Game (40 hours)	7](#project-1:-javascript-game-\(40-hours\))  
-**Module 2**
-
-[Unit 3: React Basics (40 hours)	7](#unit-3:-react-basics-\(40-hours\))
-
-[Unit 4: React Advanced and front/back integration (48 hours)	8](#unit-4:-react-advanced-and-front/back-integration-\(48-hours\))
-
-[Project 2: React App (72 hours)	9](#project-2:-react-app-\(72-hours\))  
-**Module 3**
-
-[Unit 5: Backend & Full-stack Fundamentals (72 hours)	9](#unit-5:-backend-&-full-stack-fundamentals-\(72-hours\))
-
-[Project 3: Full-stack MERN App (88 hours)	1](#project-3:-full-stack-mern-app-\(88-hours\))0  
-**Module 4**
-
-[Unit 6: SQL & TypeScript Foundations (40 hours)	11](#unit-6:-sql-&-typescript-foundations-\(40-hours\))
-
-[Unit 7: Modern Full-Stack applications with Next.js and TypeScript (48 hours)	12](#unit-7:-modern-full-stack-applications-with-next.js-and-typescript-\(48-hours\))
-
-[Project 4: Full-stack App with Next.js and TypeScript (72 hours)	13](#project-4:-full-stack-app-with-next.js-and-typescript-\(72-hours\))
+- [Course Duration](#course-duration)
+- [Course Overview](#course-overview)
+- [General Structure](#general-structure)
+- [Learning Outcomes](#learning-outcomes)
+- [Course Details](#course-details)
+  - [Unit 0: Prework (50 hours)](#unit-0-prework-50-hours)
+  - [Module 1](#module-1)
+    - [Unit 1: Frontend Fundamentals (40 hours)](#unit-1-frontend-fundamentals-40-hours)
+    - [Unit 2: JavaScript Deep Dive (40 hours)](#unit-2-javascript-deep-dive-40-hours)
+    - [Project 1: JavaScript Game (40 hours)](#project-1-javascript-game-40-hours)
+  - [Module 2](#module-2)
+    - [Unit 3: React Basics (40 hours)](#unit-3-react-basics-40-hours)
+    - [Unit 4: React Advanced and front/back integration (48 hours)](#unit-4-react-advanced-and-frontback-integration-48-hours)
+    - [Project 2: React App (72 hours)](#project-2-react-app-72-hours)
+  - [Module 3](#module-3)
+    - [Unit 5: Backend & Full-stack Fundamentals (72 hours)](#unit-5-backend-full-stack-fundamentals-72-hours)
+    - [Project 3: Full-stack MERN App (88 hours)](#project-3-full-stack-mern-app-88-hours)
+  - [Module 4](#module-4)
+    - [Unit 6: SQL & TypeScript Foundations (40 hours)](#unit-6-sql-typescript-foundations-40-hours)
+    - [Unit 7: Modern Full-Stack applications with Next.js and TypeScript (48 hours)](#unit-7-modern-full-stack-applications-with-nextjs-and-typescript-48-hours)
+    - [Project 4: Full-stack App with Next.js and TypeScript (72 hours)](#project-4-full-stack-app-with-nextjs-and-typescript-72-hours)
 
 ## **Course Duration** {#course-duration}
 

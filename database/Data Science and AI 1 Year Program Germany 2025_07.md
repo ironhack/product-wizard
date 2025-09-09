@@ -4,29 +4,18 @@
 
 **Table of contents**
 
-**[Course Duration	2](#heading=h.6uwnkk1dorx9)**
-
-[**Course Overview	2**](#course-overview)
-
-[**Learning Outcomes	3**](#learning-outcomes)
-
-[**Course Details	4**](#course-details)
-
-[Module 1: Introduction to Programming and Data Engineering Fundamentals (6 weeks)	4](#module-1:-introduction-to-programming-and-data-engineering-fundamentals-\(6-weeks\))
-
-[Module 2: Advanced Programming and Database Management (7 weeks)	5](#module-2:-advanced-programming-and-database-management-\(7-weeks\))
-
-[Module 3: Data Analytics and Preprocessing Machine Learning Fundamentals (6 weeks)	6](#module-3:-data-analytics-and-preprocessing-\(6-weeks\))
-
-[Module 4: Data Visualization and Business Intelligence (6 weeks)	7](#module-4:-data-visualization-and-business-intelligence-\(6-weeks\))
-
-[Module 5: Advanced Machine Learning and AI Concepts Classic Machine Learning (5 weeks)	8](#module-5:-classic-machine-learning-\(5-weeks\))
-
-[Module 6: AI Models and Integration Applied Machine Learning and AI (6 weeks)	9](#module-6:-applied-machine-learning-and-ai-\(6-weeks\))
-
-[Module 7: Machine Learning Operationalization (5 weeks)	10](#module-7:-machine-learning-operationalization-\(5-weeks\))
-
-[Capstone Project (4.2 weeks)	11](#capstone-project-\(4.2-weeks\))
+ - [Course Duration](#course-duration)
+ - [Course Overview](#course-overview)
+ - [Learning Outcomes](#learning-outcomes)
+ - [Course Details](#course-details)
+   - [Module 1: Introduction to Programming and Data Engineering Fundamentals (6 weeks)](#module-1-introduction-to-programming-and-data-engineering-fundamentals-6-weeks)
+   - [Module 2: Advanced Programming and Database Management (7 weeks)](#module-2-advanced-programming-and-database-management-7-weeks)
+   - [Module 3: Data Analytics and Preprocessing (6 weeks)](#module-3-data-analytics-and-preprocessing-6-weeks)
+   - [Module 4: Data Visualization and Business Intelligence (6 weeks)](#module-4-data-visualization-and-business-intelligence-6-weeks)
+   - [Module 5: Classic Machine Learning (5 weeks)](#module-5-classic-machine-learning-5-weeks)
+   - [Module 6: Applied Machine Learning and AI (6 weeks)](#module-6-applied-machine-learning-and-ai-6-weeks)
+   - [Module 7: Machine Learning Operationalization (5 weeks)](#module-7-machine-learning-operationalization-5-weeks)
+   - [Capstone Project (4.2 weeks)](#capstone-project-42-weeks)
 
 Reminder: [Career coaching sessions](https://docs.google.com/document/d/1dlS_fEenfKQ9bhAdcov0-6xe47h-SHAf96cRSAQpCyc/edit?usp=sharing)
 
@@ -38,7 +27,7 @@ Reminder: [Career coaching sessions](https://docs.google.com/document/d/1dlS_fEe
 
 The program spans one year, encompassing 226 working days with a total of 1,582 instructional hours. This comprehensive course is designed to equip participants with the necessary Data Science, Machine Learning, and AI skills, starting from fundamental concepts and progressing to advanced applications. The curriculum ensures a balanced mix of theoretical knowledge and practical hands-on experience, preparing participants for successful careers in the tech industry.
 
-## **Course Overview** {#course-overview}
+## **Course Overview**
 
 The Data Science, Machine Learning, and AI Master Program is crafted to transform beginners into proficient data scientists and AI specialists, ready to navigate the complex and ever-evolving landscape of technology with confidence and expertise.
 
@@ -57,7 +46,7 @@ By the end of this intensive master program, participants will have developed a 
 * **Tools Used:** Python, R, SQL, NoSQL databases, Pandas, NumPy, SciPy, TensorFlow, Keras, PyTorch, Matplotlib, Seaborn, Plotly, Power BI, Tableau, Git, GitHub, Docker, AWS, Azure, Google Cloud.  
 * **Feedback Mechanism:** Continuous feedback during lab sessions, peer reviews during projects, and formal evaluations via quizzes and lab assignments.
 
-##  **Learning Outcomes** {#learning-outcomes}
+##  **Learning Outcomes**
 
 By the end of this course, participants will be able to:
 
@@ -72,9 +61,9 @@ By the end of this course, participants will be able to:
 * Follow Agile and Lean methodologies for effective project management. Utilize software development best practices such as KISS, YAGNI, DRY, and SOC to develop clean, modular, and efficient software.  
 * Apply all their acquired knowledge and skills in a comprehensive capstone project, demonstrating their ability to develop, test, and deploy AI-driven solutions.
 
-##  **Course Details** {#course-details}
+##  **Course Details**
 
-### **Module 1: Introduction to Programming and Data Engineering Fundamentals (6 weeks)** {#module-1:-introduction-to-programming-and-data-engineering-fundamentals-(6-weeks)}
+### **Module 1: Introduction to Programming and Data Engineering Fundamentals (6 weeks)**
 
 **Objective:** Equip participants with essential computational thinking, problem-solving abilities, and foundational programming skills.
 
@@ -92,7 +81,7 @@ By the end of this course, participants will be able to:
 * 2x Assessments  
 * 1x Project
 
-###  **Module 2: Advanced Programming and Database Management (7 weeks)** {#module-2:-advanced-programming-and-database-management-(7-weeks)}
+###  **Module 2: Advanced Programming and Database Management (7 weeks)**
 
 **Objective:** Provide in-depth knowledge and skills in advanced programming and comprehensive database management. Introduce full-stack development using Node.js for the backend and Angular for the frontend.
 
@@ -112,7 +101,7 @@ By the end of this course, participants will be able to:
 * 2x Assessments  
 * 1x Project
 
-### **Module 3: Data Analytics and Preprocessing  (6 weeks)** {#module-3:-data-analytics-and-preprocessing-(6-weeks)}
+### **Module 3: Data Analytics and Preprocessing  (6 weeks)**
 
 **Objective:** Provide a solid foundation in the mathematical and statistical principles critical for machine learning, which will be used in the following modules. Cover the full data analytics circle: data gathering, wrangling, and preprocessing.
 
@@ -130,7 +119,7 @@ Practice & Assessment:
 
 ### 
 
-### **Module 4: Data Visualization and Business Intelligence (6 weeks)** {#module-4:-data-visualization-and-business-intelligence-(6-weeks)}
+### **Module 4: Data Visualization and Business Intelligence (6 weeks)**
 
 **Objective:** Equip participants with comprehensive skills in data visualization and business intelligence. Emphasize deriving insights from data and develop advanced frontend skills using Angular to create dynamic and interactive dashboards.
 
@@ -149,7 +138,7 @@ Practice & Assessment:
 
 ### 
 
-### **Module 5: Classic Machine Learning (5 weeks)** {#module-5:-classic-machine-learning-(5-weeks)}
+### **Module 5: Classic Machine Learning (5 weeks)**
 
 **Objective:** Provide foundational knowledge in traditional machine learning techniques.
 
@@ -168,7 +157,7 @@ Practice & Assessment:
 
 ### 
 
-### **Module 6: Applied Machine Learning and AI (6 weeks)** {#module-6:-applied-machine-learning-and-ai-(6-weeks)}
+### **Module 6: Applied Machine Learning and AI (6 weeks)**
 
 **Objective:** Deepen participants' knowledge in advanced machine learning and AI technologies, focusing on cutting-edge models and applications. This module provides hands-on experience with large language models, speech models, and vision models, using tools like HuggingFace to tackle complex problems in NLP, computer vision, and speech recognition.
 
@@ -189,7 +178,7 @@ Practice & Assessment:
 
 ###  
 
-### **Module 7: Machine Learning Operationalization (5 weeks)** {#module-7:-machine-learning-operationalization-(5-weeks)}
+### **Module 7: Machine Learning Operationalization (5 weeks)**
 
 **Objective:** Ensure comprehensive knowledge and skills for operationalizing machine learning models in cloud environments.
 
@@ -211,7 +200,7 @@ Practice & Assessment:
 
 ### 
 
-### **Capstone Project (4.2 weeks)** {#capstone-project-(4.2-weeks)}
+### **Capstone Project (4.2 weeks)**
 
 **Objective:** Synthesize and apply the comprehensive range of skills learned throughout the course into a complete data science and AI project.
 

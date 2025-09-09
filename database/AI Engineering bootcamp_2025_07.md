@@ -3,25 +3,16 @@ Course contents
 
 **Table of contents**
 
-[Unit 0: Prework (Introduction to AI, ML, Python, Git & GitHub, and Tool Installation)	3](#unit-0:-prework-\(introduction-to-ai,-ml,-python,-git-&-github,-and-tool-installation\))
-
-[Unit 1: Python Fundamentals and Data Handling	4](#unit-1:-python-fundamentals-and-data-handling)
-
-[Unit 2: Introduction to AI and Machine Learning	5](#unit-2:-introduction-to-ai-and-machine-learning)
-
-[Unit 3: Deep Learning Concepts & Project 1	6](#unit-3:-deep-learning-concepts-&-project-1)
-
-[Unit 4: Natural Language Processing (NLP) & Project 2	7](#unit-4:-natural-language-processing-\(nlp\)-&-project-2)
-
-[Unit 5: Generative AI and Prompt Engineering	8](#unit-5:-generative-ai-and-prompt-engineering)
-
-[Unit 6: MLOps & Project 3	9](#unit-6:-mlops-intro-&-project-3)
-
-[Unit 7: Optimizing LLMs with LangChain	10](#unit-7:-optimizing-llms-with-langchain)
-
-[Unit 8: Advanced NLP Evaluation and Search Techniques	11](#unit-8:-ai-agents-&-evaluation-+-capstone/final-project-kick-off)
-
-[Unit 9 (Project 3): Capstone/final project	12](#unit-9-\(project-3\):-capstone/final-project)
+ - [Unit 0: Prework (Introduction to AI, ML, Python, Git & GitHub, and Tool Installation)](#unit-0-prework-introduction-to-ai-ml-python-git-github-and-tool-installation)
+ - [Unit 1: Python Fundamentals and Data Handling](#unit-1-python-fundamentals-and-data-handling)
+ - [Unit 2: Introduction to AI and Machine Learning](#unit-2-introduction-to-ai-and-machine-learning)
+ - [Unit 3: Deep Learning Concepts & Project 1](#unit-3-deep-learning-concepts-project-1)
+ - [Unit 4: Natural Language Processing (NLP) & Project 2](#unit-4-natural-language-processing-nlp-project-2)
+ - [Unit 5: Generative AI and Prompt Engineering](#unit-5-generative-ai-and-prompt-engineering)
+ - [Unit 6: MLOps & Project 3](#unit-6-mlops-project-3)
+ - [Unit 7: Optimizing LLMs with LangChain](#unit-7-optimizing-llms-with-langchain)
+ - [Unit 8: AI Agents & Evaluation + Capstone/final project kick off](#unit-8-ai-agents-evaluation-capstonefinal-project-kick-off)
+ - [Unit 9 (Project 3): Capstone/final project](#unit-9-project-3-capstonefinal-project)
 
 # 
 
@@ -48,7 +39,7 @@ This 400-hour course provides beginners with a strong foundation in AI Engineeri
 * Collaborate effectively in team settings using Agile methodologies.  
 * Develop skills in presenting AI projects, articulating methodologies, and showcasing results professionally.
 
-## **Unit 0: Prework (Introduction to AI, ML, Python, Git & GitHub, and Tool Installation)** {#unit-0:-prework-(introduction-to-ai,-ml,-python,-git-&-github,-and-tool-installation)}
+## **Unit 0: Prework (Introduction to AI, ML, Python, Git & GitHub, and Tool Installation)**
 
 **Objective:** 
 
@@ -79,7 +70,7 @@ This unit introduces AI, ML, and Python programming while ensuring students are 
 * Git exercises & assessments  
 * Tool installation tasks
 
-## **Unit 1: Python Fundamentals and Data Handling** {#unit-1:-python-fundamentals-and-data-handling}
+## **Unit 1: Python Fundamentals and Data Handling**
 
 **Objective:**
 
@@ -111,7 +102,7 @@ This unit strengthens students’ Python programming skills and focuses on data 
 * 1x Assessment  
 * Bonus exercises
 
-##  **Unit 2: Introduction to AI and Machine Learning** {#unit-2:-introduction-to-ai-and-machine-learning}
+##  **Unit 2: Introduction to AI and Machine Learning**
 
 **Objective:**
 
@@ -142,7 +133,7 @@ In this unit, students will be introduced to supervised and unsupervised machine
 * 1x Mini-project (IronKaggle)  
 * Bonus exercises
 
-## **Unit 3: Deep Learning Concepts & Project 1** {#unit-3:-deep-learning-concepts-&-project-1}
+## **Unit 3: Deep Learning Concepts & Project 1**
 
 **Objective:**
 
@@ -177,7 +168,7 @@ This unit introduces students to deep learning, neural networks, and convolution
 * Bonus exercises/tutorials  
 * 1x Bonus project
 
-##  **Unit 4: Natural Language Processing (NLP) & Project 2** {#unit-4:-natural-language-processing-(nlp)-&-project-2}
+##  **Unit 4: Natural Language Processing (NLP) & Project 2**
 
 **Objective:** 
 
@@ -213,7 +204,7 @@ This unit introduces key NLP techniques, including embeddings, transformers, and
 * 1x Assessment  
 * Bonus exercises/tutorials
 
-##  **Unit 5: Generative AI and Prompt Engineering** {#unit-5:-generative-ai-and-prompt-engineering}
+##  **Unit 5: Generative AI and Prompt Engineering**
 
 **Objective:**
 
@@ -249,7 +240,7 @@ This unit explores Generative AI and Prompt Engineering, focusing on fine-tuning
 * 1x Assessment  
 * Bonus exercises/tutorials
 
-## **Unit 6: MLOps Intro & Project 3** {#unit-6:-mlops-intro-&-project-3}
+## **Unit 6: MLOps Intro & Project 3**
 
 **Objective:**
 
@@ -285,7 +276,7 @@ This unit introduces students to MLOps, covering deployment strategies, experime
 * 1x Project  
 * Bonus exercises/tutorials
 
-## **Unit 7: Optimizing LLMs with LangChain** {#unit-7:-optimizing-llms-with-langchain}
+## **Unit 7: Optimizing LLMs with LangChain**
 
 **Objective:**
 
@@ -322,7 +313,7 @@ This unit focuses on optimizing and utilizing large language models (LLMs) with 
 * 3x Optional Labs  
 * 1x Assessment
 
-## **Unit 8: AI Agents & Evaluation \+ Capstone/final project kick off** {#unit-8:-ai-agents-&-evaluation-+-capstone/final-project-kick-off}
+## **Unit 8: AI Agents & Evaluation + Capstone/final project kick off**
 
 **Objective:**
 
@@ -359,7 +350,7 @@ This unit explores implementing and evaluating advanced AI systems that combine 
 * 4x Mandatory Labs
 
 
-## **Unit 9 (Project 3): Capstone/final project** {#unit-9-(project-3):-capstone/final-project}
+## **Unit 9 (Project 3): Capstone/final project**
 
 **Objective:**
 

@@ -2,43 +2,25 @@ Course content
 **UX/UI Design**
 
 **Table of contents**
-
-[**Course Duration	2**](#course-duration)
-
-[**Course Overview	2**](#course-overview)
-
-[**General Structure	3**](#general-structure)
-
-[**Learning Outcomes	3**](#learning-outcomes)
-
-[**Course Details	4**](#course-details)
-
-[Unit 0: Prework (50 hrs)	4](#unit-0:-prework-\(50-hours\))
-
-[Unit 1: Foundations of User Research (](#unit-1:-foundations-of-user-research-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)	5](#unit-1:-foundations-of-user-research-\(40-hours\))
-
-[Unit 2: Business analysis (](#unit-2:-business-analysis-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)	6](#unit-2:-business-analysis-\(40-hours\))
-
-[Unit 3: Information Architecture, UI & Responsive Design (](#unit-3:-information-architecture,-ui-&-responsive-design-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)	7](#unit-3:-information-architecture,-ui-&-responsive-design-\(40-hours\))
-
-[Unit 4: Usability Testing & Visual Design  (](#unit-4:-usability-testing-&-visual-design-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)	8](#unit-4:-usability-testing-&-visual-design-\(40-hours\))
-
-[Unit 5: Native App Design, Design Systems & Heuristics (](#unit-9:-design-implementation-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)](#unit-9:-design-implementation-\(40-hours\))	9
-
-[Unit 6: UX Strategy & Design Principles  (](#unit-9:-design-implementation-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)	10](#unit-9:-design-implementation-\(40-hours\))
-
-[Unit 7: Data Visualization, Dashboard & Landing Page Design(](#unit-9:-design-implementation-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)](#unit-9:-design-implementation-\(40-hours\))	11
-
-[Unit 8: Project Management, Accessibility & Inclusive design(](#unit-9:-design-implementation-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)](#unit-9:-design-implementation-\(40-hours\))	12
-
-[Unit 9: Design Implementation  (](#unit-9:-design-implementation-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)](#unit-9:-design-implementation-\(40-hours\))	14
-
-[Unit 10: Emerging UX/UI Trends & Innovations (](#unit-9:-design-implementation-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)](#unit-9:-design-implementation-\(40-hours\))	15
-
-[Unit 11: AR, VR & Gamification  (](#unit-9:-design-implementation-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)](#unit-9:-design-implementation-\(40-hours\))	15
-
-[Unit 12-14:](#unit-9:-design-implementation-\(40-hours\)) Client-based Final [Project  (](#unit-12-14-:-client-based-final-project-\(120-hours\))12[0](#unit-0:-prework-\(50-hours\)) [hrs)](#unit-12-14-:-client-based-final-project-\(120-hours\))	16  
-[Unit 15: Personal Portfolios & Job Preparation  (](#unit-9:-design-implementation-\(40-hours\))[40](#unit-0:-prework-\(50-hours\)) [hrs)](#unit-9:-design-implementation-\(40-hours\))	18
+- [Course Duration](#course-duration)
+- [Course Overview](#course-overview)
+- [General Structure](#general-structure)
+- [Learning Outcomes](#learning-outcomes)
+- [Course Details](#course-details)
+  - [Unit 0: Prework (50 hours)](#unit-0-prework-50-hours)
+  - [Unit 1: Foundations of User Research (40 hours)](#unit-1-foundations-of-user-research-40-hours)
+  - [Unit 2: Business analysis (40 hours)](#unit-2-business-analysis-40-hours)
+  - [Unit 3: Information Architecture, UI & Responsive Design (40 hours)](#unit-3-information-architecture-ui-responsive-design-40-hours)
+  - [Unit 4: Usability Testing & Visual Design (40 hours)](#unit-4-usability-testing-visual-design-40-hours)
+  - [Unit 5: Native App Design, Design Systems & Heuristics (40 hours)](#unit-5-native-app-design-design-systems-heuristics-40-hours)
+  - [Unit 6: UX Strategy & Design Principles (40 hours)](#unit-6-ux-strategy-design-principles-40-hours)
+  - [Unit 7: Data visualization, Dashboard & Landing Page Design (40 hours)](#unit-7-data-visualization-dashboard-landing-page-design-40-hours)
+  - [Unit 8: Project Management, Accessibility & Inclusive design (40 hours)](#unit-8-project-management-accessibility-inclusive-design-40-hours)
+  - [Unit 9: Design Implementation (40 hours)](#unit-9-design-implementation-40-hours)
+  - [Unit 10: Emerging UX/UI Trends & Innovations (40 hours)](#unit-10-emerging-uxui-trends-innovations-40-hours)
+  - [Unit 11: Augmented Reality, Virtual Reality & Gamification (40 hours)](#unit-11-augmented-reality-virtual-reality-gamification-40-hours)
+  - [Unit 12-14: Client Based Final Project (120 hours)](#unit-12-14-client-based-final-project-120-hours)
+  - [Unit 15: Personal Portfolios & Job Preparation (40 hours)](#unit-15-personal-portfolios-job-preparation-40-hours)
 
 ## **Course Duration** {#course-duration}
 
@@ -90,7 +72,7 @@ By the end of this course, participants will be able to:
 
 ## **Course Details** {#course-details}
 
-### **Unit 0: Prework (50 hours)**  {#unit-0:-prework-(50-hours)}
+### **Unit 0: Prework (50 hours)**  {#unit-0-prework-50-hours}
 
 **Objective**: This unit lays the foundation for UX/UI design by introducing core principles, methodologies, and tools. Students will develop a problem-solving mindset through hands-on labs in Design Thinking, UX/UI fundamentals, and basic HTML & CSS. By the end of this unit, students will be familiar with Figma, design workflows, and key research techniques, preparing them for the main course.
 
@@ -107,7 +89,7 @@ By the end of this course, participants will be able to:
 * 2x Challenges/Projects  
 * 3x Extras \- HTML & CSS
 
-### **Unit 1: Foundations of User Research (40 hours)**  {#unit-1:-foundations-of-user-research-(40-hours)}
+### **Unit 1: Foundations of User Research (40 hours)**  {#unit-1-foundations-of-user-research-40-hours}
 
 **Objective**: This unit introduces user-centered design and the importance of UX research in solving real-world problems. Students will conduct surveys, interviews, and affinity mapping to extract insights and create personas, empathy maps, and user journey maps. By the end of this unit, students will be able to define clear problem statements and make research-backed design decisions.
 
@@ -132,7 +114,7 @@ By the end of this course, participants will be able to:
 * 1x Project (Wicked Problems)  
 * 1x Portfolio workshop
 
-### **Unit 2: Business analysis (40 hours)**  {#unit-2:-business-analysis-(40-hours)}
+### **Unit 2: Business analysis (40 hours)**  {#unit-2-business-analysis-40-hours}
 
 **Objective**: Expanding on UX research, this unit focuses on business strategy, competitor analysis, and stakeholder alignment. Students will conduct business and user interviews, explore market trends, and build low-fidelity wireframes to translate research into early design concepts. This unit also introduces concept testing and information architecture, bridging research and UI design.
 
@@ -157,7 +139,7 @@ By the end of this course, participants will be able to:
 * 1x Project Presentation (Wicked Problems)  
 * 1x Project (Responsive E-Commerce)
 
-### **Unit 3: Information Architecture, UI & Responsive Design (40 hours)**  {#unit-3:-information-architecture,-ui-&-responsive-design-(40-hours)}
+### **Unit 3: Information Architecture, UI & Responsive Design (40 hours)**  {#unit-3-information-architecture-ui-responsive-design-40-hours}
 
 **Objective**: This unit transitions from research to structuring digital products. Students will apply information architecture principles, organize content using sitemaps, and create mid-fidelity wireframes. They will also begin UI design, learning about grid systems, responsive design, and interaction patterns. By the end of this unit, students will have their first structured and testable UI prototypes.
 
@@ -181,7 +163,7 @@ By the end of this course, participants will be able to:
 * 1x Lab  
 * 1x Project (Responsive E-Commerce)
 
-### **Unit 4: Usability Testing & Visual Design (40 hours)**  {#unit-4:-usability-testing-&-visual-design-(40-hours)}
+### **Unit 4: Usability Testing & Visual Design (40 hours)**  {#unit-4-usability-testing-visual-design-40-hours}
 
 **Objective**: This unit introduces visual design principles and usability testing. Students will refine their wireframes by applying Gestalt principles, CRAP (Contrast, Repetition, Alignment, Proximity), typography, and color theory. They will also conduct usability tests and desirability studies to validate and improve their UI designs. By the end of this unit, students will have developed high-fidelity screens and interactive prototypes.
 
@@ -310,7 +292,7 @@ This unit integrates project management and accessibility, preparing students fo
 
 ### 
 
-### **Unit 9: Design Implementation (40 hours)**  {#unit-9:-design-implementation-(40-hours)}
+### **Unit 9: Design Implementation (40 hours)**  {#unit-9-design-implementation-40-hours}
 
 **Objective:**  
 Bridging the gap between design and development, this unit teaches students HTML & CSS fundamentals and best practices for design handoff to developers. They will refine their designs using Figma’s Dev Mode, flexbox, and responsive design techniques. By the end of this unit, students will be able to collaborate effectively with developers and implement basic front-end UI components.
@@ -375,7 +357,7 @@ This unit introduces AR, VR, and gamification, focusing on how immersive experie
 
 ### 
 
-### **Unit 12-14 : Client Based Final Project  (120 hours)**  {#unit-12-14-:-client-based-final-project-(120-hours)}
+### **Unit 12-14 : Client Based Final Project  (120 hours)**  {#unit-12-14-client-based-final-project-120-hours}
 
 **Objective**: The culmination of the UX/UI design course is represented in the Final Project unit, where participants synthesize and apply all the knowledge, techniques, and skills they've acquired throughout the course into a comprehensive, professional-level project. This unit is designed to have client collaboration, real-world UX/UI design scenarios and challenges, providing participants with the opportunity to demonstrate their proficiency in both design and soft skills.
 

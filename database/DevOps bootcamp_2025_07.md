@@ -3,29 +3,18 @@ Course contents
 
 **Table of contents**
 
-[Unit 0: Prework	3](#unit-0:-prework)
-
-[Unit 1: Fundamentals of DevOps and Scrum Framework	3](#unit-1:-fundamentals-of-devops-and-scrum-framework)
-
-[Unit 2: AWS Cloud Computing	4](#unit-2:-aws-cloud-computing)
-
-[Unit 3: Infrastructure as Code (IaC) with Terraform and Ansible	5](#unit-3:-infrastructure-as-code-\(iac\)-with-terraform-and-ansible)
-
-[Unit 4: Containerization with Docker	6](#unit-4:-containerization-with-docker)
-
-[Project 1: Multi-Stack DevOps Infrastructure Automation	7](#project-1:-multi-stack-devops-infrastructure-automation)
-
-[Unit 5: Kubernetes Orchestration	8](#unit-5:-kubernetes-orchestration)
-
-[Unit 6: CI/CD and Managed Kubernetes with Amazon EKS	9](#unit-6:-ci/cd-and-managed-kubernetes-with-amazon-eks)
-
-[Project 2: End-to-End Deployment with Amazon EKS and CI/CD	10](#project-2:-end-to-end-deployment-with-amazon-eks-and-ci/cd)
-
-[Unit 7: Advanced Azure Cloud Operations and Infrastructure Automation	11](#unit-7:-advanced-azure-cloud-operations-and-infrastructure-automation)
-
-[Unit 8: Azure Governance, Kubernetes on Azure (AKS), and Monitoring with Prometheus & Grafana	12](#unit-8:-azure-governance,-kubernetes-on-azure-\(aks\),-and-monitoring-with-prometheus-&-grafana)
-
-[Project 3 (Final Capstone): End-to-End DevOps Deployment	13](#project-3-\(final-capstone\):-end-to-end-devops-deployment)
+ - [Unit 0: Prework](#unit-0-prework)
+ - [Unit 1: Fundamentals of DevOps and Scrum Framework](#unit-1-fundamentals-of-devops-and-scrum-framework)
+ - [Unit 2: AWS Cloud Computing](#unit-2-aws-cloud-computing)
+ - [Unit 3: Infrastructure as Code (IaC) with Terraform and Ansible](#unit-3-infrastructure-as-code-iac-with-terraform-and-ansible)
+ - [Unit 4: Containerization with Docker](#unit-4-containerization-with-docker)
+ - [Project 1: Multi-Stack DevOps Infrastructure Automation](#project-1-multi-stack-devops-infrastructure-automation)
+ - [Unit 5: Kubernetes Orchestration](#unit-5-kubernetes-orchestration)
+ - [Unit 6: CI/CD and Managed Kubernetes with Amazon EKS](#unit-6-cicd-and-managed-kubernetes-with-amazon-eks)
+ - [Project 2: End-to-End Deployment with Amazon EKS and CI/CD](#project-2-end-to-end-deployment-with-amazon-eks-and-cicd)
+ - [Unit 7: Advanced Azure Cloud Operations and Infrastructure Automation](#unit-7-advanced-azure-cloud-operations-and-infrastructure-automation)
+ - [Unit 8: Azure Governance, Kubernetes on Azure (AKS), and Monitoring with Prometheus & Grafana](#unit-8-azure-governance-kubernetes-on-azure-aks-and-monitoring-with-prometheus-grafana)
+ - [Project 3 (Final Capstone): End-to-End DevOps Deployment](#project-3-final-capstone-end-to-end-devops-deployment)
 
 This 400-hour course (comprising 40 hours of prework and 360 hours of instruction) provides a comprehensive introduction to DevOps, enabling students to master the skills necessary for modern software development and operations. Covering topics from Linux fundamentals to monitoring and observability, students will work with industry-standard tools across infrastructure provisioning, containerization, orchestration, and continuous integration and deployment. The program concludes with a capstone project where students apply what they’ve learned in a realistic DevOps scenario.
 
@@ -44,7 +33,7 @@ This 400-hour course (comprising 40 hours of prework and 360 hours of instructio
 11. Receive and integrate feedback to improve DevOps solutions.  
 12. Demonstrate proficiency in a final capstone project, showcasing the ability to apply DevOps principles to real-world problems.
 
-## **Unit 0: Prework** {#unit-0:-prework}
+## **Unit 0: Prework**
 
 **Objective:**
 
@@ -69,7 +58,7 @@ The prework phase is designed to introduce students to the foundational elements
 * AWS  
 * Azure
 
-## **Unit 1: Fundamentals of DevOps and Scrum Framework** {#unit-1:-fundamentals-of-devops-and-scrum-framework}
+## **Unit 1: Fundamentals of DevOps and Scrum Framework**
 
 **Objective:** By the end of this unit, students should be able to explain core DevOps principles, use Git for version control, navigate Linux environments, and collaborate using agile practices such as Scrum.
 
@@ -91,7 +80,7 @@ The prework phase is designed to introduce students to the foundational elements
 * Linux/Ubuntu CLI  
 * Trello or Jira for agile task management
 
-##  **Unit 2: AWS Cloud Computing** {#unit-2:-aws-cloud-computing}
+##  **Unit 2: AWS Cloud Computing**
 
 **Objective:** Use core AWS services to architect, provision, and manage secure and scalable infrastructure environments essential for DevOps operations.
 
@@ -121,7 +110,7 @@ The prework phase is designed to introduce students to the foundational elements
 * Lambda, CloudFormation  
 * Python & boto3 (for automation)
 
-## **Unit 3: Infrastructure as Code (IaC) with Terraform and Ansible** {#unit-3:-infrastructure-as-code-(iac)-with-terraform-and-ansible}
+## **Unit 3: Infrastructure as Code (IaC) with Terraform and Ansible**
 
 **Objective:** Automate infrastructure provisioning and configuration management using Terraform for cloud environments and Ansible for system automation.
 
@@ -149,7 +138,7 @@ The prework phase is designed to introduce students to the foundational elements
 * YAML  
 * Jinja2 templates
 
-## **Unit 4: Containerization with Docker** {#unit-4:-containerization-with-docker}
+## **Unit 4: Containerization with Docker**
 
 **Objective:** Containerize and manage applications using Docker to build scalable, portable, and isolated environments suitable for modern deployment workflows.
 
@@ -178,7 +167,7 @@ The prework phase is designed to introduce students to the foundational elements
 
 ## 
 
-## **Project 1: Multi-Stack DevOps Infrastructure Automation** {#project-1:-multi-stack-devops-infrastructure-automation}
+## **Project 1: Multi-Stack DevOps Infrastructure Automation**
 
 **Objective:** Apply the skills acquired in the previous units covering DevOps principles, version control, cloud provisioning with AWS, infrastructure automation, and containerization to deploy a full-stack microservices application using real-world tools and workflows.
 
@@ -190,7 +179,7 @@ The prework phase is designed to introduce students to the foundational elements
 * A deployed system demonstrating container orchestration and communication across services in AWS.  
 * A 15-minute live demo and presentation simulating a final sprint review, showcasing team workflow and technical implementation.
 
-## **Unit 5: Kubernetes Orchestration** {#unit-5:-kubernetes-orchestration}
+## **Unit 5: Kubernetes Orchestration**
 
 **Objective:** Deploy and manage containerized applications using Kubernetes, understanding its architecture and core components for scalable orchestration.
 
@@ -218,7 +207,7 @@ This unit introduces students to Kubernetes, the industry-standard system for au
 * Minikube  
 * k9s
 
-##  **Unit 6: CI/CD and Managed Kubernetes with Amazon EKS** {#unit-6:-ci/cd-and-managed-kubernetes-with-amazon-eks}
+##  **Unit 6: CI/CD and Managed Kubernetes with Amazon EKS**
 
 **Objective:** By the end of this unit, students will be able to manage Kubernetes clusters on Amazon Web Services using EKS, apply advanced deployment strategies (e.g., Ingress, PVCs, LoadBalancers), and implement CI/CD pipelines using GitHub Actions and SonarQube for quality control.
 
@@ -245,7 +234,7 @@ This unit introduces students to Kubernetes, the industry-standard system for au
 * Kubernetes  
 * Docker
 
-## **Project 2: End-to-End Deployment with Amazon EKS and CI/CD** {#project-2:-end-to-end-deployment-with-amazon-eks-and-ci/cd}
+## **Project 2: End-to-End Deployment with Amazon EKS and CI/CD**
 
 **Objective:** Apply cloud-native DevOps principles to deploy a full-stack microservices application on Amazon EKS using Kubernetes, Ingress, and GitHub Actions CI/CD.
 
@@ -262,7 +251,7 @@ This unit introduces students to Kubernetes, the industry-standard system for au
   * Access to deployed endpoints (/vote, /result)  
 * Documentation and demo walkthrough (optional)
 
-##  **Unit 7: Advanced Azure Cloud Operations and Infrastructure Automation** {#unit-7:-advanced-azure-cloud-operations-and-infrastructure-automation}
+##  **Unit 7: Advanced Azure Cloud Operations and Infrastructure Automation**
 
 **Objective:** By the end of this unit, students will be able to architect, deploy, monitor, and secure infrastructure and applications using Microsoft Azure services and Infrastructure as Code (IaC) with Terraform.
 
@@ -289,7 +278,7 @@ This unit introduces students to Kubernetes, the industry-standard system for au
 * Terraform  
 * Storage Explorer & AzCopy
 
-##  **Unit 8: Azure Governance, Kubernetes on Azure (AKS), and Monitoring with Prometheus & Grafana** {#unit-8:-azure-governance,-kubernetes-on-azure-(aks),-and-monitoring-with-prometheus-&-grafana}
+##  **Unit 8: Azure Governance, Kubernetes on Azure (AKS), and Monitoring with Prometheus & Grafana**
 
 **Objective:** By the end of this unit, students will be able to manage Kubernetes clusters in Microsoft Azure using AKS, apply governance and compliance strategies, and implement comprehensive observability using Prometheus, Grafana, and Loki.
 
@@ -322,7 +311,7 @@ This unit introduces students to Kubernetes, the industry-standard system for au
 * Azure CLI  
 * Terraform
 
-## **Project 3 (Final Capstone): End-to-End DevOps Deployment** {#project-3-(final-capstone):-end-to-end-devops-deployment}
+## **Project 3 (Final Capstone): End-to-End DevOps Deployment**
 
 **Objective:** Apply all core DevOps skills acquired throughout the course to design, build, and deploy a production-ready microservices application using best practices in automation, orchestration, monitoring, and team collaboration.
 
