@@ -1,0 +1,405 @@
+Course content  
+**UX/UI Design**
+
+**Table of contents**
+- [Course Duration](#course-duration)
+- [Course Overview](#course-overview)
+- [General Structure](#general-structure)
+- [Learning Outcomes](#learning-outcomes)
+- [Course Details](#course-details)
+  - [Unit 0: Prework (50 hours)](#unit-0-prework-50-hours)
+  - [Unit 1: Foundations of User Research (40 hours)](#unit-1-foundations-of-user-research-40-hours)
+  - [Unit 2: Business analysis (40 hours)](#unit-2-business-analysis-40-hours)
+  - [Unit 3: Information Architecture, UI & Responsive Design (40 hours)](#unit-3-information-architecture-ui-responsive-design-40-hours)
+  - [Unit 4: Usability Testing & Visual Design (40 hours)](#unit-4-usability-testing-visual-design-40-hours)
+  - [Unit 5: Native App Design, Design Systems & Heuristics (40 hours)](#unit-5-native-app-design-design-systems-heuristics-40-hours)
+  - [Unit 6: UX Strategy & Design Principles (40 hours)](#unit-6-ux-strategy-design-principles-40-hours)
+  - [Unit 7: Data visualization, Dashboard & Landing Page Design (40 hours)](#unit-7-data-visualization-dashboard-landing-page-design-40-hours)
+  - [Unit 8: Project Management, Accessibility & Inclusive design (40 hours)](#unit-8-project-management-accessibility-inclusive-design-40-hours)
+  - [Unit 9: Design Implementation (40 hours)](#unit-9-design-implementation-40-hours)
+  - [Unit 10: Emerging UX/UI Trends & Innovations (40 hours)](#unit-10-emerging-uxui-trends-innovations-40-hours)
+  - [Unit 11: Augmented Reality, Virtual Reality & Gamification (40 hours)](#unit-11-augmented-reality-virtual-reality-gamification-40-hours)
+  - [Unit 12-14: Client Based Final Project (120 hours)](#unit-12-14-client-based-final-project-120-hours)
+  - [Unit 15: Personal Portfolios & Job Preparation (40 hours)](#unit-15-personal-portfolios-job-preparation-40-hours)
+
+## **Course Duration** {#course-duration}
+
+Duration: 600 hours \+ 50 hours of prework
+
+## **Course Overview** {#course-overview}
+
+The UX/UI Design course offers a comprehensive journey into user experience and user interface design, transforming beginners into proficient designers ready to tackle real-world industry challenges.
+
+Students will start with Design Thinking, user-centered research, and business analysis, building strong problem-solving skills. They will then progress to wireframing, prototyping, and usability testing, using Figma and industry-standard tools to create intuitive and user-friendly digital experiences.
+
+Beyond research and usability, the course dives into UI design principles, including visual hierarchy, typography, color theory, and branding. Students will also explore responsive design, accessibility (WCAG), and inclusive design strategies to ensure usability across diverse audiences.
+
+As the course advances, learners will work on data visualization, dashboard design, and landing page optimization, gaining skills in metrics-driven UX. They will also explore emerging technologies such as AI-driven design, gesture-based interactions, AR, VR, and gamification to prepare for future UX trends.
+
+Throughout the bootcamp, participants will engage in collaborative projects and hands-on exercises, simulating real-world team environments and Agile workflows. The final project will involve working with a real client, integrating research, strategy, prototyping, and UI design into a professional-level case study.
+
+The course concludes with a strong career preparation phase, where students refine their UX/UI portfolios, practice mock interviews, and develop a job application strategy to successfully transition into the industry.
+
+## **General Structure** {#general-structure}
+
+* **Class Format**: Engaging mix of interactive lectures, hands-on lab sessions, collaborative projects, and individual assessments.  
+* **Materials Provided:** Lecture slides, Figma exercises, project management boards and templates, additional reading materials, and access to a Figma Education team**.**  
+* **Tools Used**: Figma, Dev Tools, HTML & CSS, Adobe Illustrator, Framer  
+* **Feedback Mechanism**: Continuous feedback during lab sessions, peer reviews during projects, and formal evaluations via project presentations. 
+
+## **Learning Outcomes** {#learning-outcomes}
+
+By the end of this course, participants will be able to:
+
+* Apply Design Thinking principles, methods, and processes to solve complex problems.  
+* Plan, execute, and present the results of UX Research, including user interviews, surveys, and usability testing.  
+* Conduct Business and Competitive Analysis to align design decisions with business objectives.  
+* Organize Information Architecture using user flows, site maps, and card-sorting techniques.  
+* Create low-fidelity and mid-fidelity wireframes to structure digital interfaces.  
+* Apply UI design principles, including typography, color theory, visual hierarchy, and branding, to create intuitive user interfaces.  
+* Use Gestalt principles and CRAP (Contrast, Repetition, Alignment, Proximity) for effective layout and design.  
+* Build interactive prototypes in Figma and refine designs using usability testing and heuristic evaluation.  
+* Write and understand HTML & CSS to collaborate with developers and support design implementation.  
+* Work effectively in Agile environments, including sprint planning, retrospectives, and standups.  
+* Implement accessibility (WCAG) and inclusive design principles to create user-friendly digital experiences.  
+* Design responsive and adaptive interfaces for different screen sizes and devices.  
+* Develop data visualizations and dashboards to effectively communicate key insights.  
+* Apply UX strategies and project management frameworks to ensure smooth collaboration and workflow.  
+* Analyze and apply emerging UX/UI trends, including AI-driven design, gesture-based interactions, and Zero UI.  
+* Design for AR, VR, and gamification to enhance user engagement.  
+* Develop a professional UX/UI portfolio showcasing case studies and hands-on projects.  
+* Prepare for job applications, networking, and interviews through mock interviews and portfolio reviews
+
+## **Course Details** {#course-details}
+
+### **Unit 0: Prework (50 hours)**  {#unit-0-prework-50-hours}
+
+**Objective**: This unit lays the foundation for UX/UI design by introducing core principles, methodologies, and tools. Students will develop a problem-solving mindset through hands-on labs in Design Thinking, UX/UI fundamentals, and basic HTML & CSS. By the end of this unit, students will be familiar with Figma, design workflows, and key research techniques, preparing them for the main course.
+
+**Key Topics:**
+
+* Prework introduction and setting up the environment/tools  
+* Design Thinking | Methods & Practice  
+* UX/UI | Theory, Tools & Practice  
+* Design Implementation
+
+**Practice & Assessment:**
+
+* 5x Labs  
+* 2x Challenges/Projects  
+* 3x Extras \- HTML & CSS
+
+### **Unit 1: Foundations of User Research (40 hours)**  {#unit-1-foundations-of-user-research-40-hours}
+
+**Objective**: This unit introduces user-centered design and the importance of UX research in solving real-world problems. Students will conduct surveys, interviews, and affinity mapping to extract insights and create personas, empathy maps, and user journey maps. By the end of this unit, students will be able to define clear problem statements and make research-backed design decisions.
+
+**Key Topics:**
+
+* Introduction to design thinking and its application in solving complex problems  
+* Fundamentals of user experience (UX) research and user-centered design (UCD)  
+* Quantitative Methods: Surveys and Affinity Diagrams  
+* Practical approaches to conducting secondary research and user interviews for gathering insights  
+* Techniques for synthesizing research data using methods like affinity diagrams and dot voting  
+* Creation and development of Empathy Maps and Mind Maps  
+* Creation and utilization of user personas to guide design decisions  
+* Development of user journey maps to understand and improve user experiences  
+* Formulation of clear and actionable problem statements based on user research  
+* Basics of using Figma for UI/UX design, including self-guided labs on shapes, text tools, fonts, images, layers and prototyping basics  
+* Ideation techniques and class activities to generate innovative design solutions  
+* Public Speaking and Slide Design to effectively communicate design ideas.
+
+**Practice & Assessment:**
+
+* 4x Labs  
+* 1x Project (Wicked Problems)  
+* 1x Portfolio workshop
+
+### **Unit 2: Business analysis (40 hours)**  {#unit-2-business-analysis-40-hours}
+
+**Objective**: Expanding on UX research, this unit focuses on business strategy, competitor analysis, and stakeholder alignment. Students will conduct business and user interviews, explore market trends, and build low-fidelity wireframes to translate research into early design concepts. This unit also introduces concept testing and information architecture, bridging research and UI design.
+
+**Key Topics:**
+
+* Creating Low-Fid Wireframes to visualize and structure interfaces  
+* Conducting and analyzing Concept Testing results  
+* Preparing and presenting a Project Presentation  
+* Taking part in a retrospective to evaluate learnings and outcomes  
+* Conducting Business and Competitive Analysis to assess market trends and competitors  
+* Holding stakeholder interviews to align design with business objectives  
+* Basics of Information Architecture and creating a Sitemap to organize and structure content effectively.  
+* Creating and understanding User Flows to enhance user experience.  
+* Carrying out user interviews to understand user needs and behaviors  
+* Optimizing design workflows with reusable Figma components  
+* Using Auto Layout in Figma for flexible and scalable designs
+
+
+**Practice & Assessment:**
+
+* 2x Labs  
+* 1x Project Presentation (Wicked Problems)  
+* 1x Project (Responsive E-Commerce)
+
+### **Unit 3: Information Architecture, UI & Responsive Design (40 hours)**  {#unit-3-information-architecture-ui-responsive-design-40-hours}
+
+**Objective**: This unit transitions from research to structuring digital products. Students will apply information architecture principles, organize content using sitemaps, and create mid-fidelity wireframes. They will also begin UI design, learning about grid systems, responsive design, and interaction patterns. By the end of this unit, students will have their first structured and testable UI prototypes.
+
+**Key Topics:**
+
+* Applying Lean Product Development principles to streamline design and development processes  
+* Techniques for Feature Prioritization and defining Minimum Viable Products (MVPs) to align with business and user needs  
+* Using Card Sorting to inform Information Architecture decisions  
+* Information Architecture  
+* Conducting User Testing to validate design decisions and improve usability  
+* Creating Mid-Fidelity Wireframes to refine structure and layout before high-fidelity design  
+* Integrating MVP concepts to align UX efforts with business goals  
+* Applying UX strategies to enhance user engagement and usability  
+* Designing responsive and adaptable web interfaces for different screen sizes and devices  
+* Understanding UI design principles, including alignment, grid systems, and design patterns for cohesive visuals  
+* Applying usability testing methodologies to refine and optimize user experience based on feedback  
+* Figma Lab: Designing responsive UI with constraints, auto-layout, and grid systems
+
+**Practice & Assessment:**
+
+* 1x Lab  
+* 1x Project (Responsive E-Commerce)
+
+### **Unit 4: Usability Testing & Visual Design (40 hours)**  {#unit-4-usability-testing-visual-design-40-hours}
+
+**Objective**: This unit introduces visual design principles and usability testing. Students will refine their wireframes by applying Gestalt principles, CRAP (Contrast, Repetition, Alignment, Proximity), typography, and color theory. They will also conduct usability tests and desirability studies to validate and improve their UI designs. By the end of this unit, students will have developed high-fidelity screens and interactive prototypes.
+
+**Key Topics:**
+
+* Defining and applying brand attributes to create cohesive and impactful digital experiences  
+* Enhancing visual hierarchy and readability through CRAP (Contrast, Repetition, Alignment, Proximity) principles  
+* Applying Gestalt principles to improve UI design and user perception  
+* Conducting usability tests to gather actionable user feedback  
+* Analyzing competitors' visual design strategies to refine brand positioning  
+* Using moodboards and brand attributes to define visual identity  
+* Measuring user perceptions through desirability testing  
+* Applying typography principles to enhance UI readability and aesthetics  
+* Using color theory to improve UI consistency and user experience  
+* Creating Style Tiles & Style Guides for scalable design systems
+
+**Practice & Assessment:**
+
+* 1x Lab  
+* 1x Project (Responsive E-Commerce)
+
+**Unit 5: Native App Design, Design Systems & Heuristics (40 hours)**
+
+**Objective:**  
+This unit advances UI design by introducing mobile app design, design systems, and heuristic evaluation. Students will follow iOS and Material Design guidelines, create scalable UI components, and apply heuristic evaluation to improve usability. By the end of this unit, they will have redesigned a mobile app using high-fidelity prototypes and documented design systems.
+
+**Key Topics:**
+
+* Transforming wireframes into high-fidelity, interactive prototypes using industry-standard tools  
+* Applying heuristic evaluation to identify usability issues and improve UI design  
+* Building scalable design systems using atomic design principles and component libraries  
+* Creating and documenting style guides to ensure consistency across designs
+
+* ### Implementing iOS Human Interface and Material Design guidelines for mobile UI
+
+* Redesigning a mobile app to improve usability, visual identity, and interaction design through strategic UI decisions
+
+**Practice & Assessment:**
+
+* 1x Project Presentation (Responsive E-Commerce)  
+* 1x Project \-Redesign a mobile app, applying high-fidelity prototyping, heuristic analysis, and platform-specific guidelines.
+
+### 
+
+### **Unit 6: UX Strategy & Design Principles  (40 hours)**
+
+### **Objective:** This unit explores UX strategy and business alignment, teaching students how to define product success, measure UX impact, and create data-driven design solutions. Students will also deepen their understanding of CRAP and Gestalt principles, reinforcing strong visual hierarchy and user engagement.
+
+### **Key Topics:**
+
+* ### Understanding the role of UX in business strategy
+
+* ### Aligning design with business goals and user needs
+
+* ### The value of UX in customer acquisition, retention, and satisfaction
+
+* Defining success metrics for UX and product design  
+* CRAP Principles (Contrast, Repetition, Alignment, Proximity)   
+* Contrast: Creating focus and improving readability by using contrasting elements  
+* Repetition: Using consistency to reinforce design identity and guide the user  
+* Alignment: Structuring elements to create cohesive, organized layouts  
+* Proximity: Grouping related elements to enhance usability and reduce cognitive load  
+* Applying Gestalt principles such as proximity, similarity, closure, continuity, and figure-ground to improve the clarity and coherence of  designs
+
+### 
+
+### **Practice & Assessment:**
+
+* ### 2x Labs
+
+* 1x Project Presentation (Redesign an App)  
+* 1x Project (Wellness App)
+
+**Unit 7: Data visualization, Dashboard & Landing Page Design (40 hours)**
+
+**Objective:**  
+This unit explores the principles of data visualization and the role of landing pages in user conversion. Participants will learn how to design intuitive and engaging dashboards, optimize landing pages to enhance user experience, and incorporate data visualization principles to effectively communicate key metrics. They will also focus on structuring landing pages for conversions and optimizing visual hierarchy for better user engagement.
+
+**Key Topics:**
+
+* Dashboard & Data Visualization: Presenting information effectively  
+* UX for Screen States: Designing for errors, loading, and empty states  
+* Landing Page Design: Structuring for engagement and conversions
+
+* ### Visual Hierarchy & Content Strategy: Emphasizing key information
+
+* ### Performance Metrics & A/B Testing: Evaluating design effectiveness
+
+### **Practice & Assessment:**
+
+* ### 1x Mini Project (Landing Page Design)
+
+* 1x Project Presentation (Wellness App)  
+* 1x Portfolio Workshop
+
+**Unit 8: Project Management, Accessibility & Inclusive Design (40 hours)**
+
+**Objective:**  
+This unit integrates project management and accessibility, preparing students for real-world UX/UI workflows. Students will learn Agile methodologies (Kanban, Scrum), how to write user stories, and how to structure design tickets. They will also apply WCAG accessibility standards, ensuring their designs are inclusive and usable by diverse audiences.. The unit also covers tools for analyzing UX performance and building a strong personal portfolio that reflects individual branding.
+
+**Key Topics:**
+
+* Understanding Agile project management methodologies, including Scrum and Kanban.  
+* The roles within Agile teams: Product Owner, Scrum Master, and Development Team.  
+* How to break down large projects into manageable tasks and sprints.  
+* Organizing work using tools like Jira, Trello, or Asana.  
+* Writing effective user stories to communicate design requirements clearly.  
+* How to create clear, actionable tickets for design and development teams.  
+* Best practices for refining tickets to ensure they are clear, measurable, and achievable.  
+* Understanding the importance of detailed specifications, acceptance criteria, and prioritization.  
+* Introduction to web accessibility standards (WCAG) and why they are crucial for inclusivity.  
+* Techniques for designing accessible websites and apps, including color contrast, screen reader compatibility, keyboard navigation, and more.  
+* An introduction to UX analytics tools, tracking user behavior, clicks, and engagement to evaluate the effectiveness of designs.  
+* Interpreting data to inform future design iterations and improve user experience.  
+* Basics of using Adobe Illustrator for creating vector-based UI assets such as icons, logos, and illustrations.  
+* How to edit and optimize video content for showcasing design processes, user flows, or product demonstrations using Cap Cut  
+* Designing a portfolio that showcases both finished projects and the design journey, with a focus on user experience and project impact  
+* Defining  personal design philosophy and showcasing it in a portfolio  
+* Branding as a designer, including logo design, color choices, and consistent visual elements.
+
+**Practice & Assessment:**
+
+* 2x Labs  
+* 1x Portfolio Website Development  
+* 1x Design Critique & Peer Review
+
+### 
+
+### **Unit 9: Design Implementation (40 hours)**  {#unit-9-design-implementation-40-hours}
+
+**Objective:**  
+Bridging the gap between design and development, this unit teaches students HTML & CSS fundamentals and best practices for design handoff to developers. They will refine their designs using Figma’s Dev Mode, flexbox, and responsive design techniques. By the end of this unit, students will be able to collaborate effectively with developers and implement basic front-end UI components.
+
+**Key Topics:**
+
+* Introduction to Design Handoff, including preparation of a Figma file for development and exploration of Figma’s Dev Mode.  
+* The basics of HTML, including common tags and their uses, provide participants with the ability to structure web content effectively.  
+* CSS fundamentals, focusing on selectors, the box model, text and color properties, and variables, enabling participants to style and layout web pages.  
+* Responsive Web Design principles, ensuring participants understand how to create designs that adapt to various screen sizes and devices.  
+* Introduction to CSS Flexbox, offering a powerful layout tool for designing flexible and efficient layouts.  
+* Whiteboard and Dev Handoff  
+* CSS Grid and Flexbox  
+* CSS Animations and Transitions
+
+**Practice & Assessment:**
+
+* 3x Labs  
+* 1x Mini Project
+
+### 
+
+### **Unit 10: Emerging UX/UI Trends & Innovations (40 hours)**
+
+**Objective:**  
+This unit explores cutting-edge UX/UI trends, preparing students to design for the future. Topics include AI-driven personalization, voice and gesture-based interactions, Zero UI, and sustainable UX. Students will analyze real-world applications of these trends and integrate them into interactive prototypes.
+
+**Key Topics:**
+
+* Zero UI & Gesture-Based Interactions: Designing for voice and movement  
+* AI & Predictive UX: How AI impacts personalization and user behavior  
+* 3D Morphism & Adaptive UI: Creating immersive experiences  
+* Emotionally Intelligent Design (EID): Enhancing user engagement with subtle interactions  
+* Ethical & Sustainable UX/UI: Designing with accessibility and inclusivity in mind
+
+**Practice & Assessment:**
+
+* 5x Mini Projects 
+
+**Unit 11: Augmented Reality, Virtual Reality & Gamification  (40 hours)**
+
+**Objective:**  
+This unit introduces AR, VR, and gamification, focusing on how immersive experiences impact UX/UI design. Students will explore conversational UX, chatbots, localization, and IoT (Internet of Things) interfaces, applying these concepts to a mini interactive project.
+
+### **Key Topics:**
+
+* ### AR & VR Fundamentals: Designing interfaces for immersive environments
+
+* ### Gamification & Engagement: Applying psychology to UX design
+
+* ### Conversational UX & Chatbots: Enhancing user interactions through AI
+
+* ### Localization & Globalization: Designing for diverse user bases
+
+* ### IoT & Smart UX: UX considerations for connected devices
+
+### **Practice & Assessment:**
+
+* ### 1x Mini Project (Internet of Things)
+
+* ### 1x Design Critique
+
+### 
+
+### **Unit 12-14 : Client Based Final Project  (120 hours)**  {#unit-12-14-client-based-final-project-120-hours}
+
+**Objective**: The culmination of the UX/UI design course is represented in the Final Project unit, where participants synthesize and apply all the knowledge, techniques, and skills they've acquired throughout the course into a comprehensive, professional-level project. This unit is designed to have client collaboration, real-world UX/UI design scenarios and challenges, providing participants with the opportunity to demonstrate their proficiency in both design and soft skills.
+
+They will conduct user research, develop wireframes, prototypes, and usability tests, and present a fully designed and documented project for a real or simulated client. This unit also emphasizes client collaboration, stakeholder communication, and problem-solving in a professional setting.
+
+**Key Topics:**
+
+* The execution of a final project that encompasses all phases of the UX/UI design process, from research and ideation to prototyping and user testing. Participants are expected to deliver a well-documented and thoughtful design solution that addresses a specific user need or problem.  
+* Collaboration with clients or stakeholders to gather requirements and feedback, reflecting the importance of communication skills in a professional design context. This aspect emphasizes the application of design skills and the importance of stakeholder engagement in the design process.  
+* A comprehensive presentation of the final project, requiring participants to articulate their design process, decisions, and outcomes effectively. This exercise hones participants' ability to communicate design concepts clearly and persuasively to an audience.  
+* The submission of a detailed case study and Figma files as part of the project deliverables. The case study documents the design process, research findings, and rationale behind design decisions, showcasing the participant's ability to critically analyze and justify their design approach.  
+* The integration of soft skills, particularly in client meetings, to negotiate, receive feedback, and adapt the design process based on stakeholder input. This highlights the interpersonal aspect of the design profession and the necessity of adaptability and empathy in client interactions.
+
+**Practice & Assessment:**
+
+* 1x Project- (Client Based Project)  
+* 1x Design Critique  
+* 1x Project Presentation (Final project)
+
+**Unit 15: Personal Portfolios & Job Preparation (40 hours)**
+
+**Objective:**  
+This final unit prepares students for job applications, networking, and freelancing opportunities. They will refine their UX/UI portfolios, practice whiteboarding exercises, conduct mock interviews, and build a job search strategy. By the end of this unit, students will be ready to transition into the UX/UI industry with a strong portfolio and interview experience.
+
+### **Key Topics:**
+
+* ### UX Job Market Insights: Navigating different roles and industries
+
+* ### Freelancing & Consulting: Building a personal brand as a UX/UI designer
+
+* ### Mock Interviews & Whiteboarding: Practicing UX case study interviews
+
+* ### Networking & Personal Branding: Leveraging LinkedIn and industry events
+
+* ### File Organization & Handoff: Best practices for cross team collaborations
+
+### **Practice & Assessment:**
+
+* ### 2x Mock Interviews
+
+* ### 1x Portfolio Critique
+
+* ### 1x Job Application Strategy Plan
+
+### 
