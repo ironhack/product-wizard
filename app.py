@@ -167,6 +167,29 @@ def update_thread_mapping(conversation_id, openai_thread_id):
 thread_mapping = load_thread_mapping()
 logger.info(f"Loaded thread mapping with {len(thread_mapping)} entries: {list(thread_mapping.keys())}")
 
+def strip_revision_preamble(text: str) -> str:
+    """Remove meta prefaces like 'Revised answer:' or 'Here is the revised version' to keep tone natural."""
+    try:
+        cleaned = text.lstrip()
+        lines = cleaned.splitlines()
+        # Drop common preface lines at the top
+        while lines:
+            first = lines[0].strip()
+            if re.match(r'^(revised answer|revision|updated answer|final answer|final|self[- ]?check)[:\- ]', first, re.IGNORECASE):
+                lines.pop(0)
+                continue
+            if re.match(r"^(here( is|\'s)?\s+)?(the\s+)?(revised|final|updated)\s+(version|answer)[\.:\-]?$", first, re.IGNORECASE):
+                lines.pop(0)
+                continue
+            if re.match(r'^here.*revised', first, re.IGNORECASE):
+                lines.pop(0)
+                continue
+            break
+        result = "\n".join(lines).strip()
+        return result if result else cleaned
+    except Exception:
+        return text
+
 def debug_conversation_history(thread_id):
     """Debug function to check conversation history in OpenAI thread"""
     try:
@@ -346,17 +369,86 @@ def process_message(event, say):
             say("I'm sorry, I encountered an error processing your request. Please try again.")
             return
         
-        # Get the assistant's response
+        # Get the assistant's response (first pass)
         messages = openai.beta.threads.messages.list(thread_id=openai_thread_id)
         assistant_message = messages.data[0].content[0].text.value
+
+        # Second pass: self-check and revise before sending to Slack
+        # This prompts the assistant to verify citations, trim unsupported claims,
+        # add Not-in-Docs when needed, and keep the response concise.
+        reviewer_instruction = (
+            "ANSWER VERIFICATION: Provide a complete, helpful answer to the user's question while ensuring accuracy. Requirements:\n"
+            "\n"
+            "1. ANSWER THE USER'S QUESTION:\n"
+            "   - Directly address what the user asked\n"
+            "   - Provide helpful, complete information from retrieved curriculum documents\n"
+            "   - Structure the response clearly with relevant details\n"
+            "   - If some requested info is missing, acknowledge it but still provide what IS available\n"
+            "\n"
+            "2. EVIDENCE VERIFICATION:\n"
+            "   - Base every factual claim on retrieved curriculum documents - NO EXCEPTIONS\n"
+            "   - If you haven't retrieved relevant documents yet, do so now\n"
+            "   - Delete any claim you cannot trace to retrieved content\n"
+            "\n"
+            "3. QUOTE & REFERENCE VERIFICATION:\n"
+            "   - Any text in quotes must exist verbatim in source documents\n"
+            "   - Verify module/unit names and tool lists exist exactly as documented\n"
+            "   - Remove fabricated quotes, invented modules, or assumed tools\n"
+            "\n"
+            "4. COMPLETE RESPONSE STRUCTURE:\n"
+            "   - Answer the question fully with documented information\n"
+            "   - Include 'References' section with actual document titles and sections\n"
+            "   - Add 'Not in Docs' note ONLY for specific missing details, not the whole answer\n"
+            "   - Use clear formatting and professional tone\n"
+            "   - Write naturally as if this is your first response to the user\n"
+            "\n"
+            "5. FINAL VERIFICATION:\n"
+            "   - Does this fully answer the user's question with available documented information?\n"
+            "   - Can I trace each factual claim to retrieved content?\n"
+            "   - Are all quotes/references verified to exist?\n"
+            "\n"
+            "Return ONLY a natural, direct response to the user's original question. No meta-commentary like 'Here is the revised answer' or 'Upon review' - write as if answering for the first time."
+        )
+
+        assistant_message_revised = None
+        try:
+            openai.beta.threads.messages.create(
+                thread_id=openai_thread_id,
+                role="user",
+                content=reviewer_instruction
+            )
+
+            review_run = openai.beta.threads.runs.create(
+                thread_id=openai_thread_id,
+                assistant_id=ASSISTANT_ID
+            )
+
+            while review_run.status == "queued" or review_run.status == "in_progress":
+                review_run = openai.beta.threads.runs.retrieve(
+                    thread_id=openai_thread_id,
+                    run_id=review_run.id
+                )
+
+            if review_run.status != "failed":
+                reviewed_messages = openai.beta.threads.messages.list(thread_id=openai_thread_id)
+                assistant_message_revised = reviewed_messages.data[0].content[0].text.value
+            else:
+                logger.warning("Self-check run failed; falling back to first-pass answer.")
+        except Exception as e:
+            logger.error(f"Error during self-check revision step: {str(e)}")
+            assistant_message_revised = None
         
     except Exception as e:
         logger.error(f"Error processing message: {str(e)}")
         say("I'm sorry, I encountered an error processing your request. Please try again.")
         return
     
-    # Clean up citations and convert markdown to Slack formatting
-    cleaned_message = clean_citations(assistant_message)
+    # Choose revised answer if available
+    final_text = assistant_message_revised if assistant_message_revised else assistant_message
+
+    # Remove any meta revision preface, then clean citations and convert formatting
+    final_text = strip_revision_preamble(final_text)
+    cleaned_message = clean_citations(final_text)
     cleaned_message = convert_markdown_to_slack(cleaned_message)
     
     # Reply in the same thread if this was a thread reply, otherwise start a new thread
