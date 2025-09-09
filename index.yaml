@@ -7,7 +7,7 @@ course:
       sequential:
         - name: "Master Prompt"
           vertical:
-            - name: "Master Prompt file"
+            - name: "Assistant Instructions"
               component:
                 - type: html
                   file: "MASTER_PROMPT.md"
@@ -17,71 +17,71 @@ course:
       sequential:
         - name: "User Experience and User Interface Bootcamp"
           vertical:
-            - name: "Remote file"
+            - name: "Detailed Syllabus - Remote"
               component:
                 - type: html
                   file: "database/UXUI Remote bootcamp_2025_07.md"
                   mode: read
-            - name: "Berlin file"
+            - name: "Detailed Syllabus - Berlin"
               component:
                 - type: html
                   file: "database/UXUI Berlin onsite bootcamp_2025_07.md"
                   mode: read
         - name: "Data Analytics Bootcamp"
           vertical:
-            - name: "Remote file"
+            - name: "Detailed Syllabus - Remote"
               component:
                 - type: html
                   file: "database/Data Analytics Remote bootcamp_2025_07.md"
                   mode: read
-            - name: "Berlin file"
+            - name: "Detailed Syllabus - Berlin"
               component:
                 - type: html
                   file: "database/Data Analytics Berlin onsite bootcamp_2025_07.md"
                   mode: read
         - name: "Data Science and Machine Learning Bootcamp"
           vertical:
-            - name: "Bootcamp file"
+            - name: "Detailed Syllabus"
               component:
                 - type: html
                   file: "database/Data Science & Machine Learning bootcamp_2025_07.md"
                   mode: read
         - name: "Web Development Bootcamp"
           vertical:
-            - name: "Remote file"
+            - name: "Detailed Syllabus - Remote"
               component:
                 - type: html
                   file: "database/Web Dev Remote bootcamp_2025_07.md"
                   mode: read
-            - name: "Berlin file"
+            - name: "Detailed Syllabus - Berlin"
               component:
                 - type: html
                   file: "database/Web Dev Berlin onsite bootcamp_2025_07.md"
                   mode: read
         - name: "Marketing Bootcamp"
           vertical:
-            - name: "Bootcamp file"
+            - name: "Detailed Syllabus"
               component:
                 - type: html
                   file: "database/Marketing bootcamp_2025_07.md"
                   mode: read
         - name: "DevOps Bootcamp"
           vertical:
-            - name: "Bootcamp file"
+            - name: "Detailed Syllabus"
               component:
                 - type: html
                   file: "database/DevOps bootcamp_2025_07.md"
                   mode: read
         - name: "Cybersecurity Bootcamp"
           vertical:
-            - name: "Bootcamp file"
+            - name: "Detailed Syllabus"
               component:
                 - type: html
                   file: "database/Cybersecurity bootcamp_2025_07.md"
                   mode: read
         - name: "AI Engineering Bootcamp"
           vertical:
-            - name: "Bootcamp file"
+            - name: "Detailed Syllabus"
               component:
                 - type: html
                   file: "database/AI Engineering bootcamp_2025_07.md"
@@ -128,7 +128,7 @@ course:
       sequential:
         - name: "Certifications"
           vertical:
-            - name: "Certifications file"
+            - name: "Certification guidelines"
               component:
                 - type: html
                   file: "database/Certifications_2025_07.md"
