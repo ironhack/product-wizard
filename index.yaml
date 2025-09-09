@@ -1,0 +1,135 @@
+course:
+  name: "Ironhack Document Catalog"
+  number: "DOC-CATALOG"
+  version: 1.0
+  chapter:
+    - name: "Master Prompt"
+      sequential:
+        - name: "Master Prompt"
+          vertical:
+            - name: "Master Prompt file"
+              component:
+                - type: html
+                  file: "MASTER_PROMPT.md"
+                  mode: read
+
+    - name: "Bootcamps"
+      sequential:
+        - name: "User Experience and User Interface Bootcamp"
+          vertical:
+            - name: "Remote file"
+              component:
+                - type: html
+                  file: "database/UXUI Remote bootcamp_2025_07.md"
+                  mode: read
+            - name: "Berlin file"
+              component:
+                - type: html
+                  file: "database/UXUI Berlin onsite bootcamp_2025_07.md"
+                  mode: read
+        - name: "Data Analytics Bootcamp"
+          vertical:
+            - name: "Remote file"
+              component:
+                - type: html
+                  file: "database/Data Analytics Remote bootcamp_2025_07.md"
+                  mode: read
+            - name: "Berlin file"
+              component:
+                - type: html
+                  file: "database/Data Analytics Berlin onsite bootcamp_2025_07.md"
+                  mode: read
+        - name: "Data Science and Machine Learning Bootcamp"
+          vertical:
+            - name: "Bootcamp file"
+              component:
+                - type: html
+                  file: "database/Data Science & Machine Learning bootcamp_2025_07.md"
+                  mode: read
+        - name: "Web Development Bootcamp"
+          vertical:
+            - name: "Remote file"
+              component:
+                - type: html
+                  file: "database/Web Dev Remote bootcamp_2025_07.md"
+                  mode: read
+            - name: "Berlin file"
+              component:
+                - type: html
+                  file: "database/Web Dev Berlin onsite bootcamp_2025_07.md"
+                  mode: read
+        - name: "Marketing Bootcamp"
+          vertical:
+            - name: "Bootcamp file"
+              component:
+                - type: html
+                  file: "database/Marketing bootcamp_2025_07.md"
+                  mode: read
+        - name: "DevOps Bootcamp"
+          vertical:
+            - name: "Bootcamp file"
+              component:
+                - type: html
+                  file: "database/DevOps bootcamp_2025_07.md"
+                  mode: read
+        - name: "Cybersecurity Bootcamp"
+          vertical:
+            - name: "Bootcamp file"
+              component:
+                - type: html
+                  file: "database/Cybersecurity bootcamp_2025_07.md"
+                  mode: read
+        - name: "AI Engineering Bootcamp"
+          vertical:
+            - name: "Bootcamp file"
+              component:
+                - type: html
+                  file: "database/AI Engineering bootcamp_2025_07.md"
+                  mode: read
+
+    - name: "1 Year Programs"
+      sequential:
+        - name: "Data Science and AI 1 Year Program (Germany)"
+          vertical:
+            - name: "DSAI file"
+              component:
+                - type: html
+                  file: "database/Data Science and AI 1 Year Program Germany 2025_07.md"
+                  mode: read
+
+    - name: "Academy Courses (Asynchronous)"
+      sequential:
+        - name: "APAC"
+          vertical:
+            - name: "APAC file - Duration"
+              component:
+                - type: html
+                  file: "database/APAC - Intensive program in applied AI - AI async productivity course duration.md"
+                  mode: read
+            - name: "APAC file - Syllabus"
+              component:
+                - type: html
+                  file: "database/APAC - Intensive program in applied AI - AI async productivity course syllabus.md"
+                  mode: read
+            - name: "APAC file - Use Cases"
+              component:
+                - type: html
+                  file: "database/APAC - Intensive program in applied AI - AI async productivity course use cases.md"
+                  mode: read
+        - name: "Advanced Program in Applied AI"
+          vertical:
+            - name: "Academy course file"
+              component:
+                - type: html
+                  file: "database/Advanced program in applied AI academy_course_2025_07.md"
+                  mode: read
+
+    - name: "Certifications"
+      sequential:
+        - name: "Certifications"
+          vertical:
+            - name: "Certifications file"
+              component:
+                - type: html
+                  file: "database/Certifications_2025_07.md"
+                  mode: read
