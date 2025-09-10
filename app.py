@@ -375,16 +375,19 @@ def process_message(event, say):
 
         # Second pass: self-check and revise before sending to Slack
         # This prompts the assistant to verify citations, trim unsupported claims,
-        # add Not-in-Docs when needed, and keep the response concise.
+        # check for fabricated section names, verify organizational structures,
+        # ensure comprehensive coverage, and mark gaps as "Not in Docs".
         reviewer_instruction = (
-            "Please review your previous response for accuracy. Follow these steps:\n"
+            "CRITICAL REVIEW: Please review your previous response for accuracy. Follow these verification steps:\n"
             "\n"
-            "1. FACT-CHECK: Verify every claim against the retrieved curriculum documents\n"
-            "2. CITATIONS: Ensure all facts can be traced to specific documents and sections\n"
-            "3. NO FABRICATION: Remove any information not explicitly stated in the source materials\n"
-            "4. GAPS: If information isn't available in docs, state 'This information is not available in the official curriculum documentation'\n"
+            "1. SECTION VERIFICATION: Check that ALL section/unit names you referenced actually exist in the source documents. Remove any invented section names.\n"
+            "2. CITATION ACCURACY: Verify every citation points to real, findable content in the retrieved documents.\n"
+            "3. ORGANIZATIONAL STRUCTURE: If you grouped information into categories, clearly indicate whether groupings come from the curriculum or are your own logical organization. Never claim your groupings are from the curriculum.\n"
+            "4. COMPREHENSIVE COVERAGE: If you listed tools/topics, ensure you scanned the entire relevant document for complete coverage. Add any missing items that are documented.\n"
+            "5. NO FABRICATION: Remove any quotes, tool names, or details not explicitly stated in the source materials.\n"
+            "6. GAPS: If information isn't available in docs, state 'This information is not available in the official curriculum documentation'.\n"
             "\n"
-            "Provide a natural, accurate response based only on what's documented in the retrieved sources."
+            "Provide a natural, accurate response based ONLY on what's documented in the retrieved sources. You can organize information logically when requested, but always distinguish your groupings from curriculum structure."
         )
 
         assistant_message_revised = None
