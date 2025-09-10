@@ -1,0 +1,124 @@
+---
+description: "Prompt testing and deployment guidelines for Product Wizard assistant"
+globs: ["assistant_config/**/*", "tools/deploy_prompt.py", "tests/test_*.py", "docs/development/MASTER_PROMPT_V*.md"]
+alwaysApply: true
+---
+
+# Prompt Testing & Deployment Guidelines
+
+## Prompt Development Workflow
+
+### 1. Before Making Prompt Changes
+- **Always create version backup** in `docs/development/MASTER_PROMPT_V[X]_[DESCRIPTION].md`
+- **Include version header** in the backup file only
+- **Document the change purpose** in the filename description
+
+### 2. Testing Requirements
+- **Create specific test files** in `tests/` for the changes being made
+- **Use descriptive filenames**: `test_[feature_name].py` or `test_[scenario].py`
+- **Test the exact scenarios** the prompt change is meant to address
+- **Never delete test files** - preserve all `test_*.py` files for future reference
+- **Save test results** to `tests/results/` with timestamps when applicable
+
+### 3. Current Prompt Management
+- **Production file**: `assistant_config/MASTER_PROMPT.md` (NO version header)
+- **File must be headerless** - remove any version information from content
+- **Only current production prompt** goes in `assistant_config/`
+- **All versioned backups** go in `docs/development/`
+
+### 4. Deployment Process
+- **Deploy script location**: `tools/deploy_prompt.py`
+- **Script must read from**: `assistant_config/MASTER_PROMPT.md`
+- **Never deploy from**: `docs/development/` files
+- **Verify deployment**: Check character count change makes sense
+- **Character count tracking**: Note significant increases/decreases
+
+### 5. Post-Deployment Verification
+- **Test assistant behavior** matches expected improvements
+- **Verify specific scenarios** that prompted the changes
+- **Document any unexpected behavior** for future iterations
+
+## Testing Best Practices
+
+### Test File Structure
+```python
+def test_specific_scenario():
+    """Test the exact issue the prompt change addresses"""
+    # Simulate the problematic scenario
+    # Validate expected vs actual behavior
+    # Include clear pass/fail criteria
+
+def test_broader_impact():
+    """Ensure changes don't break existing functionality"""
+    # Test related scenarios
+    # Verify no regressions
+```
+
+### Test Scenarios to Always Include
+- **The specific issue** that prompted the prompt change
+- **Related functionality** that might be affected
+- **Edge cases** around the change area
+- **Variant handling** (Remote vs Berlin) when applicable
+
+## Deployment Checklist
+
+### Pre-Deployment
+- [ ] Version backup created in `docs/development/` with header
+- [ ] Current prompt is headerless in `assistant_config/`
+- [ ] Test files created and passing
+- [ ] Deploy script points to correct file location
+
+### During Deployment
+- [ ] Run `python3 tools/deploy_prompt.py`
+- [ ] Note character count change
+- [ ] Verify no deployment errors
+
+### Post-Deployment
+- [ ] Test the specific scenario that prompted changes
+- [ ] Verify assistant behavior matches expectations
+- [ ] Document results for future reference
+
+## Common Deployment Issues
+
+### Script Reading Wrong File
+- **Problem**: Deploy script reads from `docs/development/` instead of `assistant_config/`
+- **Solution**: Update script to point to production file location
+
+### Character Count Unexpected
+- **Problem**: Deployed prompt has unexpected character count
+- **Solution**: Verify correct file is being deployed, check for formatting issues
+
+### Version Headers in Production
+- **Problem**: Production prompt includes version header
+- **Solution**: Remove header from `assistant_config/MASTER_PROMPT.md`
+
+## File Naming Conventions
+
+### Prompt Archives
+- Pattern: `MASTER_PROMPT_V[X]_[DESCRIPTION].md`
+- Examples:
+  - `MASTER_PROMPT_V6_ENHANCED_TOOLS.md`
+  - `MASTER_PROMPT_V7_VARIANT_HANDLING.md`
+
+### Test Files
+- Pattern: `test_[feature_or_scenario].py`
+- Examples:
+  - `test_variant_handling.py`
+  - `test_citation_quality.py`
+  - `test_tool_extraction.py`
+
+## Integration with Repository Rules
+
+This file works in conjunction with the main repository structure rules. When in doubt:
+1. Follow these prompt-specific guidelines first
+2. Fall back to general repository rules
+3. Prioritize system reliability and data integrity
+
+## Emergency Rollback Process
+
+If deployment causes issues:
+1. **Identify previous working version** in `docs/development/`
+2. **Copy content to** `assistant_config/MASTER_PROMPT.md` (remove header)
+3. **Redeploy immediately** using `tools/deploy_prompt.py`
+4. **Document the issue** for future investigation
+5. **Preserve failing version** for analysis
