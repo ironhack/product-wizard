@@ -22,8 +22,10 @@ product-wizard/
 │   ├── app.py              # Slack middleware application for Heroku
 │   └── __init__.py         # Package initialization
 │
-├── assistant_config/        # 🤖 AI Assistant Configuration  
-│   └── MASTER_PROMPT.md    # OpenAI Assistant prompt configuration
+├── docs/                    # 📝 Documentation & Prompt Versions
+│   └── development/        # Development documentation
+│       ├── MASTER_PROMPT_V*.md  # Historical prompt versions
+│       └── MASTER_PROMPT_V6_ENHANCED_TOOLS.md  # Current (V6)
 │
 ├── knowledge_base/          # 📚 Course Information Database
 │   ├── database/           # Original curriculum files (.md format)
@@ -36,13 +38,10 @@ product-wizard/
 │   ├── results/            # Test output files
 │   └── archive/            # Old test files
 │
-├── deployment/              # 🚀 Deployment Assets
-│   ├── docs/               # Documentation and reports  
-│   ├── Procfile           # Original Heroku process config
-│   ├── requirements.txt   # Original Python dependencies
-│   └── runtime.txt        # Original Python version spec
-│
 ├── tools/                   # 🛠️ Utility Scripts
+│   ├── deploy_prompt.py    # Deploy prompts to OpenAI assistant
+│   ├── assistant_tester.py # Assistant testing utilities
+│   └── *.py               # Other tools and utilities
 ├── scripts/                # 📜 Helper Scripts  
 ├── archive/                # 📦 Archived Files
 │
