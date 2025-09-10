@@ -1,0 +1,97 @@
+---
+description: "Product Wizard repository structure and development guidelines"
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Product Wizard - Repository Structure & Development Guidelines
+
+## Repository Overview
+
+This repository serves three main purposes:
+1. **OpenAI Assistant Knowledge Base** - Course information vector store
+2. **Heroku Slack Middleware** - App connecting assistant to Slack  
+3. **Development Tools** - Testing, optimization, and deployment utilities
+
+## File Structure Guidelines
+
+### Knowledge Base Management
+- **Source Files**: Edit Markdown files in `knowledge_base/database/`
+- **Vector Store Files**: Always update corresponding TXT files in `knowledge_base/database_txt/` when modifying Markdown
+- **Synchronization Rule**: Every `.md` file must have a corresponding `.txt` file with identical content
+
+### Prompt Management
+- **Current Version**: `assistant_config/MASTER_PROMPT.md` (production prompt, NO VERSION HEADER)
+- **Version History**: `docs/development/MASTER_PROMPT_V*.md` (versioned backups with headers)
+- **Versioning Rule**: Version number goes in FILENAME only, not in file content
+- **Update Process**: When changing master prompt, backup current as new version in `docs/development/`
+- **Header Policy**: Current prompt has NO version header - only archived versions do
+
+### Application Structure
+- **Heroku App**: `src/app.py` (main Slack middleware)
+- **Configuration**: Root level files (`Procfile`, `requirements.txt`, `runtime.txt`)
+- **Environment**: Use `.env` file for local development (never commit)
+
+### Testing & Tools
+- **Local Testing**: Use scripts in `tests/` for prompt optimization
+- **Test Preservation**: Keep all test files (`test_*.py`) - never delete, they may be useful
+- **Test Results**: Automatically saved to `tests/results/` with timestamps
+- **Deployment**: Use `tools/deploy_prompt.py` for production deployment
+- **Utilities**: Additional tools in `tools/` directory
+
+## Development Rules
+
+### File Editing Rules
+1. **Never edit TXT files directly** - always edit the corresponding Markdown file first
+2. **Always update both formats** when modifying course information
+3. **Test locally before deployment** using scripts in `tests/`
+4. **Create version backups** when updating prompts
+5. **Never delete test files** - preserve all `test_*.py` files for future reference
+6. **Remove version headers** from current prompt - only archived versions have headers
+
+### Code Quality
+- **No API keys in code** - use environment variables
+- **Follow naming conventions** for test files: `test_*.py`
+- **Save test results** to `tests/results/` with descriptive names
+- **Document changes** in commit messages
+
+### Deployment Process
+1. Edit source files (Markdown in `knowledge_base/database/`)
+2. Update corresponding TXT files (`knowledge_base/database_txt/`)
+3. Test changes locally (`tests/test_*.py`)
+4. Deploy using tools (`tools/deploy_prompt.py`)
+5. Verify in production environment
+
+## Key Files & Their Roles
+
+### Critical Configuration
+- `assistant_config/MASTER_PROMPT.md` - Current production assistant prompt
+- `index.yaml` - Course structure for third-party apps (root level)
+- `src/app.py` - Slack middleware application
+
+### Knowledge Base
+- `knowledge_base/database/*.md` - Source course information (edit these)
+- `knowledge_base/database_txt/*.txt` - Vector store format (auto-sync with MD)
+
+### Development
+- `docs/development/MASTER_PROMPT_V*.md` - Prompt version history
+- `docs/reports/*.md` - Test results and analysis reports
+- `tests/` - Local testing and optimization scripts
+- `tools/` - Deployment and maintenance utilities
+
+## Forbidden Actions
+- ❌ Never commit API keys or sensitive credentials
+- ❌ Never edit TXT files without updating corresponding MD files
+- ❌ Never deploy without running local tests first
+- ❌ Never delete version history in `docs/development/`
+- ❌ Never modify the three-component repository structure
+
+## Context for AI Assistance
+
+This is a production system serving Ironhack's sales team. Any changes must:
+- Maintain zero fabrication policy
+- Preserve citation quality
+- Ensure sales-appropriate responses
+- Keep all three components (knowledge base, middleware, tools) functioning
+
+Always prioritize data integrity and system reliability over feature additions.

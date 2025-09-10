@@ -10,7 +10,7 @@ course:
             - name: "Assistant Instructions"
               component:
                 - type: html
-                  file: "MASTER_PROMPT.md"
+                  file: "assistant_config/MASTER_PROMPT.md"
                   mode: read
 
     - name: "Bootcamps"

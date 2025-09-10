@@ -4,7 +4,11 @@
 
 ## 🎯 Overview
 
-Product Wizard is a Slack-integrated assistant built on OpenAI's GPT-4o model with file search capabilities. It helps Ironhack's sales team provide accurate course information with proper citations during phone calls with prospects.
+Product Wizard is a comprehensive system that serves three main purposes:
+
+1. **🤖 OpenAI Assistant with Knowledge Base** - AI assistant with vector store containing Ironhack course information
+2. **🔗 Slack Integration Middleware** - Heroku app connecting the assistant to Slack
+3. **🛠️ Development & Testing Tools** - Utilities for prompt optimization, testing, and deployment
 
 ### Key Features
 - ✅ **Zero Fabrication Policy** - Only provides documented information
@@ -13,44 +17,79 @@ Product Wizard is a Slack-integrated assistant built on OpenAI's GPT-4o model wi
 - ✅ **Variant Awareness** - Distinguishes Remote vs Berlin programs
 - ✅ **Multi-Course Support** - All Ironhack bootcamps and programs
 
-## 📁 Project Structure
+## 📁 Repository Structure
+
+This repository contains three fundamental components:
+
+### 1. 🧠 Knowledge Base & Assistant Configuration
 
 ```
-product-wizard/
-│
-├── src/                     # 🚀 Main Application
-│   ├── app.py              # Slack middleware application for Heroku
-│   └── __init__.py         # Package initialization
-│
-├── docs/                    # 📝 Documentation & Prompt Versions
-│   └── development/        # Development documentation
-│       ├── MASTER_PROMPT_V*.md  # Historical prompt versions
-│       └── MASTER_PROMPT_V6_ENHANCED_TOOLS.md  # Current (V6)
-│
-├── knowledge_base/          # 📚 Course Information Database
-│   ├── database/           # Original curriculum files (.md format)
-│   ├── database_txt/       # Processed curriculum files (.txt format)
-│   └── index.yaml         # Course structure for web visualization
-│
-├── tests/                   # 🧪 Testing & Validation
-│   ├── test_config.py      # Centralized test configuration with dotenv
-│   ├── model_tests/        # Model comparison and upgrade tests
-│   ├── results/            # Test output files
-│   └── archive/            # Old test files
-│
-├── tools/                   # 🛠️ Utility Scripts
-│   ├── deploy_prompt.py    # Deploy prompts to OpenAI assistant
-│   ├── assistant_tester.py # Assistant testing utilities
-│   └── *.py               # Other tools and utilities
-├── scripts/                # 📜 Helper Scripts  
-├── archive/                # 📦 Archived Files
-│
-├── .env.example            # Environment variables template
-├── Procfile               # Heroku deployment configuration
-├── requirements.txt       # Python dependencies (includes dotenv)
-├── runtime.txt           # Python version specification
-└── README.md             # This documentation
+assistant_config/
+└── MASTER_PROMPT.md       # Current assistant prompt (production version)
+
+knowledge_base/
+├── database/              # Course information in Markdown format (easier to maintain)
+├── database_txt/          # Course information in TXT format (loaded to OpenAI vector store)
+└── [previous location of index.yaml - now in root]
+
+index.yaml                 # Course structure configuration for third-party applications
 ```
+
+**Note**: When you modify a Markdown file in `database/`, you must also update the corresponding TXT file in `database_txt/`.
+
+### 2. 🚀 Heroku Middleware Application
+
+```
+src/
+├── app.py                 # Slack middleware application for Heroku deployment
+└── __init__.py           # Package initialization
+
+Procfile                   # Heroku deployment configuration
+requirements.txt           # Python dependencies
+runtime.txt               # Python version specification
+```
+
+### 3. 🧪 Development & Testing Tools
+
+```
+tests/                     # Local testing and assistant optimization
+├── model_tests/          # Model comparison and upgrade tests
+├── results/              # Test output files and reports
+├── archive/              # Historical test files
+└── test_*.py            # Various test scripts for prompt optimization
+
+tools/                     # Utility scripts
+├── deploy_prompt.py      # Deploy prompts to OpenAI assistant in production
+├── assistant_tester.py   # Assistant testing utilities
+├── cleanup_repo.py       # Repository maintenance tools
+└── *.py                 # Other development utilities
+
+docs/                      # Documentation and development history
+├── development/          # All prompt versions and development history
+│   ├── MASTER_PROMPT_V*.md  # Historical prompt versions (V1-V6)
+│   └── [Latest version is duplicated as backup in assistant_config/]
+└── reports/              # Results from various optimization scripts
+    ├── FINAL_REPORT.md
+    ├── CITATIONS_FINAL_REPORT.md
+    └── *.md
+```
+
+## 🔄 Development Workflow
+
+### Prompt Management
+- **Current Version**: `assistant_config/MASTER_PROMPT.md` (production)
+- **Version History**: `docs/development/MASTER_PROMPT_V*.md` (backup)
+- **Process**: When updating the master prompt, create a new version in `docs/development/`
+
+### Knowledge Base Updates
+1. Edit Markdown files in `knowledge_base/database/`
+2. Update corresponding TXT files in `knowledge_base/database_txt/`
+3. Deploy changes to OpenAI vector store
+
+### Testing & Optimization
+- Use scripts in `tests/` for local prompt optimization
+- Results are automatically saved to `tests/results/`
+- Use `tools/` for deployment and maintenance
 
 ## 🚀 Quick Start
 
@@ -100,7 +139,7 @@ All test results are saved to `tests/results/` with timestamps and detailed anal
 
 ## 📊 Performance Metrics
 
-### Current Performance (V5)
+### Current Performance (V6)
 - **Fabrication Rate**: 0% (Zero fabrications detected)
 - **Citation Quality**: 9.3/10 (Excellent file attribution)
 - **Sales Readiness**: 95% (Ready for production use)
@@ -129,13 +168,13 @@ All test results are saved to `tests/results/` with timestamps and detailed anal
 
 ## 🔧 Configuration
 
-### Environment Variables (config.py)
+### Environment Variables
 ```python
 # OpenAI Configuration
 OPENAI_API_KEY = "your_api_key_here"
 OPENAI_ASSISTANT_ID = "your_assistant_id_here"
 
-# Slack Configuration (optional)
+# Slack Configuration (for middleware)
 SLACK_BOT_TOKEN = "your_slack_token_here"
 SLACK_SIGNING_SECRET = "your_signing_secret_here"
 ```
@@ -143,19 +182,8 @@ SLACK_SIGNING_SECRET = "your_signing_secret_here"
 ### Assistant Configuration
 - **Model**: GPT-4o (latest OpenAI model)
 - **Tools**: File search enabled
-- **Vector Store**: Attached with all curriculum documents
-- **Prompt**: MASTER_PROMPT.md (V5 Enhanced Citations)
-
-## 📚 Documentation
-
-### Development Reports
-- **[Final Report](docs/reports/FINAL_REPORT.md)** - Complete project analysis
-- **[Citations Report](docs/reports/CITATIONS_FINAL_REPORT.md)** - Citation system analysis
-- **[Model Comparison](docs/reports/MODEL_COMPARISON_FINAL.md)** - GPT model testing results
-
-### Development History
-- **[Prompt Evolution](docs/development/)** - MASTER_PROMPT V1-V5 development
-- **[Test Archive](tests/archive/)** - Historical test files
+- **Vector Store**: Attached with all curriculum documents from `knowledge_base/database_txt/`
+- **Prompt**: `assistant_config/MASTER_PROMPT.md` (Current version)
 
 ## 🛠️ Development
 
@@ -165,19 +193,38 @@ SLACK_SIGNING_SECRET = "your_signing_secret_here"
 3. Follow the established naming convention
 
 ### Updating the Prompt
-1. Edit `MASTER_PROMPT.md`
-2. Test with `python tests/test_citations_clean.py`
-3. Verify no regressions with full test suite
+1. Edit `assistant_config/MASTER_PROMPT.md`
+2. Create backup version in `docs/development/MASTER_PROMPT_V[X].md`
+3. Test with `python tests/test_citations_clean.py`
+4. Deploy with `python tools/deploy_prompt.py`
+
+### Knowledge Base Updates
+1. Edit Markdown files in `knowledge_base/database/`
+2. Update corresponding TXT files in `knowledge_base/database_txt/`
+3. Verify with local tests before deployment
 
 ### Model Updates
-1. Update `config.py` with new model name
-2. Run model comparison tests
-3. Update documentation with performance metrics
+1. Run model comparison tests
+2. Update documentation with performance metrics
+3. Deploy changes to production
+
+## 📁 File Relationships
+
+### Key Files & Their Purposes
+- **`assistant_config/MASTER_PROMPT.md`**: Current production prompt (convenient access)
+- **`index.yaml`**: Course structure for third-party applications (moved to root)
+- **`knowledge_base/database/*.md`**: Source files (easier to maintain)
+- **`knowledge_base/database_txt/*.txt`**: Vector store files (what OpenAI loads)
+- **`docs/development/MASTER_PROMPT_V*.md`**: Version history and backups
+
+### Redundancy by Design
+- The current prompt exists both in `assistant_config/` and `docs/development/` (latest version)
+- This redundancy is intentional: `assistant_config/` for quick access, `docs/development/` for versioning
 
 ## 🔒 Security
 
-- **Never commit config.py** (contains API keys)
-- **Use config.example.py** as template
+- **Never commit sensitive API keys**
+- **Use `.env` file for local development**
 - **Keep API keys secure** and rotate regularly
 - **Monitor usage** for unexpected costs
 
@@ -198,5 +245,5 @@ For technical issues:
 
 ---
 
-*Last Updated: Current (V5 Enhanced Citations)*
+*Last Updated: Current (V6 Enhanced Tools)*
 *Status: Production Ready*
