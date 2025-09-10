@@ -167,9 +167,9 @@ def update_thread_mapping(conversation_id, openai_thread_id):
 thread_mapping = load_thread_mapping()
 logger.info(f"Loaded thread mapping with {len(thread_mapping)} entries: {list(thread_mapping.keys())}")
 
-# Debug assistant configuration on startup
+# Debug assistant configuration on startup (commented out for production)
 logger.info("=== Assistant Configuration Debug ===")
-debug_assistant_configuration()
+# debug_assistant_configuration()  # Uncomment for debugging if needed
 
 
 def debug_conversation_history(thread_id):
