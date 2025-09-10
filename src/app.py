@@ -167,28 +167,10 @@ def update_thread_mapping(conversation_id, openai_thread_id):
 thread_mapping = load_thread_mapping()
 logger.info(f"Loaded thread mapping with {len(thread_mapping)} entries: {list(thread_mapping.keys())}")
 
-def strip_revision_preamble(text: str) -> str:
-    """Remove meta prefaces like 'Revised answer:' or 'Here is the revised version' to keep tone natural."""
-    try:
-        cleaned = text.lstrip()
-        lines = cleaned.splitlines()
-        # Drop common preface lines at the top
-        while lines:
-            first = lines[0].strip()
-            if re.match(r'^(revised answer|revision|updated answer|final answer|final|self[- ]?check)[:\- ]', first, re.IGNORECASE):
-                lines.pop(0)
-                continue
-            if re.match(r"^(here( is|\'s)?\s+)?(the\s+)?(revised|final|updated)\s+(version|answer)[\.:\-]?$", first, re.IGNORECASE):
-                lines.pop(0)
-                continue
-            if re.match(r'^here.*revised', first, re.IGNORECASE):
-                lines.pop(0)
-                continue
-            break
-        result = "\n".join(lines).strip()
-        return result if result else cleaned
-    except Exception:
-        return text
+# Debug assistant configuration on startup
+logger.info("=== Assistant Configuration Debug ===")
+debug_assistant_configuration()
+
 
 def debug_conversation_history(thread_id):
     """Debug function to check conversation history in OpenAI thread"""
@@ -204,6 +186,63 @@ def debug_conversation_history(thread_id):
                 logger.info(f"  {i+1}. {role}: {content}")
     except Exception as e:
         logger.error(f"Error debugging conversation history: {str(e)}")
+
+def debug_assistant_configuration():
+    """Debug function to check assistant configuration and vector stores"""
+    try:
+        logger.info(f"Checking assistant configuration for ID: {ASSISTANT_ID}")
+        
+        # Retrieve assistant details
+        assistant = openai.beta.assistants.retrieve(assistant_id=ASSISTANT_ID)
+        
+        logger.info(f"Assistant Name: {assistant.name}")
+        logger.info(f"Model: {assistant.model}")
+        logger.info(f"Instructions Preview: {assistant.instructions[:100]}...")
+        
+        logger.info("Tools enabled:")
+        for tool in assistant.tools:
+            logger.info(f"  - {tool.type}")
+        
+        # Check tool resources
+        if hasattr(assistant, 'tool_resources') and assistant.tool_resources:
+            logger.info(f"Tool Resources found: {assistant.tool_resources}")
+            
+            # Check if file_search has vector stores
+            if hasattr(assistant.tool_resources, 'file_search') and assistant.tool_resources.file_search:
+                vector_store_ids = assistant.tool_resources.file_search.vector_store_ids
+                logger.info(f"Vector Store IDs attached: {vector_store_ids}")
+                
+                # Check each vector store
+                for vs_id in vector_store_ids:
+                    logger.info(f"Checking Vector Store: {vs_id}")
+                    try:
+                        vector_store = openai.beta.vector_stores.retrieve(vector_store_id=vs_id)
+                        logger.info(f"  Name: {vector_store.name}")
+                        logger.info(f"  Status: {vector_store.status}")
+                        logger.info(f"  File counts: {vector_store.file_counts}")
+                        
+                        # List files in vector store
+                        files = openai.beta.vector_stores.files.list(vector_store_id=vs_id)
+                        logger.info(f"  Files in vector store:")
+                        for file in files.data[:10]:  # Limit to first 10 files
+                            try:
+                                file_details = openai.files.retrieve(file.id)
+                                logger.info(f"    - {file_details.filename} (ID: {file.id}, Status: {file.status})")
+                            except Exception as e:
+                                logger.info(f"    - File {file.id} (Status: {file.status}, Error getting details: {e})")
+                                
+                    except Exception as e:
+                        logger.error(f"  Error checking vector store {vs_id}: {e}")
+            else:
+                logger.warning("  No file_search configuration found in tool_resources!")
+        else:
+            logger.warning("  No tool_resources found!")
+            
+        return True
+            
+    except Exception as e:
+        logger.error(f"Error retrieving assistant configuration: {e}")
+        return False
 
 def clean_citations(response_text):
     """Clean up citations to show just the filename"""
@@ -356,12 +395,17 @@ def process_message(event, say):
             assistant_id=ASSISTANT_ID
         )
         
+        logger.info(f"Created run {run.id} with status: {run.status}")
+        
         # Wait for the run to complete
         while run.status == "queued" or run.status == "in_progress":
+            logger.info(f"Run {run.id} status: {run.status}, waiting...")
             run = openai.beta.threads.runs.retrieve(
                 thread_id=openai_thread_id,
                 run_id=run.id
             )
+            
+        logger.info(f"Run {run.id} completed with status: {run.status}")
         
         # Check if run failed
         if run.status == "failed":
@@ -369,66 +413,22 @@ def process_message(event, say):
             say("I'm sorry, I encountered an error processing your request. Please try again.")
             return
         
-        # Get the assistant's response (first pass)
+        # Get the assistant's response
         messages = openai.beta.threads.messages.list(thread_id=openai_thread_id)
         assistant_message = messages.data[0].content[0].text.value
-
-        # Second pass: self-check and revise before sending to Slack
-        # This prompts the assistant to verify citations, trim unsupported claims,
-        # check for fabricated section names, verify organizational structures,
-        # ensure comprehensive coverage, and mark gaps as "Not in Docs".
-        reviewer_instruction = (
-            "CRITICAL REVIEW: Please review your previous response for accuracy. Follow these verification steps:\n"
-            "\n"
-            "1. SECTION VERIFICATION: Check that ALL section/unit names you referenced actually exist in the source documents. Remove any invented section names.\n"
-            "2. CITATION ACCURACY: Verify every citation points to real, findable content in the retrieved documents.\n"
-            "3. ORGANIZATIONAL STRUCTURE: If you grouped information into categories, clearly indicate whether groupings come from the curriculum or are your own logical organization. Never claim your groupings are from the curriculum.\n"
-            "4. COMPREHENSIVE COVERAGE: If you listed tools/topics, ensure you scanned the entire relevant document for complete coverage. Add any missing items that are documented.\n"
-            "5. NO FABRICATION: Remove any quotes, tool names, or details not explicitly stated in the source materials.\n"
-            "6. GAPS: If information isn't available in docs, state 'This information is not available in the official curriculum documentation'.\n"
-            "\n"
-            "Provide a natural, accurate response based ONLY on what's documented in the retrieved sources. You can organize information logically when requested, but always distinguish your groupings from curriculum structure."
-        )
-
-        assistant_message_revised = None
-        try:
-            openai.beta.threads.messages.create(
-                thread_id=openai_thread_id,
-                role="user",
-                content=reviewer_instruction
-            )
-
-            review_run = openai.beta.threads.runs.create(
-                thread_id=openai_thread_id,
-                assistant_id=ASSISTANT_ID
-            )
-
-            while review_run.status == "queued" or review_run.status == "in_progress":
-                review_run = openai.beta.threads.runs.retrieve(
-                    thread_id=openai_thread_id,
-                    run_id=review_run.id
-                )
-
-            if review_run.status != "failed":
-                reviewed_messages = openai.beta.threads.messages.list(thread_id=openai_thread_id)
-                assistant_message_revised = reviewed_messages.data[0].content[0].text.value
-            else:
-                logger.warning("Self-check run failed; falling back to first-pass answer.")
-        except Exception as e:
-            logger.error(f"Error during self-check revision step: {str(e)}")
-            assistant_message_revised = None
+        
+        # Log info about the response and any annotations (citations)
+        logger.info(f"Assistant response length: {len(assistant_message)}")
+        response_annotations = messages.data[0].content[0].text.annotations
+        logger.info(f"Response has {len(response_annotations)} annotations/citations")
         
     except Exception as e:
         logger.error(f"Error processing message: {str(e)}")
         say("I'm sorry, I encountered an error processing your request. Please try again.")
         return
     
-    # Choose revised answer if available
-    final_text = assistant_message_revised if assistant_message_revised else assistant_message
-
-    # Remove any meta revision preface, then clean citations and convert formatting
-    final_text = strip_revision_preamble(final_text)
-    cleaned_message = clean_citations(final_text)
+    # Use the assistant's response directly and convert formatting for Slack
+    cleaned_message = clean_citations(assistant_message)
     cleaned_message = convert_markdown_to_slack(cleaned_message)
     
     # Reply in the same thread if this was a thread reply, otherwise start a new thread
@@ -482,6 +482,18 @@ flask_app = Flask(__name__)
 @flask_app.route("/slack/events", methods=["POST"])
 def slack_events():
     return handler.handle(request)
+
+@flask_app.route("/debug", methods=["GET"])
+def debug_assistant():
+    """Debug endpoint to check assistant configuration"""
+    try:
+        success = debug_assistant_configuration()
+        if success:
+            return {"status": "success", "message": "Check logs for detailed configuration info"}
+        else:
+            return {"status": "error", "message": "Failed to retrieve assistant configuration"}, 500
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
 
 if __name__ == "__main__":
     flask_app.run(port=3000)
