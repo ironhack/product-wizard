@@ -1,6 +1,6 @@
 course:
-  name: "Ironhack Document Catalog"
-  number: "DOC-CATALOG"
+  name: "Product Wizard"
+  number: ""
   version: 1.0
   chapter:
     - name: "Master Prompt"
@@ -15,7 +15,7 @@ course:
 
     - name: "Bootcamps"
       sequential:
-        - name: "User Experience and User Interface Bootcamp"
+        - name: "UX/UI Bootcamp"
           vertical:
             - name: "Detailed Syllabus - Remote"
               component:
