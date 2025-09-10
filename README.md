@@ -6,7 +6,7 @@
 
 Product Wizard is a comprehensive system that serves three main purposes:
 
-1. **🤖 OpenAI Assistant with Knowledge Base** - AI assistant with vector store containing Ironhack course information
+1. **🤖 OpenAI Responses API with Knowledge Base** - AI assistant with vector store containing Ironhack course information
 2. **🔗 Slack Integration Middleware** - Heroku app connecting the assistant to Slack
 3. **🛠️ Development & Testing Tools** - Utilities for prompt optimization, testing, and deployment
 
@@ -41,7 +41,8 @@ index.yaml                 # Course structure configuration for third-party appl
 
 ```
 src/
-├── app.py                 # Slack middleware application for Heroku deployment
+├── app_response.py        # Responses API Slack middleware (production)
+├── app_assistants.py      # Legacy Assistants API version (backup)
 └── __init__.py           # Package initialization
 
 Procfile                   # Heroku deployment configuration
@@ -100,7 +101,8 @@ cp .env.example .env
 
 # Edit .env with your credentials
 # - OPENAI_API_KEY
-# - OPENAI_ASSISTANT_ID
+# - OPENAI_VECTOR_STORE_ID (Responses API)
+# - OPENAI_ASSISTANT_ID (Legacy - for app_assistants.py)
 # - SLACK_BOT_TOKEN (for Heroku deployment)
 # - SLACK_SIGNING_SECRET (for Heroku deployment)
 ```
@@ -112,7 +114,7 @@ pip install -r requirements.txt
 
 ### 3. Run the Application (Local Development)
 ```bash
-python src/app.py
+python src/app_response.py
 ```
 
 ### 4. Test the Assistant
@@ -139,17 +141,20 @@ All test results are saved to `tests/results/` with timestamps and detailed anal
 
 ## 📊 Performance Metrics
 
-### Current Performance (V6)
+### Current Performance (V8 - Responses API)
 - **Fabrication Rate**: 0% (Zero fabrications detected)
 - **Citation Quality**: 9.3/10 (Excellent file attribution)
-- **Sales Readiness**: 95% (Ready for production use)
-- **Model**: GPT-4o (Latest OpenAI model)
+- **Sales Readiness**: 96.8% (Excellent production readiness)
+- **Response Speed**: 2.4x faster than legacy API (11.7s vs 28s avg)
+- **API**: OpenAI Responses API with GPT-4o (GPT-5 ready)
 
 ### Key Achievements
-- ✅ Eliminated all major fabrications (DevOps GCP/Jenkins, fake schedules)
-- ✅ Perfect citations with full document names
-- ✅ Variant-aware responses (Remote vs Berlin)
-- ✅ Sales-appropriate conversational tone
+- ✅ **Migrated to Responses API** - Future-proof, 2.4x faster performance
+- ✅ **Eliminated all major fabrications** (DevOps GCP/Jenkins, fake schedules)
+- ✅ **Perfect citations** with full document names
+- ✅ **Variant-aware responses** (Remote vs Berlin)
+- ✅ **Sales-appropriate conversational tone**
+- ✅ **Threaded conversation support** for Slack integration
 
 ## 🎯 Usage Examples
 
@@ -172,17 +177,19 @@ All test results are saved to `tests/results/` with timestamps and detailed anal
 ```python
 # OpenAI Configuration
 OPENAI_API_KEY = "your_api_key_here"
-OPENAI_ASSISTANT_ID = "your_assistant_id_here"
+OPENAI_VECTOR_STORE_ID = "your_vector_store_id_here"  # For Responses API
+OPENAI_ASSISTANT_ID = "your_assistant_id_here"        # Legacy (backup only)
 
 # Slack Configuration (for middleware)
 SLACK_BOT_TOKEN = "your_slack_token_here"
 SLACK_SIGNING_SECRET = "your_signing_secret_here"
 ```
 
-### Assistant Configuration
-- **Model**: GPT-4o (latest OpenAI model)
-- **Tools**: File search enabled
-- **Vector Store**: Attached with all curriculum documents from `knowledge_base/database_txt/`
+### API Configuration
+- **API**: OpenAI Responses API (production) + Assistants API (backup)
+- **Model**: GPT-4o (ready for GPT-5 upgrade)
+- **Tools**: File search with vector store
+- **Vector Store**: Contains all curriculum documents from `knowledge_base/database_txt/`
 - **Prompt**: `assistant_config/MASTER_PROMPT.md` (Current version)
 
 ## 🛠️ Development
@@ -245,5 +252,5 @@ For technical issues:
 
 ---
 
-*Last Updated: Current (V6 Enhanced Tools)*
-*Status: Production Ready*
+*Last Updated: Current (V8 - Responses API Migration)*
+*Status: Production Ready - Deployed with Responses API*

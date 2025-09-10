@@ -9,7 +9,7 @@ alwaysApply: true
 ## Repository Overview
 
 This repository serves three main purposes:
-1. **OpenAI Assistant Knowledge Base** - Course information vector store
+1. **OpenAI Responses API Knowledge Base** - Course information vector store with Responses API
 2. **Heroku Slack Middleware** - App connecting assistant to Slack  
 3. **Development Tools** - Testing, optimization, and deployment utilities
 
@@ -28,9 +28,11 @@ This repository serves three main purposes:
 - **Header Policy**: Current prompt has NO version header - only archived versions do
 
 ### Application Structure
-- **Heroku App**: `src/app.py` (main Slack middleware)
+- **Heroku App**: `src/app_response.py` (Responses API Slack middleware - production)
+- **Legacy App**: `src/app_assistants.py` (Assistants API version - backup)
 - **Configuration**: Root level files (`Procfile`, `requirements.txt`, `runtime.txt`)
 - **Environment**: Use `.env` file for local development (never commit)
+- **Required Env Vars**: `OPENAI_VECTOR_STORE_ID` (Responses API), `OPENAI_ASSISTANT_ID` (legacy backup)
 
 ### Testing & Tools
 - **Local Testing**: Use scripts in `tests/` for prompt optimization
@@ -67,7 +69,8 @@ This repository serves three main purposes:
 ### Critical Configuration
 - `assistant_config/MASTER_PROMPT.md` - Current production assistant prompt
 - `index.yaml` - Course structure for third-party apps (root level)
-- `src/app.py` - Slack middleware application
+- `src/app_response.py` - Responses API Slack middleware (production)
+- `src/app_assistants.py` - Legacy Assistants API version (backup)
 
 ### Knowledge Base
 - `knowledge_base/database/*.md` - Source course information (edit these)
