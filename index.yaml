@@ -20,71 +20,71 @@ course:
             - name: "Detailed Syllabus - Remote"
               component:
                 - type: html
-                  file: "database/UXUI Remote bootcamp_2025_07.md"
+                  file: "database/UXUI_Remote_bootcamp_2025_07.md"
                   mode: read
             - name: "Detailed Syllabus - Berlin"
               component:
                 - type: html
-                  file: "database/UXUI Berlin onsite bootcamp_2025_07.md"
+                  file: "database/UXUI_Berlin_onsite_bootcamp_2025_07.md"
                   mode: read
         - name: "Data Analytics Bootcamp"
           vertical:
             - name: "Detailed Syllabus - Remote"
               component:
                 - type: html
-                  file: "database/Data Analytics Remote bootcamp_2025_07.md"
+                  file: "database/Data_Analytics_Remote_bootcamp_2025_07.md"
                   mode: read
             - name: "Detailed Syllabus - Berlin"
               component:
                 - type: html
-                  file: "database/Data Analytics Berlin onsite bootcamp_2025_07.md"
+                  file: "database/Data_Analytics_Berlin_onsite_bootcamp_2025_07.md"
                   mode: read
         - name: "Data Science and Machine Learning Bootcamp"
           vertical:
             - name: "Detailed Syllabus"
               component:
                 - type: html
-                  file: "database/Data Science & Machine Learning bootcamp_2025_07.md"
+                  file: "database/Data_Science_&_Machine_Learning_bootcamp_2025_07.md"
                   mode: read
         - name: "Web Development Bootcamp"
           vertical:
             - name: "Detailed Syllabus - Remote"
               component:
                 - type: html
-                  file: "database/Web Dev Remote bootcamp_2025_07.md"
+                  file: "database/Web_Dev_Remote_bootcamp_2025_07.md"
                   mode: read
             - name: "Detailed Syllabus - Berlin"
               component:
                 - type: html
-                  file: "database/Web Dev Berlin onsite bootcamp_2025_07.md"
+                  file: "database/Web_Dev_Berlin_onsite_bootcamp_2025_07.md"
                   mode: read
         - name: "Marketing Bootcamp"
           vertical:
             - name: "Detailed Syllabus"
               component:
                 - type: html
-                  file: "database/Marketing bootcamp_2025_07.md"
+                  file: "database/Marketing_bootcamp_2025_07.md"
                   mode: read
         - name: "DevOps Bootcamp"
           vertical:
             - name: "Detailed Syllabus"
               component:
                 - type: html
-                  file: "database/DevOps bootcamp_2025_07.md"
+                  file: "database/DevOps_bootcamp_2025_07.md"
                   mode: read
         - name: "Cybersecurity Bootcamp"
           vertical:
             - name: "Detailed Syllabus"
               component:
                 - type: html
-                  file: "database/Cybersecurity bootcamp_2025_07.md"
+                  file: "database/Cybersecurity_bootcamp_2025_07.md"
                   mode: read
         - name: "AI Engineering Bootcamp"
           vertical:
             - name: "Detailed Syllabus"
               component:
                 - type: html
-                  file: "database/AI Engineering bootcamp_2025_07.md"
+                  file: "database/AI_Engineering_bootcamp_2025_07.md"
                   mode: read
 
     - name: "1 Year Programs"
@@ -94,7 +94,7 @@ course:
             - name: "DSAI file"
               component:
                 - type: html
-                  file: "database/Data Science and AI 1 Year Program Germany 2025_07.md"
+                  file: "database/Data_Science_and_AI_1_Year_Program_Germany_2025_07.md"
                   mode: read
 
     - name: "Academy Courses (Asynchronous)"
@@ -104,24 +104,24 @@ course:
             - name: "APAC file - Duration"
               component:
                 - type: html
-                  file: "database/APAC - Intensive program in applied AI - AI async productivity course duration.md"
+                  file: "database/APAC_-_Intensive_program_in_applied_AI_-_AI_async_productivity_course_duration.md"
                   mode: read
             - name: "APAC file - Syllabus"
               component:
                 - type: html
-                  file: "database/APAC - Intensive program in applied AI - AI async productivity course syllabus.md"
+                  file: "database/APAC_-_Intensive_program_in_applied_AI_-_AI_async_productivity_course_syllabus.md"
                   mode: read
             - name: "APAC file - Use Cases"
               component:
                 - type: html
-                  file: "database/APAC - Intensive program in applied AI - AI async productivity course use cases.md"
+                  file: "database/APAC_-_Intensive_program_in_applied_AI_-_AI_async_productivity_course_use_cases.md"
                   mode: read
         - name: "Advanced Program in Applied AI"
           vertical:
             - name: "Academy course file"
               component:
                 - type: html
-                  file: "database/Advanced program in applied AI academy_course_2025_07.md"
+                  file: "database/Advanced_program_in_applied_AI_academy_course_2025_07.md"
                   mode: read
 
     - name: "Certifications"
