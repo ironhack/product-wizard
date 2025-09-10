@@ -22,11 +22,11 @@ Course content
   - [Unit 12-14: Client Based Final Project (120 hours)](#unit-12-14-client-based-final-project-120-hours)
   - [Unit 15: Personal Portfolios & Job Preparation (40 hours)](#unit-15-personal-portfolios-job-preparation-40-hours)
 
-## **Course Duration** {#course-duration}
+## **Course Duration**
 
 Duration: 600 hours \+ 50 hours of prework
 
-## **Course Overview** {#course-overview}
+## **Course Overview**
 
 The UX/UI Design course offers a comprehensive journey into user experience and user interface design, transforming beginners into proficient designers ready to tackle real-world industry challenges.
 
@@ -40,14 +40,14 @@ Throughout the bootcamp, participants will engage in collaborative projects and 
 
 The course concludes with a strong career preparation phase, where students refine their UX/UI portfolios, practice mock interviews, and develop a job application strategy to successfully transition into the industry.
 
-## **General Structure** {#general-structure}
+## **General Structure**
 
 * **Class Format**: Engaging mix of interactive lectures, hands-on lab sessions, collaborative projects, and individual assessments.  
 * **Materials Provided:** Lecture slides, Figma exercises, project management boards and templates, additional reading materials, and access to a Figma Education team**.**  
 * **Tools Used**: Figma, Dev Tools, HTML & CSS, Adobe Illustrator, Framer  
 * **Feedback Mechanism**: Continuous feedback during lab sessions, peer reviews during projects, and formal evaluations via project presentations. 
 
-## **Learning Outcomes** {#learning-outcomes}
+## **Learning Outcomes**
 
 By the end of this course, participants will be able to:
 
@@ -70,9 +70,9 @@ By the end of this course, participants will be able to:
 * Develop a professional UX/UI portfolio showcasing case studies and hands-on projects.  
 * Prepare for job applications, networking, and interviews through mock interviews and portfolio reviews
 
-## **Course Details** {#course-details}
+## **Course Details**
 
-### **Unit 0: Prework (50 hours)**  {#unit-0-prework-50-hours}
+### **Unit 0: Prework (50 hours)**
 
 **Objective**: This unit lays the foundation for UX/UI design by introducing core principles, methodologies, and tools. Students will develop a problem-solving mindset through hands-on labs in Design Thinking, UX/UI fundamentals, and basic HTML & CSS. By the end of this unit, students will be familiar with Figma, design workflows, and key research techniques, preparing them for the main course.
 
@@ -89,7 +89,7 @@ By the end of this course, participants will be able to:
 * 2x Challenges/Projects  
 * 3x Extras \- HTML & CSS
 
-### **Unit 1: Foundations of User Research (40 hours)**  {#unit-1-foundations-of-user-research-40-hours}
+### **Unit 1: Foundations of User Research (40 hours)**
 
 **Objective**: This unit introduces user-centered design and the importance of UX research in solving real-world problems. Students will conduct surveys, interviews, and affinity mapping to extract insights and create personas, empathy maps, and user journey maps. By the end of this unit, students will be able to define clear problem statements and make research-backed design decisions.
 
@@ -114,7 +114,7 @@ By the end of this course, participants will be able to:
 * 1x Project (Wicked Problems)  
 * 1x Portfolio workshop
 
-### **Unit 2: Business analysis (40 hours)**  {#unit-2-business-analysis-40-hours}
+### **Unit 2: Business analysis (40 hours)**
 
 **Objective**: Expanding on UX research, this unit focuses on business strategy, competitor analysis, and stakeholder alignment. Students will conduct business and user interviews, explore market trends, and build low-fidelity wireframes to translate research into early design concepts. This unit also introduces concept testing and information architecture, bridging research and UI design.
 
@@ -139,7 +139,7 @@ By the end of this course, participants will be able to:
 * 1x Project Presentation (Wicked Problems)  
 * 1x Project (Responsive E-Commerce)
 
-### **Unit 3: Information Architecture, UI & Responsive Design (40 hours)**  {#unit-3-information-architecture-ui-responsive-design-40-hours}
+### **Unit 3: Information Architecture, UI & Responsive Design (40 hours)**
 
 **Objective**: This unit transitions from research to structuring digital products. Students will apply information architecture principles, organize content using sitemaps, and create mid-fidelity wireframes. They will also begin UI design, learning about grid systems, responsive design, and interaction patterns. By the end of this unit, students will have their first structured and testable UI prototypes.
 
@@ -163,7 +163,7 @@ By the end of this course, participants will be able to:
 * 1x Lab  
 * 1x Project (Responsive E-Commerce)
 
-### **Unit 4: Usability Testing & Visual Design (40 hours)**  {#unit-4-usability-testing-visual-design-40-hours}
+### **Unit 4: Usability Testing & Visual Design (40 hours)**
 
 **Objective**: This unit introduces visual design principles and usability testing. Students will refine their wireframes by applying Gestalt principles, CRAP (Contrast, Repetition, Alignment, Proximity), typography, and color theory. They will also conduct usability tests and desirability studies to validate and improve their UI designs. By the end of this unit, students will have developed high-fidelity screens and interactive prototypes.
 
@@ -292,7 +292,7 @@ This unit integrates project management and accessibility, preparing students fo
 
 ### 
 
-### **Unit 9: Design Implementation (40 hours)**  {#unit-9-design-implementation-40-hours}
+### **Unit 9: Design Implementation (40 hours)**
 
 **Objective:**  
 Bridging the gap between design and development, this unit teaches students HTML & CSS fundamentals and best practices for design handoff to developers. They will refine their designs using Figma’s Dev Mode, flexbox, and responsive design techniques. By the end of this unit, students will be able to collaborate effectively with developers and implement basic front-end UI components.
@@ -357,7 +357,7 @@ This unit introduces AR, VR, and gamification, focusing on how immersive experie
 
 ### 
 
-### **Unit 12-14 : Client Based Final Project  (120 hours)**  {#unit-12-14-client-based-final-project-120-hours}
+### **Unit 12-14 : Client Based Final Project  (120 hours)**
 
 **Objective**: The culmination of the UX/UI design course is represented in the Final Project unit, where participants synthesize and apply all the knowledge, techniques, and skills they've acquired throughout the course into a comprehensive, professional-level project. This unit is designed to have client collaboration, real-world UX/UI design scenarios and challenges, providing participants with the opportunity to demonstrate their proficiency in both design and soft skills.
 
