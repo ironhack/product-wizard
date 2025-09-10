@@ -60,7 +60,7 @@ tests/                     # Local testing and assistant optimization
 └── test_*.py            # Various test scripts for prompt optimization
 
 tools/                     # Utility scripts
-├── deploy_prompt.py      # Deploy prompts to OpenAI assistant in production
+├── deploy_prompt.py      # Legacy prompt deployment (ASSISTANTS API ONLY)
 ├── assistant_tester.py   # Assistant testing utilities
 ├── cleanup_repo.py       # Repository maintenance tools
 └── *.py                 # Other development utilities
@@ -85,12 +85,12 @@ docs/                      # Documentation and development history
 ### Knowledge Base Updates
 1. Edit Markdown files in `knowledge_base/database/`
 2. Update corresponding TXT files in `knowledge_base/database_txt/`
-3. Deploy changes to OpenAI vector store
+3. **Deploy via Heroku app restart** (Responses API reads from repository)
 
 ### Testing & Optimization
 - Use scripts in `tests/` for local prompt optimization
 - Results are automatically saved to `tests/results/`
-- Use `tools/` for deployment and maintenance
+- Use `tools/` for utilities (legacy deployment tools available for Assistants API only)
 
 ## 🚀 Quick Start
 
@@ -134,6 +134,9 @@ python tests/test_citations_clean.py
 |------|---------|---------|
 | **Citation Quality** | Verify proper file citations | `python tests/test_citations_clean.py` |
 | **Fabrication Check** | Ensure no invented information | `python tests/test_sales_scenarios.py` |
+| **Bias Detection** | GPT-5 judge evaluation of response accuracy | `python tests/test_bias_fabrication.py` |
+| **Bias Validation** | Second round with new strategic questions | `python tests/test_bias_fabrication_round2.py` |
+| **Vector Search Analysis** | Root cause investigation for bias sources | `python tests/test_vector_search_investigation.py` |
 | **Model Comparison** | Compare different GPT models | `python tests/model_tests/model_comparison_test.py` |
 
 ### Test Results
@@ -155,6 +158,24 @@ All test results are saved to `tests/results/` with timestamps and detailed anal
 - ✅ **Variant-aware responses** (Remote vs Berlin)
 - ✅ **Sales-appropriate conversational tone**
 - ✅ **Threaded conversation support** for Slack integration
+- ✅ **Automated bias detection** - GPT-5 judge methodology prevents regressions
+
+### 🔬 Bias Detection Methodology Details
+
+#### Problem Identification:
+- **Cross-contamination**: Vector store contained multiple Data Science programs
+- **Document mixing**: `Data_Science_&_Machine_Learning_bootcamp_2025_07.md` vs `Data_Science_and_AI_1_Year_Program_Germany_2025_07.md`
+- **Fabrication patterns**: Adding R, JavaScript to bootcamp (from Germany program)
+
+#### Solution Implementation:
+1. **Root Cause Analysis**: Vector search investigation revealed document contamination
+2. **MASTER_PROMPT Enhancement**: Added program disambiguation section
+3. **Testing Validation**: GPT-5 judge confirmed 9.0/10 average improvement
+
+#### Continuous Monitoring:
+- **Automated tests** run before each deployment
+- **GPT-5 evaluation** provides objective bias assessment
+- **Test preservation** ensures reproducible quality checks
 
 ## 🎯 Usage Examples
 
@@ -194,16 +215,81 @@ SLACK_SIGNING_SECRET = "your_signing_secret_here"
 
 ## 🛠️ Development
 
+### 🚀 Deployment Workflow (Responses API - Production)
+
+#### Prompt Updates:
+1. Edit `assistant_config/MASTER_PROMPT.md`
+2. Create backup version in `docs/development/MASTER_PROMPT_V[X].md`
+3. Test locally with `python tests/test_bias_fabrication.py`
+4. **Commit and push to GitHub**
+5. **Deploy Heroku app** (reads prompt from repository)
+6. Verify in Slack production environment
+
+#### Knowledge Base Updates:
+1. Edit Markdown files in `knowledge_base/database/`
+2. Update corresponding TXT files in `knowledge_base/database_txt/`
+3. Test locally
+4. **Commit and push to GitHub**
+5. **Deploy Heroku app** (vector store reads from repository)
+
+#### Legacy Deployment (Assistants API - DEPRECATED):
+- Use `tools/deploy_prompt.py` for legacy assistant updates only
+- Not used for production Slack app
+
+### 🧪 Bias Detection & Prompt Optimization Strategy
+
+#### Automated Bias Testing Methodology:
+Our bias detection strategy uses **GPT-5 as an impartial judge** to evaluate assistant responses:
+
+1. **Strategic Question Design**: Create questions that test specific bias types:
+   - **Cross-contamination bias**: Different programs with similar names
+   - **Numerical precision bias**: Exact values vs reasonable assumptions  
+   - **Completeness bias**: Listed items vs common additions
+   - **Variant confusion bias**: Remote vs Berlin distinctions
+
+2. **Expected Answer Research**: Generate factual answers by searching source documents:
+   ```python
+   # Example: Search for exact curriculum information
+   grep "Unit 3.*32 hours" knowledge_base/database/UXUI_Remote_bootcamp_2025_07.md
+   ```
+
+3. **Automated Testing Pipeline**:
+   ```python
+   # Run bias detection test
+   python tests/test_bias_fabrication.py
+   python tests/test_bias_fabrication_round2.py
+   ```
+
+4. **GPT-5 Evaluation**: Each response is scored (1-10) on:
+   - **Accuracy**: Facts match documentation
+   - **Completeness**: No missing information
+   - **Precision**: No fabricated additions
+   - **Citations**: Proper source attribution
+   - **Bias Risk**: BASSO/MEDIO/ALTO assessment
+
+#### Successful Bias Mitigation Results:
+- **Round 1 (Pre-optimization)**: 0-6/10 scores, high cross-contamination
+- **Round 2 (Post-optimization)**: 8-10/10 scores, minimal bias
+- **Key Fix**: Program disambiguation in MASTER_PROMPT eliminated vector store contamination
+
+#### Testing Files:
+- `tests/test_bias_fabrication.py` - Original bias detection tests
+- `tests/test_bias_fabrication_round2.py` - Validation with new questions
+- `tests/test_vector_search_investigation.py` - Root cause analysis tool
+- `docs/development/BIAS_DETECTION_METHODOLOGY.md` - **Complete methodology documentation**
+
 ### Adding New Tests
 1. Use `tools/test_utils.py` for common functionality
 2. Save results to `tests/results/`
 3. Follow the established naming convention
+4. **For bias testing**: Use GPT-5 judge methodology for objective evaluation
 
 ### Updating the Prompt
 1. Edit `assistant_config/MASTER_PROMPT.md`
 2. Create backup version in `docs/development/MASTER_PROMPT_V[X].md`
 3. Test with `python tests/test_citations_clean.py`
-4. Deploy with `python tools/deploy_prompt.py`
+4. **For Responses API (Production)**: Commit to GitHub + Deploy Heroku app
+5. **For Assistants API (Legacy)**: `python tools/deploy_prompt.py`
 
 ### Knowledge Base Updates
 1. Edit Markdown files in `knowledge_base/database/`
@@ -213,7 +299,7 @@ SLACK_SIGNING_SECRET = "your_signing_secret_here"
 ### Model Updates
 1. Run model comparison tests
 2. Update documentation with performance metrics
-3. Deploy changes to production
+3. **Deploy via Heroku app** (Responses API configuration)
 
 ## 📁 File Relationships
 

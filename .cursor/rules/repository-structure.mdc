@@ -38,7 +38,8 @@ This repository serves three main purposes:
 - **Local Testing**: Use scripts in `tests/` for prompt optimization
 - **Test Preservation**: Keep all test files (`test_*.py`) - never delete, they may be useful
 - **Test Results**: Automatically saved to `tests/results/` with timestamps
-- **Deployment**: Use `tools/deploy_prompt.py` for production deployment
+- **Legacy Deployment**: `tools/deploy_prompt.py` (ASSISTANTS API ONLY - not used in production)
+- **Production Deployment**: Responses API reads directly from `assistant_config/MASTER_PROMPT.md` via Heroku app deployment
 - **Utilities**: Additional tools in `tools/` directory
 
 ## Development Rules
@@ -58,11 +59,19 @@ This repository serves three main purposes:
 - **Document changes** in commit messages
 
 ### Deployment Process
+
+#### Production Deployment (Responses API):
 1. Edit source files (Markdown in `knowledge_base/database/`)
 2. Update corresponding TXT files (`knowledge_base/database_txt/`)
-3. Test changes locally (`tests/test_*.py`)
-4. Deploy using tools (`tools/deploy_prompt.py`)
-5. Verify in production environment
+3. Update `assistant_config/MASTER_PROMPT.md` if needed
+4. Test changes locally (`tests/test_*.py`)
+5. **Commit and push to GitHub**
+6. **Deploy Heroku app** (reads prompt from repository)
+7. Verify in production environment
+
+#### Legacy Deployment (Assistants API - DEPRECATED):
+- Use `tools/deploy_prompt.py` for legacy assistant updates only
+- Not used for production Slack app
 
 ## Key Files & Their Roles
 
