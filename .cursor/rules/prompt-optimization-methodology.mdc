@@ -1,0 +1,118 @@
+---
+description: "Prompt Optimization & Testing Methodology using GPT-5 as judge"
+globs: ["docs/development/PROMPT_OPTIMIZATION_METHODOLOGY.md", "tests/test_bias_*.py", "tests/test_*_optimization.py", "tests/results/bias_detection_results_*.json"]
+alwaysApply: true
+---
+
+# Prompt Optimization & Testing Methodology
+
+## Core Philosophy: Information Retrieval Over Hardcoding
+
+**NEVER hardcode specific answers or facts in prompts.** Always foster information retrieval from documentation:
+
+### Information Retrieval Principles:
+1. **Teach search strategies** rather than providing specific facts
+2. **Guide retrieval behavior** rather than hardcoding fallback information  
+3. **Emphasize knowledge base as single source of truth**
+4. **Test that assistant searches properly** rather than relying on prompt knowledge
+5. **Use search tools and document retrieval, not memorized facts**
+
+### Prompt Design Guidelines:
+- **DO**: "Use search tools to find current course information"
+- **DON'T**: "Data Science bootcamp includes Python and SQL"
+- **DO**: "Always distinguish between different programs when searching"
+- **DON'T**: "The bootcamp is 400 hours while the 1-year program is 1,582 hours"
+
+## GPT-5 Judge Testing Framework
+
+### When to Apply This Methodology:
+- Cross-contamination between similar documents/programs
+- Fabrication of plausible but undocumented information
+- Search failures when information exists in documents
+- Poor handling of follow-up questions
+- Vague responses when specific information exists
+
+### Testing Process:
+1. **Identify Problem**: Document specific unwanted behavior with examples
+2. **Formulate Hypothesis**: Create hypothesis about prompt changes needed
+3. **Apply to Prompt**: Make targeted changes emphasizing retrieval over hardcoding
+4. **Design Strategic Tests**: Create questions targeting specific vulnerabilities
+5. **GPT-5 Judge Evaluation**: Use systematic scoring with bias risk assessment
+
+### Test File Requirements:
+- **Create specific test files** in `tests/` for each optimization round
+- **Use descriptive filenames**: `test_bias_fabrication.py`, `test_[scenario]_optimization.py`
+- **Test exact scenarios** the prompt change addresses
+- **Preserve all test files** - never delete, they provide regression testing
+- **Save results to** `tests/results/` with timestamps
+
+### Scoring System:
+- **10/10**: Perfect accuracy, no bias detected
+- **8-9/10**: Minor additions, low bias risk (BASSO)
+- **6-7/10**: Some fabrication, medium bias risk (MEDIO)
+- **1-5/10**: Major fabrication, high bias risk (ALTO)
+- **0/10**: Complete failure or technical error
+
+### Quality Gates:
+- **Deployment Blocker**: Average score < 7/10
+- **Investigation Required**: Any HIGH bias risk results
+- **Acceptable**: BASSO bias risk with score 8+
+
+## Implementation Rules
+
+### Before Prompt Changes:
+1. **Run existing bias tests** to establish baseline
+2. **Document specific issues** you're trying to solve
+3. **Create version backup** in `docs/development/`
+
+### During Optimization:
+1. **Focus on search guidance** rather than hardcoded facts
+2. **Enhance disambiguation rules** for similar programs/documents
+3. **Strengthen retrieval instructions** over fallback information
+4. **Test with strategic questions** that expose specific vulnerabilities
+
+### After Changes:
+1. **Run comprehensive bias testing** with GPT-5 judge
+2. **Require 8/10+ average score** before deployment
+3. **Document improvements** and remaining issues
+4. **Preserve test files** for future regression testing
+
+## Test Design Strategy
+
+### Question Types:
+- **Cross-contamination**: Test mixing between similar programs
+- **Numerical precision**: Test exact vs estimated numbers  
+- **Completeness**: Test comprehensive vs assumption-based lists
+- **Variant confusion**: Test assumptions about different course formats
+
+### Expected Answer Research:
+- **Use grep/search** to find exact text in source documents
+- **Quote directly** from source material when possible
+- **Include document references** in expected answers
+- **Never assume** - always verify in actual documentation
+
+## Integration with Development Workflow
+
+### Pre-deployment Testing:
+1. Run bias detection tests before any MASTER_PROMPT changes
+2. Ensure information retrieval guidance is strengthened, not weakened
+3. Verify no hardcoded facts are being added to prompts
+
+### Continuous Improvement:
+1. Add new test cases when bias patterns are discovered
+2. Regular re-testing with historical questions for regression detection
+3. Document methodology improvements for future reference
+
+## File Locations
+
+### Core Files:
+- **Methodology Documentation**: `docs/development/PROMPT_OPTIMIZATION_METHODOLOGY.md`
+- **Test Files**: `tests/test_bias_*.py`, `tests/test_*_optimization.py`
+- **Results**: `tests/results/bias_detection_results_*.json`
+
+### Key Test Files:
+- `tests/test_bias_fabrication.py` - Original bias detection framework
+- `tests/test_bias_fabrication_round2.py` - Validation testing
+- `tests/test_vector_search_investigation.py` - Root cause analysis
+
+Remember: The goal is to create an assistant that reliably searches and retrieves information rather than one that "knows" facts through hardcoded prompt content.

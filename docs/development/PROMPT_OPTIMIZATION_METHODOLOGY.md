@@ -1,31 +1,50 @@
-# Bias Detection & Prompt Optimization Methodology
+# Prompt Optimization & Testing Methodology
 
 **Created**: 2025-09-10  
-**Purpose**: Document the systematic approach for detecting and mitigating bias in AI assistant responses  
-**Status**: Production Ready - Successfully Applied  
+**Updated**: 2025-09-10  
+**Purpose**: Document the systematic framework for prompt optimization and testing using GPT-5 as judge  
+**Status**: Production Ready - Core Framework  
 
 ## 📊 Overview
 
-This methodology uses **GPT-5 as an impartial judge** to detect bias patterns in AI assistant responses, enabling systematic prompt optimization with measurable results.
+This methodology provides a systematic framework for **prompt optimization** using **GPT-5 as an impartial judge**. It can be applied to any unwanted behavior or performance issue, providing measurable results and iterative improvement.
 
-## 🎯 Problem Statement
+## 🎯 Framework Application Process
 
-### Initial Bias Issues Identified:
-1. **Cross-contamination Bias**: Mixing information from different programs
-2. **Fabrication Bias**: Adding plausible but undocumented information  
-3. **Assumption Bias**: Making reasonable assumptions instead of searching documents
-4. **Template Bias**: Following prompt patterns instead of fact-checking
+### Step 1: Identify the Problem
+When facing any unwanted behavior or performance issue:
+1. **Document the specific issue** with examples
+2. **Identify the root cause hypothesis** 
+3. **Define expected vs actual behavior**
 
-### Specific Example:
-- **Query**: "Programming languages in Data Science & ML bootcamp"
-- **Expected**: Python, SQL (from `Data_Science_&_Machine_Learning_bootcamp_2025_07.md`)
-- **Actual**: Python, SQL, R, JavaScript (contaminated from `Data_Science_and_AI_1_Year_Program_Germany_2025_07.md`)
+### Examples of Issues This Framework Addresses:
+1. **Cross-contamination**: Mixing information from different programs/documents
+2. **Fabrication**: Adding plausible but undocumented information  
+3. **Search failures**: Not finding available information in documents
+4. **Context issues**: Poor handling of follow-up questions
+5. **Specificity problems**: Vague responses when specific information exists
 
-## 🔬 Methodology Framework
+### Step 2: Formulate Hypothesis
+Based on the problem, create a hypothesis about what prompt changes might help.
 
-### 1. Strategic Question Design
+### Example Problem & Hypothesis:
+- **Issue**: "Assistant mixing certifications between different programs in Slack"
+- **Hypothesis**: "Prompt needs stronger search guidance and cross-program isolation rules"
+- **Expected**: Only mention certifications for the program asked about
+- **Test Strategy**: Create questions that specifically target cross-program contamination
 
-Create questions targeting specific bias types:
+## 🔬 Framework Implementation
+
+### Step 3: Apply Hypothesis to Prompt
+Make targeted changes to the prompt based on your hypothesis:
+- **Search improvements**: Better guidance for document search
+- **Rule clarifications**: Stronger guidelines for specific behaviors  
+- **Context handling**: Better instructions for follow-ups
+- **Scope limitations**: Clearer boundaries on what to include/exclude
+
+### Step 4: Design Strategic Test Questions
+
+Create questions that specifically test your hypothesis:
 
 #### Cross-contamination Test:
 ```
@@ -70,9 +89,9 @@ grep "AWS|EC2|S3" knowledge_base/database/DevOps_bootcamp_2025_07.md
 grep -i "python|sql|javascript" knowledge_base/database/Data_Science_*.md
 ```
 
-### 3. Automated Testing Pipeline
+### Step 5: GPT-5 Judge Testing Pipeline
 
-#### Test Implementation:
+#### Test Implementation Template:
 ```python
 def test_bias_case(question, expected_answer, rationale):
     # 1. Query assistant with MASTER_PROMPT
@@ -144,13 +163,18 @@ Vector search investigation revealed:
 - Assistant mixing information from both documents
 
 ### Solution Implementation:
-Enhanced MASTER_PROMPT with program disambiguation:
+Enhanced MASTER_PROMPT with program disambiguation and search guidance:
 ```markdown
-### CRITICAL: Program Disambiguation
+### CRITICAL: Program Disambiguation & Information Retrieval
 **ALWAYS distinguish between these different Data Science programs:**
 - **Data Science & Machine Learning bootcamp** (400 hours) - Python, SQL only
 - **Data Science and AI 1-Year Program Germany** (1,582 hours) - Multiple languages
 - **When asked about "Data Science", clarify which program** the user means
+
+**NEVER hardcode specific details in the prompt - always retrieve information from documentation:**
+- Use search tools to find current, accurate information
+- Rely on vector search and document retrieval, not memorized facts
+- Let the knowledge base be the single source of truth
 ```
 
 ### Round 2 (Post-optimization):
@@ -209,6 +233,13 @@ python tests/test_vector_search_investigation.py
 - **Acceptable**: BASSO bias risk with score 8+
 
 ## 💡 Best Practices
+
+### Information Retrieval Principles:
+1. **Never hardcode answers in prompts** - always rely on document search
+2. **Teach search strategies** rather than specific facts
+3. **Emphasize knowledge base as single source of truth**
+4. **Guide retrieval behavior** rather than providing fallback information
+5. **Test that assistant searches properly** rather than relying on prompt knowledge
 
 ### Question Design:
 1. **Target specific vulnerabilities** in your prompt/system

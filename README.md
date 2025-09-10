@@ -87,6 +87,38 @@ docs/                      # Documentation and development history
 2. Update corresponding TXT files in `knowledge_base/database_txt/`
 3. **Deploy via Heroku app restart** (Responses API reads from repository)
 
+### Prompt Optimization Framework
+
+#### Overview
+We use a systematic framework for prompt optimization that applies to any unwanted behavior or performance issue. The framework uses **GPT-5 as an impartial judge** to provide measurable results and iterative improvement.
+
+#### When to Use This Framework
+- Assistant mixing information between programs/documents
+- Fabricating information not in documents  
+- Poor document search performance
+- Context handling issues in follow-up questions
+- Any other unwanted behavior patterns
+
+#### Framework Process
+1. **Identify the Problem**: Document specific issues with examples
+2. **Formulate Hypothesis**: Create hypothesis about what prompt changes might help  
+3. **Apply Hypothesis to Prompt**: Make targeted changes based on hypothesis
+4. **Design Strategic Test Questions**: Create tests that target the specific issue
+5. **Run GPT-5 Judge Tests**: Use our template for consistent testing
+6. **Analyze Results**: Determine if iteration is needed (8.0/10+ average, 0 high bias cases)
+7. **Iterate if Needed**: Repeat process until acceptable performance
+
+#### Quick Start
+1. Use the template: `tools/prompt_optimization_template.py`
+2. Define your test cases targeting specific issues
+3. Run tests with: `python tools/your_optimization_test.py`
+4. Analyze results and iterate as needed
+
+#### Documentation
+- **Framework Guide**: `docs/development/PROMPT_OPTIMIZATION_METHODOLOGY.md` (systematic optimization framework)
+- **Template**: `tools/prompt_optimization_template.py`
+- **Examples**: See `tests/test_certification_search_accuracy.py`
+
 ### Testing & Optimization
 - Use scripts in `tests/` for local prompt optimization
 - Results are automatically saved to `tests/results/`
@@ -276,7 +308,7 @@ Our bias detection strategy uses **GPT-5 as an impartial judge** to evaluate ass
 - `tests/test_bias_fabrication.py` - Original bias detection tests
 - `tests/test_bias_fabrication_round2.py` - Validation with new questions
 - `tests/test_vector_search_investigation.py` - Root cause analysis tool
-- `docs/development/BIAS_DETECTION_METHODOLOGY.md` - **Complete methodology documentation**
+- `docs/development/PROMPT_OPTIMIZATION_METHODOLOGY.md` - **Complete methodology documentation**
 
 ### Adding New Tests
 1. Use `tools/test_utils.py` for common functionality
