@@ -101,8 +101,8 @@ class MessageDeduplicationCache:
 # Initialize deduplication cache
 dedup_cache = MessageDeduplicationCache()
 
-# Enhanced conversation mapping to track full message history for each Slack thread
-# This provides proper conversation context for the Responses API
+# Conversation mapping to track previous_response_id for each Slack thread
+# This replaces the OpenAI thread system
 def load_conversation_mapping():
     """Load conversation mapping from file with file locking"""
     try:
@@ -141,81 +141,6 @@ def update_conversation_mapping(conversation_id, conversation_data):
     mapping[conversation_id] = conversation_data
     save_conversation_mapping(mapping)
     return mapping
-
-def add_message_to_conversation(conversation_id, role, content, timestamp=None):
-    """Add a message to the conversation history"""
-    if timestamp is None:
-        timestamp = time.time()
-    
-    mapping = load_conversation_mapping()
-    if conversation_id not in mapping:
-        mapping[conversation_id] = {
-            "previous_response_id": None,
-            "messages": []
-        }
-    
-    # Add the new message
-    mapping[conversation_id]["messages"].append({
-        "role": role,
-        "content": content,
-        "timestamp": timestamp
-    })
-    
-    # Keep only the last 10 messages to prevent memory bloat (5 user + 5 assistant)
-    if len(mapping[conversation_id]["messages"]) > 10:
-        mapping[conversation_id]["messages"] = mapping[conversation_id]["messages"][-10:]
-    
-    save_conversation_mapping(mapping)
-    return mapping
-
-def build_conversation_messages_array(conversation_id, current_message):
-    """Build conversation messages array for Responses API (proper format)"""
-    mapping = load_conversation_mapping()
-    
-    # Start with system message for context preservation
-    messages = [
-        {
-            "role": "system", 
-            "content": "You are an AI assistant for Ironhack course information. IMPORTANT: Maintain conversation topic focus and scope. If the conversation is about a specific program (e.g., DevOps), stay focused on that program unless explicitly asked to expand to others."
-        }
-    ]
-    
-    if conversation_id not in mapping or not mapping[conversation_id].get("messages"):
-        # No history, just add current user message
-        logger.info(f"No conversation history found for {conversation_id}")
-        messages.append({"role": "user", "content": current_message})
-        return messages
-    
-    # Get conversation history
-    conversation_messages = mapping[conversation_id]["messages"]
-    
-    # Only include recent history to avoid token limits (last 8 messages = 4 exchanges)
-    recent_messages = conversation_messages[-8:] if len(conversation_messages) > 8 else conversation_messages
-    
-    if not recent_messages:
-        logger.info(f"No recent messages found for {conversation_id}")
-        messages.append({"role": "user", "content": current_message})
-        return messages
-    
-    # Add conversation history to messages array
-    for msg in recent_messages:
-        # Convert our stored format to OpenAI message format
-        role = "user" if msg["role"] == "user" else "assistant"
-        content = msg["content"]
-        
-        # Truncate very long messages to prevent token bloat
-        if len(content) > 1000:
-            content = content[:1000] + "..."
-        
-        messages.append({"role": role, "content": content})
-    
-    # Add current message
-    messages.append({"role": "user", "content": current_message})
-    
-    logger.info(f"Built messages array with {len(messages)} messages ({len(recent_messages)} from history)")
-    logger.info(f"Messages array length: {len(str(messages))} characters")
-    
-    return messages
 
 def clean_citations(text):
     """Clean up citations for Slack display"""
@@ -275,25 +200,16 @@ def process_message(event, say):
     # Get current conversation mapping
     current_conversation_mapping = get_conversation_mapping()
     if conversation_id not in current_conversation_mapping:
-        conversation_data = {
-            "previous_response_id": None,
-            "messages": []
-        }
+        conversation_data = {"previous_response_id": None}
         current_conversation_mapping = update_conversation_mapping(conversation_id, conversation_data)
     else:
         conversation_data = current_conversation_mapping[conversation_id]
-        # Ensure messages array exists for backward compatibility
-        if "messages" not in conversation_data:
-            conversation_data["messages"] = []
     
     try:
-        # Build conversation messages array (proper Responses API format)
-        messages_array = build_conversation_messages_array(conversation_id, user_message)
-        
         # Prepare the Responses API request parameters
         request_params = {
             "model": "gpt-4o",
-            "input": messages_array,  # Proper messages array format
+            "input": user_message,
             "instructions": MASTER_PROMPT,
             "tools": [
                 {
@@ -303,12 +219,7 @@ def process_message(event, say):
             ]
         }
         
-        # Log the context being sent for debugging
-        logger.info(f"Sending messages array with {len(messages_array)} messages")
-        if len(messages_array) > 2:  # System message + user message = 2, more means history
-            logger.info("✅ Conversation history included in messages array")
-        
-        # Add previous response ID for conversation context (still useful for API)
+        # Add previous response ID for conversation context
         if conversation_data.get("previous_response_id"):
             request_params["previous_response_id"] = conversation_data["previous_response_id"]
         
@@ -339,12 +250,7 @@ def process_message(event, say):
         conversation_data["previous_response_id"] = response.id
         update_conversation_mapping(conversation_id, conversation_data)
         
-        # Add both user message and assistant response to conversation history
-        add_message_to_conversation(conversation_id, "user", user_message)
-        add_message_to_conversation(conversation_id, "assistant", assistant_message)
-        
         logger.info(f"Assistant response: {assistant_message[:100]}...")
-        logger.info(f"Added message exchange to conversation history for: {conversation_id}")
         
     except Exception as e:
         logger.error(f"Error processing message with Responses API: {str(e)}")
