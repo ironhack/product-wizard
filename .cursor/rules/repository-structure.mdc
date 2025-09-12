@@ -9,7 +9,7 @@ alwaysApply: true
 ## Repository Overview
 
 This repository serves three main purposes:
-1. **OpenAI Responses API Knowledge Base** - Course information vector store with Responses API
+1. **Custom RAG Pipeline** - Hybrid approach combining Responses API (retrieval) + Chat Completions API (generation) with automatic validation
 2. **Heroku Slack Middleware** - App connecting assistant to Slack  
 3. **Development Tools** - Testing, optimization, and deployment utilities
 
@@ -21,25 +21,25 @@ This repository serves three main purposes:
 - **Synchronization Rule**: Every `.md` file must have a corresponding `.txt` file with identical content
 
 ### Prompt Management
-- **Current Version**: `assistant_config/MASTER_PROMPT.md` (production prompt, NO VERSION HEADER)
-- **Version History**: `docs/development/MASTER_PROMPT_V*.md` (versioned backups with headers)
-- **Versioning Rule**: Version number goes in FILENAME only, not in file content
-- **Update Process**: When changing master prompt, backup current as new version in `docs/development/`
-- **Header Policy**: Current prompt has NO version header - only archived versions do
+- **Current Version**: `assistant_config/MASTER_PROMPT.md` (production prompt - the only version)
+- **Versioning**: Git handles all version control - no manual prompt versioning needed
+- **Update Process**: Edit `MASTER_PROMPT.md` directly, commit changes, and deploy
+- **No Backup Files**: Git history is the single source of truth for versioning
 
 ### Application Structure
-- **Heroku App**: `src/app_response.py` (Responses API Slack middleware - production)
-- **Legacy App**: `src/app_assistants.py` (Assistants API version - backup)
+- **Production App**: `src/app_custom_rag.py` (Custom RAG Pipeline with automatic validation - PRODUCTION)
+- **Fallback App**: `src/app_response.py` (Responses API Slack middleware - fallback)
 - **Configuration**: Root level files (`Procfile`, `requirements.txt`, `runtime.txt`)
 - **Environment**: Use `.env` file for local development (never commit)
-- **Required Env Vars**: `OPENAI_VECTOR_STORE_ID` (Responses API), `OPENAI_ASSISTANT_ID` (legacy backup)
+- **Required Env Vars**: `OPENAI_VECTOR_STORE_ID`, `OPENAI_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`
 
 ### Testing & Tools
-- **Local Testing**: Use scripts in `tests/` for prompt optimization
+- **Production Testing**: Test actual `CustomRAGPipeline` from `src/app_custom_rag.py`
+- **Judge-Based Evaluation**: All tests include GPT-4o evaluation with structured feedback
+- **Core Tests**: `regression_test.py`, `custom_rag_pipeline_tester.py`, `conversation_context_tester.py`
 - **Test Preservation**: Keep all test files (`test_*.py`) - never delete, they may be useful
-- **Test Results**: Automatically saved to `tests/results/` with timestamps
-- **Legacy Deployment**: `tools/deploy_prompt.py` (ASSISTANTS API ONLY - not used in production)
-- **Production Deployment**: Responses API reads directly from `assistant_config/MASTER_PROMPT.md` via Heroku app deployment
+- **Test Results**: Automatically saved to `tests/results/` with timestamps and judge scores
+- **Production Deployment**: Custom RAG Pipeline reads directly from `assistant_config/MASTER_PROMPT.md` via Heroku app deployment
 - **Utilities**: Additional tools in `tools/` directory
 
 ## Development Rules
@@ -47,10 +47,10 @@ This repository serves three main purposes:
 ### File Editing Rules
 1. **Never edit TXT files directly** - always edit the corresponding Markdown file first
 2. **Always update both formats** when modifying course information
-3. **Test locally before deployment** using scripts in `tests/`
-4. **Create version backups** when updating prompts
+3. **Test locally before deployment** using comprehensive test suite
+4. **Test production code** - import and test actual `CustomRAGPipeline` from `app_custom_rag.py`
 5. **Never delete test files** - preserve all `test_*.py` files for future reference
-6. **Remove version headers** from current prompt - only archived versions have headers
+6. **Include judge evaluation** - all tests should use GPT-4o for objective assessment
 
 ### Code Quality
 - **No API keys in code** - use environment variables
@@ -60,50 +60,50 @@ This repository serves three main purposes:
 
 ### Deployment Process
 
-#### Production Deployment (Responses API):
-1. Edit source files (Markdown in `knowledge_base/database/`)
-2. Update corresponding TXT files (`knowledge_base/database_txt/`)
+#### Production Deployment (Custom RAG Pipeline):
+1. Edit source files (Markdown in `knowledge_base/database/` and/or `src/app_custom_rag.py`)
+2. Update corresponding TXT files (`knowledge_base/database_txt/`) when needed
 3. Update `assistant_config/MASTER_PROMPT.md` if needed
-4. Test changes locally (`tests/test_*.py`)
+4. Test changes locally with comprehensive test suite (`tests/regression_test.py`, etc.)
 5. **Commit and push to GitHub**
-6. **Deploy Heroku app** (reads prompt from repository)
-7. Verify in production environment
-
-#### Legacy Deployment (Assistants API - DEPRECATED):
-- Use `tools/deploy_prompt.py` for legacy assistant updates only
-- Not used for production Slack app
+6. **Deploy Heroku app** (Custom RAG Pipeline reads from repository)
+7. Verify in production environment via Slack and health endpoint
 
 ## Key Files & Their Roles
 
 ### Critical Configuration
-- `assistant_config/MASTER_PROMPT.md` - Current production assistant prompt
+- `src/app_custom_rag.py` - Custom RAG Pipeline application (PRODUCTION)
+- `assistant_config/MASTER_PROMPT.md` - Current production assistant prompt (Git versioned)
 - `index.yaml` - Course structure for third-party apps (root level)
-- `src/app_response.py` - Responses API Slack middleware (production)
-- `src/app_assistants.py` - Legacy Assistants API version (backup)
+- `src/app_response.py` - Responses API Slack middleware (fallback)
 
 ### Knowledge Base
 - `knowledge_base/database/*.md` - Source course information (edit these)
 - `knowledge_base/database_txt/*.txt` - Vector store format (auto-sync with MD)
 
 ### Development
-- `docs/development/MASTER_PROMPT_V*.md` - Prompt version history
-- `docs/reports/*.md` - Test results and analysis reports
-- `tests/` - Local testing and optimization scripts
-- `tools/` - Deployment and maintenance utilities
+- `tests/regression_test.py` - Comprehensive test suite with judge evaluation
+- `tests/custom_rag_pipeline_tester.py` - Direct testing of production pipeline
+- `tests/conversation_context_tester.py` - Context management testing
+- `tests/results/` - Test results with timestamps and judge scores
+- `tools/` - Utility scripts for development and maintenance
 
 ## Forbidden Actions
 - ❌ Never commit API keys or sensitive credentials
 - ❌ Never edit TXT files without updating corresponding MD files
-- ❌ Never deploy without running local tests first
-- ❌ Never delete version history in `docs/development/`
+- ❌ Never deploy without running comprehensive test suite first
+- ❌ Never test simulated code - always test actual production `CustomRAGPipeline`
 - ❌ Never modify the three-component repository structure
+- ❌ Never perform Git operations unless explicitly requested by user
 
 ## Context for AI Assistance
 
 This is a production system serving Ironhack's sales team. Any changes must:
-- Maintain zero fabrication policy
-- Preserve citation quality
-- Ensure sales-appropriate responses
-- Keep all three components (knowledge base, middleware, tools) functioning
+- Maintain zero fabrication policy with automatic validation
+- Preserve citation quality and source attribution
+- Ensure sales-appropriate responses with conversational tone
+- Test actual production `CustomRAGPipeline` code, not simulations
+- Include judge-based evaluation for objective quality assessment
+- Keep all three components (knowledge base, Custom RAG Pipeline, tools) functioning
 
 Always prioritize data integrity and system reliability over feature additions.

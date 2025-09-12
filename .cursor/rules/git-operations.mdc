@@ -1,0 +1,124 @@
+---
+description: "Git operations guidelines for Product Wizard repository"
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Git Operations Guidelines
+
+## Core Principle
+
+**NEVER perform Git operations unless explicitly requested by the user.**
+
+## Forbidden Git Operations
+
+The assistant must NEVER execute any of the following commands or operations:
+
+### Git Commands
+- ❌ `git add`
+- ❌ `git commit`
+- ❌ `git push`
+- ❌ `git pull`
+- ❌ `git merge`
+- ❌ `git rebase`
+- ❌ `git checkout`
+- ❌ `git branch`
+- ❌ `git tag`
+- ❌ `git stash`
+- ❌ `git reset`
+- ❌ `git revert`
+- ❌ `git cherry-pick`
+- ❌ `git clone`
+- ❌ `git init`
+- ❌ `git remote`
+- ❌ `git fetch`
+- ❌ `git status` (unless explicitly requested for informational purposes)
+- ❌ `git log` (unless explicitly requested for informational purposes)
+- ❌ `git diff` (unless explicitly requested for informational purposes)
+
+### Git-Related Operations
+- ❌ Creating commits through any method
+- ❌ Pushing changes to remote repositories
+- ❌ Creating or switching branches
+- ❌ Tagging releases
+- ❌ Initializing repositories
+- ❌ Configuring Git settings
+- ❌ Managing remotes
+- ❌ Creating pull requests (through Git or GitHub CLI)
+
+## Exceptions - When Git Operations Are Allowed
+
+Git operations are ONLY permitted when:
+
+1. **Explicitly requested by user**: User directly asks for specific Git commands
+2. **Informational queries**: User asks about Git status, history, or differences (read-only operations)
+3. **Emergency situations**: User explicitly requests rollback due to critical issues
+
+### Example Allowed Requests
+- "Show me the git status"
+- "What's the git log for the last 5 commits?"
+- "Please commit these changes with message 'X'"
+- "Push the changes to GitHub"
+- "Revert the last commit due to production issues"
+
+### Example Forbidden Actions
+- Automatically committing changes after file edits
+- Pushing changes as part of deployment workflow
+- Creating commits when updating documentation
+- Any "helpful" Git operations not explicitly requested
+
+## Workflow Guidelines
+
+### When Making File Changes
+1. **Edit files** as requested
+2. **Test changes** using appropriate test suite
+3. **Inform user** that changes are complete
+4. **Wait for explicit Git instructions** from user
+5. **NEVER automatically commit or push**
+
+### When User Asks About Deployment
+1. **Explain the process** (edit → test → commit → push → deploy)
+2. **Complete the editing and testing steps**
+3. **Stop before Git operations**
+4. **Ask user** if they want to proceed with commit/push
+
+### Communication Examples
+
+#### ✅ Correct Response
+```
+I've completed the file edits and all tests are passing. 
+The changes are ready for deployment.
+
+To deploy these changes:
+1. Review the changes I made
+2. If satisfied, you can commit them: `git add . && git commit -m "Update README for Custom RAG Pipeline"`
+3. Push to trigger deployment: `git push`
+
+Would you like me to proceed with the Git operations, or would you prefer to handle them yourself?
+```
+
+#### ❌ Incorrect Response
+```
+I've completed the changes and committed them automatically. 
+Pushing to production now...
+```
+
+## Rationale
+
+This rule exists because:
+
+1. **User Control**: Git operations affect version control and deployment - user should maintain control
+2. **Safety**: Prevents accidental commits or deployments
+3. **Workflow Clarity**: Makes Git operations explicit and intentional
+4. **Production Safety**: Prevents unauthorized changes to production systems
+
+## Integration with Development Workflow
+
+This rule works alongside the Custom RAG Pipeline workflow:
+
+1. **File Editing**: Assistant can edit files freely
+2. **Testing**: Assistant can run tests and validation
+3. **Git Operations**: User retains control over version control
+4. **Deployment**: User explicitly triggers deployment through Git
+
+Remember: The assistant is a coding partner, not a deployment automation system. Git operations remain under user control unless explicitly delegated.

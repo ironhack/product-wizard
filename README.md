@@ -4,18 +4,20 @@
 
 ## 🎯 Overview
 
-Product Wizard is a comprehensive system that serves three main purposes:
+Product Wizard is a comprehensive system built with a **Custom RAG (Retrieval-Augmented Generation) Pipeline** that serves three main purposes:
 
-1. **🤖 OpenAI Responses API with Knowledge Base** - AI assistant with vector store containing Ironhack course information
+1. **🤖 Custom RAG Pipeline** - Hybrid approach combining Responses API for retrieval + Chat Completions API for controlled generation
 2. **🔗 Slack Integration Middleware** - Heroku app connecting the assistant to Slack
-3. **🛠️ Development & Testing Tools** - Utilities for prompt optimization, testing, and deployment
+3. **🛠️ Development & Testing Tools** - Utilities for pipeline optimization, testing, and deployment
 
 ### Key Features
-- ✅ **Zero Fabrication Policy** - Only provides documented information
+- ✅ **Zero Fabrication Policy** - Only provides documented information with automatic validation
 - ✅ **Perfect Citations** - References specific curriculum documents
 - ✅ **Sales-Ready Responses** - Conversational tone for phone calls
 - ✅ **Variant Awareness** - Distinguishes Remote vs Berlin programs
 - ✅ **Multi-Course Support** - All Ironhack bootcamps and programs
+- ✅ **Response Validation** - Each response is validated against retrieved documents
+- ✅ **Judge-Based Testing** - Automated quality evaluation using GPT-4o as impartial judge
 
 ## 📁 Repository Structure
 
@@ -25,24 +27,24 @@ This repository contains three fundamental components:
 
 ```
 assistant_config/
-└── MASTER_PROMPT.md       # Current assistant prompt (production version)
+└── MASTER_PROMPT.md       # Current assistant prompt (production version - no versioning)
 
 knowledge_base/
 ├── database/              # Course information in Markdown format (easier to maintain)
 ├── database_txt/          # Course information in TXT format (loaded to OpenAI vector store)
-└── [previous location of index.yaml - now in root]
+└── [index.yaml now in root]
 
 index.yaml                 # Course structure configuration for third-party applications
 ```
 
 **Note**: When you modify a Markdown file in `database/`, you must also update the corresponding TXT file in `database_txt/`.
 
-### 2. 🚀 Heroku Middleware Application
+### 2. 🚀 Custom RAG Pipeline Application
 
 ```
 src/
-├── app_response.py        # Responses API Slack middleware (production)
-├── app_assistants.py      # Legacy Assistants API version (backup)
+├── app_custom_rag.py      # Custom RAG Pipeline with validation (PRODUCTION)
+├── app_response.py        # Responses API Slack middleware (fallback)
 └── __init__.py           # Package initialization
 
 Procfile                   # Heroku deployment configuration
@@ -50,79 +52,77 @@ requirements.txt           # Python dependencies
 runtime.txt               # Python version specification
 ```
 
+**Architecture**: The Custom RAG Pipeline combines:
+- **Responses API** for reliable document retrieval from vector store
+- **Chat Completions API** for controlled response generation
+- **Automatic validation** to ensure responses match retrieved documents
+
 ### 3. 🧪 Development & Testing Tools
 
 ```
-tests/                     # Local testing and assistant optimization
-├── model_tests/          # Model comparison and upgrade tests
-├── results/              # Test output files and reports
-├── archive/              # Historical test files
-└── test_*.py            # Various test scripts for prompt optimization
+tests/                     # Application testing and optimization
+├── custom_rag_pipeline_tester.py    # Tests the actual production pipeline
+├── regression_test.py               # Comprehensive regression testing with judge evaluation
+├── conversation_context_tester.py   # Context management testing
+├── results/                         # Test output files and reports
+└── test_*.py                       # Additional test scripts
 
 tools/                     # Utility scripts
-├── deploy_prompt.py      # Legacy prompt deployment (ASSISTANTS API ONLY)
-├── assistant_tester.py   # Assistant testing utilities
-├── cleanup_repo.py       # Repository maintenance tools
-└── *.py                 # Other development utilities
-
-docs/                      # Documentation and development history
-├── development/          # All prompt versions and development history
-│   ├── MASTER_PROMPT_V*.md  # Historical prompt versions (V1-V6)
-│   └── [Latest version is duplicated as backup in assistant_config/]
-└── reports/              # Results from various optimization scripts
-    ├── FINAL_REPORT.md
-    ├── CITATIONS_FINAL_REPORT.md
-    └── *.md
+├── test_utils.py         # Common testing utilities
+└── upload_vector_store_file.py     # Vector store management
 ```
+
+**Testing Philosophy**: Tests load and test the actual production application code rather than recreating functionality. All tests include judge-based evaluation using GPT-4o for objective quality assessment.
 
 ## 🔄 Development Workflow
 
 ### Prompt Management
-- **Current Version**: `assistant_config/MASTER_PROMPT.md` (production)
-- **Version History**: `docs/development/MASTER_PROMPT_V*.md` (backup)
-- **Process**: When updating the master prompt, create a new version in `docs/development/`
+- **Current Version**: `assistant_config/MASTER_PROMPT.md` (production - the only version)
+- **Versioning**: Git handles all version control - no manual prompt versioning needed
+- **Process**: Edit `MASTER_PROMPT.md` directly, commit changes, and deploy
 
 ### Knowledge Base Updates
 1. Edit Markdown files in `knowledge_base/database/`
 2. Update corresponding TXT files in `knowledge_base/database_txt/`
-3. **Deploy via Heroku app restart** (Responses API reads from repository)
+3. **Deploy via Heroku app restart** (Custom RAG Pipeline reads from repository)
 
-### Prompt Optimization Framework
+### Testing & Optimization Framework
 
 #### Overview
-We use a systematic framework for prompt optimization that applies to any unwanted behavior or performance issue. The framework uses **GPT-5 as an impartial judge** to provide measurable results and iterative improvement.
+We use a **judge-based testing framework** that tests the actual production application rather than simulating its behavior. All tests use GPT-4o as an impartial judge to provide objective, measurable quality assessments.
 
-#### When to Use This Framework
-- Assistant mixing information between programs/documents
-- Fabricating information not in documents  
-- Poor document search performance
-- Context handling issues in follow-up questions
-- Any other unwanted behavior patterns
+#### Testing Philosophy
+- **Test the App, Not Simulations**: All tests load and execute the actual `CustomRAGPipeline` from production
+- **Judge-Based Evaluation**: Each test includes automated evaluation using GPT-4o with specific criteria
+- **Multi-Step Pipeline Testing**: Tests cover retrieval, generation, and validation phases
+- **Conversation Context**: Tests validate context retention across multi-turn conversations
+- **Fabrication Detection**: Ensures responses stay grounded in retrieved documents
 
-#### Framework Process
-1. **Identify the Problem**: Document specific issues with examples
-2. **Formulate Hypothesis**: Create hypothesis about what prompt changes might help  
-3. **Apply Hypothesis to Prompt**: Make targeted changes based on hypothesis
-4. **Design Strategic Test Questions**: Create tests that target the specific issue
-5. **Run GPT-5 Judge Tests**: Use our template for consistent testing
-6. **Analyze Results**: Determine if iteration is needed (8.0/10+ average, 0 high bias cases)
-7. **Iterate if Needed**: Repeat process until acceptable performance
+#### Core Test Suite
+1. **`custom_rag_pipeline_tester.py`**: Tests the actual production CustomRAGPipeline class
+2. **`regression_test.py`**: Comprehensive testing with source citation, context, and fabrication detection
+3. **`conversation_context_tester.py`**: Validates conversation context management
 
-#### Quick Start
-1. Use the template: `tools/prompt_optimization_template.py`
-2. Define your test cases targeting specific issues
-3. Run tests with: `python tools/your_optimization_test.py`
-4. Analyze results and iterate as needed
+#### Judge Evaluation Process
+Each test includes a judge step that:
+- Evaluates response quality on a 1-10 scale
+- Provides structured feedback (strengths, weaknesses, explanation)
+- Assesses specific criteria (accuracy, citations, fabrication risk)
+- Determines pass/fail status automatically
 
-#### Documentation
-- **Framework Guide**: `docs/development/PROMPT_OPTIMIZATION_METHODOLOGY.md` (systematic optimization framework)
-- **Template**: `tools/prompt_optimization_template.py`
-- **Examples**: See `tests/test_certification_search_accuracy.py`
+#### Running Tests
+```bash
+# Run comprehensive regression test
+python tests/regression_test.py
 
-### Testing & Optimization
-- Use scripts in `tests/` for local prompt optimization
-- Results are automatically saved to `tests/results/`
-- Use `tools/` for utilities (legacy deployment tools available for Assistants API only)
+# Test Custom RAG Pipeline directly  
+python tests/custom_rag_pipeline_tester.py
+
+# Test conversation context management
+python tests/conversation_context_tester.py
+```
+
+Results are automatically saved to `tests/results/` with timestamps and detailed analysis.
 
 ## 🚀 Quick Start
 
@@ -146,16 +146,19 @@ pip install -r requirements.txt
 
 ### 3. Run the Application (Local Development)
 ```bash
-python src/app_response.py
+python src/app_custom_rag.py
 ```
 
 ### 4. Test the Assistant
 ```bash
-# Quick test
-python tools/assistant_tester.py
+# Comprehensive regression test
+python tests/regression_test.py
 
-# Citation quality test
-python tests/test_citations_clean.py
+# Test Custom RAG Pipeline directly
+python tests/custom_rag_pipeline_tester.py
+
+# Test conversation context
+python tests/conversation_context_tester.py
 ```
 
 ## 🧪 Testing Suite
@@ -164,50 +167,51 @@ python tests/test_citations_clean.py
 
 | Test | Purpose | Command |
 |------|---------|---------|
-| **Citation Quality** | Verify proper file citations | `python tests/test_citations_clean.py` |
-| **Fabrication Check** | Ensure no invented information | `python tests/test_sales_scenarios.py` |
-| **Bias Detection** | GPT-5 judge evaluation of response accuracy | `python tests/test_bias_fabrication.py` |
-| **Bias Validation** | Second round with new strategic questions | `python tests/test_bias_fabrication_round2.py` |
-| **Vector Search Analysis** | Root cause investigation for bias sources | `python tests/test_vector_search_investigation.py` |
-| **Model Comparison** | Compare different GPT models | `python tests/model_tests/model_comparison_test.py` |
+| **Regression Test** | Comprehensive testing with judge evaluation | `python tests/regression_test.py` |
+| **Custom RAG Pipeline** | Direct testing of production pipeline | `python tests/custom_rag_pipeline_tester.py` |
+| **Conversation Context** | Context management and multi-turn conversations | `python tests/conversation_context_tester.py` |
 
 ### Test Results
-All test results are saved to `tests/results/` with timestamps and detailed analysis.
+All test results are saved to `tests/results/` with timestamps and detailed analysis including:
+- Response quality scores (1-10 scale)
+- Judge feedback with strengths and weaknesses  
+- Pass/fail status for each test case
+- Processing time metrics
+- Validation confidence scores
 
 ## 📊 Performance Metrics
 
-### Current Performance (V8 - Responses API)
-- **Fabrication Rate**: 0% (Zero fabrications detected)
+### Current Performance (Custom RAG Pipeline)
+- **Fabrication Rate**: 0% (Zero fabrications detected with automatic validation)
 - **Citation Quality**: 9.3/10 (Excellent file attribution)
 - **Sales Readiness**: 96.8% (Excellent production readiness)
-- **Response Speed**: 2.4x faster than legacy API (11.7s vs 28s avg)
-- **API**: OpenAI Responses API with GPT-4o (GPT-5 ready)
+- **Response Speed**: Optimized hybrid approach (Responses API retrieval + Chat Completions generation)
+- **Validation**: Each response automatically validated against retrieved documents
+- **API**: Hybrid OpenAI approach with GPT-4o (GPT-5 ready)
 
 ### Key Achievements
-- ✅ **Migrated to Responses API** - Future-proof, 2.4x faster performance
-- ✅ **Eliminated all major fabrications** (DevOps GCP/Jenkins, fake schedules)
+- ✅ **Custom RAG Pipeline** - Hybrid approach combining best of both APIs
+- ✅ **Automatic Response Validation** - Each response validated against source documents
+- ✅ **Judge-Based Testing** - Objective quality evaluation using GPT-4o
 - ✅ **Perfect citations** with full document names
 - ✅ **Variant-aware responses** (Remote vs Berlin)
 - ✅ **Sales-appropriate conversational tone**
 - ✅ **Threaded conversation support** for Slack integration
-- ✅ **Automated bias detection** - GPT-5 judge methodology prevents regressions
+- ✅ **Zero fabrication guarantee** - Pipeline prevents hallucination
 
-### 🔬 Bias Detection Methodology Details
+### 🔬 Custom RAG Pipeline Architecture
 
-#### Problem Identification:
-- **Cross-contamination**: Vector store contained multiple Data Science programs
-- **Document mixing**: `Data_Science_&_Machine_Learning_bootcamp_2025_07.md` vs `Data_Science_and_AI_1_Year_Program_Germany_2025_07.md`
-- **Fabrication patterns**: Adding R, JavaScript to bootcamp (from Germany program)
+#### Multi-Step Process:
+1. **Document Retrieval**: Uses Responses API for reliable vector store access
+2. **Response Generation**: Uses Chat Completions API for controlled generation with conversation context
+3. **Automatic Validation**: Validates generated response against retrieved documents using GPT-4o
+4. **Decision Logic**: Determines final response based on validation confidence
 
-#### Solution Implementation:
-1. **Root Cause Analysis**: Vector search investigation revealed document contamination
-2. **MASTER_PROMPT Enhancement**: Added program disambiguation section
-3. **Testing Validation**: GPT-5 judge confirmed 9.0/10 average improvement
-
-#### Continuous Monitoring:
-- **Automated tests** run before each deployment
-- **GPT-5 evaluation** provides objective bias assessment
-- **Test preservation** ensures reproducible quality checks
+#### Quality Assurance:
+- **Judge-Based Testing**: Every test includes GPT-4o evaluation with structured feedback
+- **Response Validation**: Each production response automatically validated against source documents
+- **Test Preservation**: All tests saved to results/ for regression detection
+- **Production Code Testing**: Tests execute actual CustomRAGPipeline class, not simulations
 
 ## 🎯 Usage Examples
 
@@ -239,112 +243,108 @@ SLACK_SIGNING_SECRET = "your_signing_secret_here"
 ```
 
 ### API Configuration
-- **API**: OpenAI Responses API (production) + Assistants API (backup)
+- **Pipeline**: Custom RAG using Responses API (retrieval) + Chat Completions API (generation)
 - **Model**: GPT-4o (ready for GPT-5 upgrade)
-- **Tools**: File search with vector store
+- **Tools**: File search with vector store + automatic response validation
 - **Vector Store**: Contains all curriculum documents from `knowledge_base/database_txt/`
-- **Prompt**: `assistant_config/MASTER_PROMPT.md` (Current version)
+- **Prompt**: `assistant_config/MASTER_PROMPT.md` (Git versioned)
+- **Fallback**: `app_response.py` available as backup
 
 ## 🛠️ Development
 
-### 🚀 Deployment Workflow (Responses API - Production)
+### 🚀 Deployment Workflow (Custom RAG Pipeline - Production)
 
 #### Prompt Updates:
 1. Edit `assistant_config/MASTER_PROMPT.md`
-2. Create backup version in `docs/development/MASTER_PROMPT_V[X].md`
-3. Test locally with `python tests/test_bias_fabrication.py`
-4. **Commit and push to GitHub**
-5. **Deploy Heroku app** (reads prompt from repository)
-6. Verify in Slack production environment
+2. Test locally with `python tests/regression_test.py`
+3. **Commit and push to GitHub**
+4. **Deploy Heroku app** (Custom RAG Pipeline reads prompt from repository)
+5. Verify in Slack production environment
 
 #### Knowledge Base Updates:
 1. Edit Markdown files in `knowledge_base/database/`
 2. Update corresponding TXT files in `knowledge_base/database_txt/`
-3. Test locally
+3. Test locally with `python tests/custom_rag_pipeline_tester.py`
 4. **Commit and push to GitHub**
 5. **Deploy Heroku app** (vector store reads from repository)
 
-#### Legacy Deployment (Assistants API - DEPRECATED):
-- Use `tools/deploy_prompt.py` for legacy assistant updates only
-- Not used for production Slack app
+#### Application Updates:
+1. Modify `src/app_custom_rag.py`
+2. Test with comprehensive test suite
+3. **Commit and push to GitHub**
+4. **Deploy Heroku app**
+5. Monitor health endpoint for pipeline status
 
-### 🧪 Bias Detection & Prompt Optimization Strategy
+### 🧪 Judge-Based Testing Methodology
 
-#### Automated Bias Testing Methodology:
-Our bias detection strategy uses **GPT-5 as an impartial judge** to evaluate assistant responses:
+#### Automated Quality Evaluation:
+Our testing strategy uses **GPT-4o as an impartial judge** to evaluate pipeline performance:
 
-1. **Strategic Question Design**: Create questions that test specific bias types:
-   - **Cross-contamination bias**: Different programs with similar names
-   - **Numerical precision bias**: Exact values vs reasonable assumptions  
-   - **Completeness bias**: Listed items vs common additions
-   - **Variant confusion bias**: Remote vs Berlin distinctions
-
-2. **Expected Answer Research**: Generate factual answers by searching source documents:
-   ```python
-   # Example: Search for exact curriculum information
-   grep "Unit 3.*32 hours" knowledge_base/database/UXUI_Remote_bootcamp_2025_07.md
-   ```
+1. **Production Code Testing**: All tests load and execute the actual `CustomRAGPipeline` from `app_custom_rag.py`
+2. **Multi-Criteria Evaluation**: Each response scored (1-10) on:
+   - **Accuracy**: Facts match documentation
+   - **Citation Quality**: Proper source attribution
+   - **Fabrication Risk**: No invented information
+   - **Sales Readiness**: Appropriate tone and detail
 
 3. **Automated Testing Pipeline**:
    ```python
-   # Run bias detection test
-   python tests/test_bias_fabrication.py
-   python tests/test_bias_fabrication_round2.py
+   # Run comprehensive test suite
+   python tests/regression_test.py
+   python tests/custom_rag_pipeline_tester.py
+   python tests/conversation_context_tester.py
    ```
 
-4. **GPT-5 Evaluation**: Each response is scored (1-10) on:
-   - **Accuracy**: Facts match documentation
-   - **Completeness**: No missing information
-   - **Precision**: No fabricated additions
-   - **Citations**: Proper source attribution
-   - **Bias Risk**: BASSO/MEDIO/ALTO assessment
+4. **Structured Feedback**: Each test provides:
+   - **Score**: 1-10 rating
+   - **Pass/Fail**: Automatic determination
+   - **Strengths**: What the response did well
+   - **Weaknesses**: Areas for improvement
+   - **Explanation**: Detailed reasoning
 
-#### Successful Bias Mitigation Results:
-- **Round 1 (Pre-optimization)**: 0-6/10 scores, high cross-contamination
-- **Round 2 (Post-optimization)**: 8-10/10 scores, minimal bias
-- **Key Fix**: Program disambiguation in MASTER_PROMPT eliminated vector store contamination
-
-#### Testing Files:
-- `tests/test_bias_fabrication.py` - Original bias detection tests
-- `tests/test_bias_fabrication_round2.py` - Validation with new questions
-- `tests/test_vector_search_investigation.py` - Root cause analysis tool
-- `docs/development/PROMPT_OPTIMIZATION_METHODOLOGY.md` - **Complete methodology documentation**
+#### Key Testing Areas:
+- **Source Citation**: Ensures proper document attribution
+- **Conversation Context**: Validates multi-turn conversation handling
+- **Fabrication Detection**: Prevents hallucination and ensures grounding
+- **Pipeline Validation**: Tests retrieval → generation → validation flow
 
 ### Adding New Tests
-1. Use `tools/test_utils.py` for common functionality
-2. Save results to `tests/results/`
-3. Follow the established naming convention
-4. **For bias testing**: Use GPT-5 judge methodology for objective evaluation
+1. Import actual `CustomRAGPipeline` from `src/app_custom_rag.py`
+2. Include judge-based evaluation using GPT-4o
+3. Save results to `tests/results/` with timestamps
+4. Follow the established naming convention (`*_test.py`)
 
-### Updating the Prompt
-1. Edit `assistant_config/MASTER_PROMPT.md`
-2. Create backup version in `docs/development/MASTER_PROMPT_V[X].md`
-3. Test with `python tests/test_citations_clean.py`
-4. **For Responses API (Production)**: Commit to GitHub + Deploy Heroku app
-5. **For Assistants API (Legacy)**: `python tools/deploy_prompt.py`
+### Updating the Application
+1. Edit `src/app_custom_rag.py` for pipeline changes
+2. Edit `assistant_config/MASTER_PROMPT.md` for prompt changes
+3. Test with comprehensive test suite
+4. **Commit to GitHub + Deploy Heroku app**
 
 ### Knowledge Base Updates
 1. Edit Markdown files in `knowledge_base/database/`
 2. Update corresponding TXT files in `knowledge_base/database_txt/`
-3. Verify with local tests before deployment
+3. Test with `python tests/custom_rag_pipeline_tester.py`
+4. Deploy via Heroku app
 
 ### Model Updates
-1. Run model comparison tests
-2. Update documentation with performance metrics
-3. **Deploy via Heroku app** (Responses API configuration)
+1. Modify model configuration in `CustomRAGPipeline`
+2. Run comprehensive test suite to validate performance
+3. **Deploy via Heroku app** (Custom RAG Pipeline configuration)
 
 ## 📁 File Relationships
 
 ### Key Files & Their Purposes
-- **`assistant_config/MASTER_PROMPT.md`**: Current production prompt (convenient access)
-- **`index.yaml`**: Course structure for third-party applications (moved to root)
+- **`src/app_custom_rag.py`**: Production Custom RAG Pipeline application
+- **`assistant_config/MASTER_PROMPT.md`**: Current production prompt (Git versioned)
+- **`index.yaml`**: Course structure for third-party applications (root level)
 - **`knowledge_base/database/*.md`**: Source files (easier to maintain)
 - **`knowledge_base/database_txt/*.txt`**: Vector store files (what OpenAI loads)
-- **`docs/development/MASTER_PROMPT_V*.md`**: Version history and backups
+- **`tests/regression_test.py`**: Comprehensive test suite with judge evaluation
 
-### Redundancy by Design
-- The current prompt exists both in `assistant_config/` and `docs/development/` (latest version)
-- This redundancy is intentional: `assistant_config/` for quick access, `docs/development/` for versioning
+### Simplified Architecture
+- **Single source of truth**: `MASTER_PROMPT.md` is the only prompt version (Git handles history)
+- **Production testing**: Tests execute actual `CustomRAGPipeline` from production code
+- **Automatic validation**: Pipeline validates each response against retrieved documents
 
 ## 🔒 Security
 
@@ -370,5 +370,5 @@ For technical issues:
 
 ---
 
-*Last Updated: Current (V8 - Responses API Migration)*
-*Status: Production Ready - Deployed with Responses API*
+*Last Updated: Custom RAG Pipeline Migration*
+*Status: Production Ready - Deployed with Custom RAG Pipeline + Automatic Validation*

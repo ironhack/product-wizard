@@ -1,124 +1,136 @@
 ---
-description: "Prompt testing and deployment guidelines for Product Wizard assistant"
-globs: ["assistant_config/**/*", "tools/deploy_prompt.py", "tests/test_*.py", "docs/development/MASTER_PROMPT_V*.md"]
+description: "Custom RAG Pipeline testing and deployment guidelines for Product Wizard assistant"
+globs: ["assistant_config/**/*", "src/app_custom_rag.py", "tests/test_*.py", "tests/*_test.py"]
 alwaysApply: true
 ---
 
-# Prompt Testing & Deployment Guidelines
+# Custom RAG Pipeline Testing & Deployment Guidelines
 
-## Prompt Development Workflow
+## Development Workflow
 
-### 1. Before Making Prompt Changes
-- **Always create version backup** in `docs/development/MASTER_PROMPT_V[X]_[DESCRIPTION].md`
-- **Include version header** in the backup file only
-- **Document the change purpose** in the filename description
+### 1. Before Making Changes
+- **Edit directly**: Modify `assistant_config/MASTER_PROMPT.md` or `src/app_custom_rag.py` directly
+- **No manual versioning**: Git handles all version control automatically
+- **Document purpose**: Use clear commit messages to describe changes
 
 ### 2. Testing Requirements
-- **Create specific test files** in `tests/` for the changes being made
-- **Use descriptive filenames**: `test_[feature_name].py` or `test_[scenario].py`
-- **Test the exact scenarios** the prompt change is meant to address
+- **Test production code**: Import and test actual `CustomRAGPipeline` from `src/app_custom_rag.py`
+- **Include judge evaluation**: All tests must use GPT-4o for objective quality assessment
+- **Use descriptive filenames**: `test_[feature_name].py` or `[scenario]_test.py`
 - **Never delete test files** - preserve all `test_*.py` files for future reference
-- **Save test results** to `tests/results/` with timestamps when applicable
+- **Save test results** to `tests/results/` with timestamps and judge scores
 
-### 3. Current Prompt Management
-- **Production file**: `assistant_config/MASTER_PROMPT.md` (NO version header)
-- **File must be headerless** - remove any version information from content
-- **Only current production prompt** goes in `assistant_config/`
-- **All versioned backups** go in `docs/development/`
+### 3. Current System Management
+- **Production file**: `assistant_config/MASTER_PROMPT.md` (Git versioned)
+- **Production app**: `src/app_custom_rag.py` (Custom RAG Pipeline)
+- **Single source of truth**: Git history provides all versioning needs
+- **No backup files**: Git handles version control completely
 
 ### 4. Deployment Process
-- **Deploy script location**: `tools/deploy_prompt.py`
-- **Script must read from**: `assistant_config/MASTER_PROMPT.md`
-- **Never deploy from**: `docs/development/` files
-- **Verify deployment**: Check character count change makes sense
-- **Character count tracking**: Note significant increases/decreases
+- **Heroku-based**: Deploy via Git push to Heroku (no manual scripts needed)
+- **Source reading**: Custom RAG Pipeline reads from `assistant_config/MASTER_PROMPT.md` in repository
+- **Health check**: Monitor `/health` endpoint for pipeline status
+- **Application restart**: Heroku app automatically picks up changes from Git
 
 ### 5. Post-Deployment Verification
-- **Test assistant behavior** matches expected improvements
-- **Verify specific scenarios** that prompted the changes
+- **Test via Slack**: Verify assistant behavior in production Slack environment
+- **Run regression tests**: Execute `tests/regression_test.py` against production
+- **Monitor health endpoint**: Check pipeline status and validation metrics
 - **Document any unexpected behavior** for future iterations
 
 ## Testing Best Practices
 
 ### Test File Structure
 ```python
-def test_specific_scenario():
-    """Test the exact issue the prompt change addresses"""
-    # Simulate the problematic scenario
-    # Validate expected vs actual behavior
-    # Include clear pass/fail criteria
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src'))
+from app_custom_rag import CustomRAGPipeline
 
-def test_broader_impact():
-    """Ensure changes don't break existing functionality"""
-    # Test related scenarios
-    # Verify no regressions
+def test_specific_scenario():
+    """Test the exact issue using actual production CustomRAGPipeline"""
+    # Initialize actual production pipeline
+    pipeline = CustomRAGPipeline(client, vector_store_id, master_prompt)
+    
+    # Test using real pipeline methods
+    result = pipeline.process_query(test_query)
+    
+    # Include judge evaluation using GPT-4o
+    judge_result = judge_response(result['response'], criteria)
+    
+    # Assert based on judge score and validation
+    assert judge_result['score'] >= 8
+    assert result['validation']['confidence'] >= 0.8
 ```
 
 ### Test Scenarios to Always Include
-- **The specific issue** that prompted the prompt change
-- **Related functionality** that might be affected
-- **Edge cases** around the change area
+- **Source citation quality** with proper document attribution
+- **Conversation context handling** across multiple turns
+- **Fabrication detection** to prevent hallucinations
+- **Pipeline validation** testing retrieval → generation → validation flow
 - **Variant handling** (Remote vs Berlin) when applicable
 
 ## Deployment Checklist
 
 ### Pre-Deployment
-- [ ] Version backup created in `docs/development/` with header
-- [ ] Current prompt is headerless in `assistant_config/`
-- [ ] Test files created and passing
-- [ ] Deploy script points to correct file location
+- [ ] Comprehensive test suite executed (`tests/regression_test.py`)
+- [ ] All judge scores >= 8/10 with validation confidence >= 0.8
+- [ ] Production `CustomRAGPipeline` tested directly (not simulated)
+- [ ] Changes committed to Git with clear commit message
 
 ### During Deployment
-- [ ] Run `python3 tools/deploy_prompt.py`
-- [ ] Note character count change
-- [ ] Verify no deployment errors
+- [ ] Push to GitHub repository
+- [ ] Deploy Heroku app (automatic from Git)
+- [ ] Monitor health endpoint `/health` for pipeline status
+- [ ] Verify no deployment errors in Heroku logs
 
 ### Post-Deployment
-- [ ] Test the specific scenario that prompted changes
-- [ ] Verify assistant behavior matches expectations
+- [ ] Test via Slack in production environment
+- [ ] Run regression tests against live system
+- [ ] Monitor validation metrics and response quality
 - [ ] Document results for future reference
 
-## Common Deployment Issues
+## Common Issues & Solutions
 
-### Script Reading Wrong File
-- **Problem**: Deploy script reads from `docs/development/` instead of `assistant_config/`
-- **Solution**: Update script to point to production file location
+### Pipeline Validation Failures
+- **Problem**: Low validation confidence scores in production
+- **Solution**: Check retrieved documents quality, adjust generation parameters
+- **Monitoring**: Watch `/health` endpoint validation metrics
 
-### Character Count Unexpected
-- **Problem**: Deployed prompt has unexpected character count
-- **Solution**: Verify correct file is being deployed, check for formatting issues
+### Health Endpoint Issues
+- **Problem**: Health check returning errors
+- **Solution**: Verify environment variables, check Heroku logs, restart dyno
 
-### Version Headers in Production
-- **Problem**: Production prompt includes version header
-- **Solution**: Remove header from `assistant_config/MASTER_PROMPT.md`
+### Judge Score Degradation
+- **Problem**: Test scores dropping below 8/10 threshold
+- **Solution**: Run regression tests, check for pipeline changes, validate against production
 
 ## File Naming Conventions
 
-### Prompt Archives
-- Pattern: `MASTER_PROMPT_V[X]_[DESCRIPTION].md`
-- Examples:
-  - `MASTER_PROMPT_V6_ENHANCED_TOOLS.md`
-  - `MASTER_PROMPT_V7_VARIANT_HANDLING.md`
-
 ### Test Files
-- Pattern: `test_[feature_or_scenario].py`
+- Pattern: `test_[feature_or_scenario].py` or `[scenario]_test.py`
 - Examples:
-  - `test_variant_handling.py`
-  - `test_citation_quality.py`
-  - `test_tool_extraction.py`
+  - `regression_test.py`
+  - `custom_rag_pipeline_tester.py`
+  - `conversation_context_tester.py`
+
+### Test Results
+- Pattern: `[test_name]_[timestamp].json`
+- Automatic timestamps with judge scores and validation metrics
 
 ## Integration with Repository Rules
 
 This file works in conjunction with the main repository structure rules. When in doubt:
-1. Follow these prompt-specific guidelines first
+1. Follow these Custom RAG Pipeline-specific guidelines first
 2. Fall back to general repository rules
-3. Prioritize system reliability and data integrity
+3. Always test actual production code, never simulations
+4. Prioritize system reliability and data integrity
 
 ## Emergency Rollback Process
 
 If deployment causes issues:
-1. **Identify previous working version** in `docs/development/`
-2. **Copy content to** `assistant_config/MASTER_PROMPT.md` (remove header)
-3. **Redeploy immediately** using `tools/deploy_prompt.py`
+1. **Git revert**: Use `git revert` to previous working commit
+2. **Redeploy immediately**: Push reverted changes to trigger Heroku deployment
+3. **Health check**: Monitor `/health` endpoint for recovery
 4. **Document the issue** for future investigation
-5. **Preserve failing version** for analysis
+5. **Test thoroughly** before attempting fix again
