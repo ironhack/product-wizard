@@ -70,10 +70,30 @@ def load_validation_instructions():
 def load_retrieval_instructions():
     return load_config_file('RETRIEVAL_INSTRUCTIONS.md')
 
+def load_retrieval_product_code_glossary():
+    return load_config_file('RETRIEVAL_PRODUCT_CODE_GLOSSARY.md')
+
+def load_retrieval_context_aware_instructions():
+    return load_config_file('RETRIEVAL_CONTEXT_AWARE_QUERIES.md')
+
+def load_retrieval_comparison_instructions():
+    return load_config_file('RETRIEVAL_COMPARISON_QUERIES.md')
+
+def load_retrieval_overview_instructions():
+    return load_config_file('RETRIEVAL_OVERVIEW_QUERIES.md')
+
+def load_retrieval_default_instructions():
+    return load_config_file('RETRIEVAL_DEFAULT.md')
+
 MASTER_PROMPT = load_master_prompt()
 GENERATION_INSTRUCTIONS = load_generation_instructions()
 VALIDATION_INSTRUCTIONS = load_validation_instructions()
 RETRIEVAL_INSTRUCTIONS = load_retrieval_instructions()
+RETRIEVAL_PRODUCT_CODE_GLOSSARY = load_retrieval_product_code_glossary()
+RETRIEVAL_CONTEXT_AWARE_INSTRUCTIONS = load_retrieval_context_aware_instructions()
+RETRIEVAL_COMPARISON_INSTRUCTIONS = load_retrieval_comparison_instructions()
+RETRIEVAL_OVERVIEW_INSTRUCTIONS = load_retrieval_overview_instructions()
+RETRIEVAL_DEFAULT_INSTRUCTIONS = load_retrieval_default_instructions()
 
 # --------------- Custom RAG Pipeline ---------------
 
@@ -90,51 +110,37 @@ class CustomRAGPipeline:
         """Generate enhanced retrieval instructions based on query type."""
         query_lower = query.lower()
 
+        # Always include the Product Code Glossary in all instructions
+        glossary_text = RETRIEVAL_PRODUCT_CODE_GLOSSARY.strip()
+
         # Check for context-aware queries (pronouns, references)
         context_indicators = ['that', 'this', 'it', 'they', 'them', 'what about', 'how about', 'also', 'too']
         has_context_reference = any(indicator in query_lower for indicator in context_indicators)
         
         if has_context_reference:
-            # Extract context-aware instructions from the loaded file
-            lines = RETRIEVAL_INSTRUCTIONS.split('\n')
-            for i, line in enumerate(lines):
-                if 'For Context-Aware Queries' in line:
-                    return '\n'.join(lines[i+1:]).strip()
+            context_instructions = RETRIEVAL_CONTEXT_AWARE_INSTRUCTIONS.strip()
+            return f"{glossary_text}\n\n{context_instructions}"
 
+        # Check for comparison queries
         comparison_keywords = ['difference', 'compare', 'comparison', 'vs', 'versus', 'remote vs', 'onsite vs', 'berlin vs']
         program_variants = ['remote', 'berlin', 'onsite', 'online']
         is_comparison = any(k in query_lower for k in comparison_keywords)
         has_variants = any(v in query_lower for v in program_variants)
 
         if is_comparison or has_variants:
-            # Extract comparison instructions from the loaded file
-            lines = RETRIEVAL_INSTRUCTIONS.split('\n')
-            for i, line in enumerate(lines):
-                if 'For Comparison Queries' in line:
-                    return '\n'.join(lines[i+1:]).strip()
+            comparison_instructions = RETRIEVAL_COMPARISON_INSTRUCTIONS.strip()
+            return f"{glossary_text}\n\n{comparison_instructions}"
 
+        # Check for overview queries
         overview_keywords = ['tell me about', 'overview', 'explain', 'describe', 'what is', 'comprehensive']
         is_overview = any(k in query_lower for k in overview_keywords)
         if is_overview:
-            # Extract overview instructions from the loaded file
-            lines = RETRIEVAL_INSTRUCTIONS.split('\n')
-            for i, line in enumerate(lines):
-                if 'For Overview Queries' in line:
-                    # Find the next section or end of file
-                    next_section = len(lines)
-                    for j in range(i+1, len(lines)):
-                        if lines[j].startswith('###') or lines[j].startswith('##'):
-                            next_section = j
-                            break
-                    return '\n'.join(lines[i+1:next_section]).strip()
+            overview_instructions = RETRIEVAL_OVERVIEW_INSTRUCTIONS.strip()
+            return f"{glossary_text}\n\n{overview_instructions}"
 
-        # Extract default instructions from the loaded file
-        lines = RETRIEVAL_INSTRUCTIONS.split('\n')
-        for i, line in enumerate(lines):
-            if 'Default Instructions' in line:
-                return '\n'.join(lines[i+1:]).strip()
-        
-        return "Search for relevant documents and return the most accurate and complete information found."
+        # Default instructions
+        default_instructions = RETRIEVAL_DEFAULT_INSTRUCTIONS.strip()
+        return f"{glossary_text}\n\n{default_instructions}"
 
     def _enhance_query_with_context(self, query, conversation_context):
         """Enhance the query with relevant information from conversation context."""
@@ -203,7 +209,7 @@ class CustomRAGPipeline:
             enhanced_instructions = self._get_retrieval_instructions(enhanced_query)
             MAX_NUM_RESULTS = 20
             TOP_K_FILES = 3
-            MIN_SCORE = 0.5
+            MIN_SCORE = 0.2
 
             resp = self.client.responses.create(
                 model="gpt-4o-mini",
