@@ -1,0 +1,116 @@
+Ironhack Portfolio Overview - 2025
+
+Executive Summary
+
+Ironhack offers a comprehensive portfolio of technology education programs designed to transform beginners into industry-ready professionals. Our programs span 9-15 week intensive bootcamps, a comprehensive 1-year program, and specialized AI productivity courses, all focused on practical, hands-on learning with immediate career impact.
+
+Product Lines Summary
+
+1. Bootcamps (9-15 weeks)
+Intensive, skills-focused programs for career changers and professionals
+
+Formats:
+- Full-Time: 9 weeks (~40 hrs/week), Monday-Friday 9:00–18:00
+- Part-Time: 24 weeks (~15 hrs/week), Evenings + Saturdays  
+- Berlin Onsite: 15 weeks (extended format for Full-Time)
+
+Available Programs:
+
+Web Development (WDFT/WDPT)
+- Duration: 360-600 hours + 40-50 hours prework
+- Technologies: JavaScript, React, Node.js, Express, MongoDB, TypeScript, Next.js, PostgreSQL
+- Capstone: Full-stack web application
+- Variants: 
+  - Remote: 360 hours, core technologies
+  - Berlin Onsite: 600 hours, includes TypeScript, Next.js, PostgreSQL
+
+UX/UI Design (UXFT/UXPT)
+- Duration: 360-600 hours + 40-50 hours prework
+- Technologies: Figma, Adobe Creative Suite, Sketch, Principle, AR/VR, gamification
+- Capstone: Complete design system and user research project
+- Variants:
+  - Remote: 360 hours, core design tools
+  - Berlin Onsite: 600 hours, includes AR/VR, gamification
+
+Data Analytics (DAFT/DAPT)
+- Duration: 360-600 hours + 40-50 hours prework
+- Technologies: Python, SQL, Tableau, Power BI, advanced ML, statistics
+- Capstone: Data-driven business insights project
+- Variants:
+  - Remote: 360 hours, core analytics
+  - Berlin Onsite: 600 hours, includes advanced ML, statistics
+
+Data Science & Machine Learning (MLFT/MLPT)
+- Duration: 360-600 hours + 40-50 hours prework
+- Technologies: Python, R, TensorFlow, scikit-learn, AWS, Docker
+- Capstone: End-to-end ML project with deployment
+
+AI Engineering (AIFT/AIPT)
+- Duration: 360-600 hours + 40-50 hours prework
+- Technologies: Python, TensorFlow, PyTorch, MLOps, cloud platforms
+- Capstone: Production-ready AI system
+
+DevOps (DVFT/DVPT)
+- Duration: 360-600 hours + 40-50 hours prework
+- Technologies: Docker, Kubernetes, AWS, Azure, CI/CD, monitoring
+- Capstone: Infrastructure automation project
+
+Marketing (MKFT/MKPT)
+- Duration: 360-600 hours + 40-50 hours prework
+- Technologies: Google Analytics, HubSpot, Facebook Ads, content creation
+- Capstone: Complete marketing campaign
+
+Cybersecurity (CSFT/CSPT)
+- Duration: 360-600 hours + 40-50 hours prework
+- Technologies: Ethical hacking, penetration testing, security tools
+- Capstone: Security assessment project
+
+2. 1-Year Program
+Comprehensive program for deep specialization
+
+Data Science and AI 1-Year Program Germany
+- Duration: 1,582 hours over 12 months
+- Format: Part-time, evenings and weekends
+- Technologies: Advanced Python, ML, AI, data engineering
+- Location: Germany (Berlin/Munich)
+
+3. Specialized AI Courses
+Focused programs for specific AI applications
+
+Intensive Program in Applied AI - AI Async Productivity Course
+- Duration: 61-83 hours (asynchronous)
+- Format: Self-paced online learning
+- Content: 12 modules covering AI productivity tools and workflows
+- Technologies: ChatGPT, Grammarly, SlidesAI, Notion AI, Make.com, and more
+- Target: Knowledge workers, managers, solo operators
+
+Program Comparison
+
+Program Type | Duration | Format | Target Audience
+Bootcamps | 9-15 weeks | Full-Time/Part-Time/Onsite | Career changers
+1-Year Program | 12 months | Part-Time | Deep specialization
+AI Productivity | 61-83 hours | Self-paced | Working professionals
+
+Prerequisites
+
+Bootcamps & 1-Year Program
+- No prior coding experience required
+- Basic computer literacy
+- English proficiency (B2 level)
+- Commitment to intensive learning
+
+AI Productivity Course
+- No technical background required
+- Basic computer skills
+- Access to internet and modern computer
+- Willingness to learn new tools
+
+Career Outcomes
+
+- Bootcamps: 85%+ job placement rate within 6 months
+- 1-Year Program: Advanced roles in data science and AI
+- AI Productivity: Immediate productivity improvements in current role
+
+Next Steps
+
+Ready to transform your career? Contact our admissions team to discuss which program best fits your goals and schedule.

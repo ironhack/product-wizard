@@ -129,6 +129,7 @@ Your task is to evaluate how well the actual response covers the information pro
 3. STRUCTURE: Is the response well-organized and easy to follow?
 4. COMPLETENESS: Are there major omissions that would impact usefulness?
 5. RELEVANCE: Does it stay focused on the question asked?
+6. SOURCE CITATION: If sources are provided, they should use file names (e.g., "Certifications_2025_07.txt")
 
 Provide your evaluation in the following JSON format:
 {{
@@ -218,14 +219,14 @@ def test_source_citation(pipeline):
             print(f"⏱️  Time: {processing_time:.2f}s")
             
             # Check if source is cited in response
-            has_source_citation = "Source:" in response
+            has_source_citation = "Sources:" in response
             print(f"📝 Source Citation: {'✅ Present' if has_source_citation else '❌ Missing'}")
             
             # Judge the response
             criteria = f"""
             1. Response should contain factual information about {case['description'].lower()}
-            2. Response MUST end with 'Source:' followed by a document reference
-            3. Source citation should be present and properly formatted
+            2. Response MUST end with 'Sources:' followed by document references
+            3. Source citation should use file names (e.g., "Certifications_2025_07.txt")
             4. No fabricated information should be present
             5. Response should be professional and helpful for sales team
             """
@@ -267,32 +268,50 @@ def test_source_citation(pipeline):
     return results
 
 def test_conversation_context(pipeline):
-    """Test 2: Conversation Context Retention"""
+    """Test 2: Conversation Context Retention - Using Real Conversation Management System"""
     print("\n🧪 TEST 2: CONVERSATION CONTEXT")
     print("=" * 50)
+    
+    # Import the actual conversation management functions
+    from src.app_custom_rag import (
+        get_conversation_context, 
+        add_message_to_conversation, 
+        load_conversation_mapping, 
+        save_conversation_mapping
+    )
     
     conversation_flow = [
         {
             "query": "What certifications does Ironhack offer for Data Analytics?",
-            "context": None,
-            "description": "Initial query about Data Analytics certifications"
+            "description": "Initial query about Data Analytics certifications",
+            "expected_keywords": ["certification", "data analytics", "tableau", "sql"]
         },
         {
             "query": "What about for Web Development?",
-            "context": "previous",  # Use previous conversation
             "description": "Follow-up query - should understand 'what about' refers to certifications",
-            "expected_context": ["certification", "web development"]
+            "expected_keywords": ["certification", "web development", "node.js", "mongodb"],
+            "should_understand_context": True
         },
         {
             "query": "How long is that bootcamp?",
-            "context": "previous",  # Use previous conversation
             "description": "Follow-up query - should understand 'that bootcamp' refers to Web Development",
-            "expected_context": ["bootcamp", "duration", "web development"]
+            "expected_keywords": ["web development", "duration", "hours", "360", "600"],
+            "should_understand_context": True
         }
     ]
     
     results = []
-    conversation_history = []
+    conversation_id = "test_conversation_context_123"
+    
+    # Clear any existing conversation for clean test
+    try:
+        mapping = load_conversation_mapping()
+        if conversation_id in mapping:
+            del mapping[conversation_id]
+            save_conversation_mapping(mapping)
+        print(f"🧹 Cleared existing conversation: {conversation_id}")
+    except Exception as e:
+        print(f"⚠️  Warning: Could not clear existing conversation: {e}")
     
     for i, turn in enumerate(conversation_flow, 1):
         print(f"\n[Test 2.{i}] {turn['description']}")
@@ -300,10 +319,11 @@ def test_conversation_context(pipeline):
         print("-" * 40)
         
         try:
-            # Prepare conversation context
-            context = conversation_history if turn['context'] == 'previous' else None
+            # Get conversation context using the real system
+            context = get_conversation_context(conversation_id)
+            print(f"📚 Retrieved context: {len(context)} messages")
             
-            # Get response from pipeline
+            # Process query with real conversation context
             result = pipeline.process_query(turn['query'], context)
             response = result['response']
             sources = result['sources']
@@ -312,11 +332,32 @@ def test_conversation_context(pipeline):
             print(f"📊 Sources: {sources}")
             print(f"⏱️  Time: {processing_time:.2f}s")
             
-            # Add to conversation history
-            conversation_history.extend([
-                {"role": "user", "content": turn['query']},
-                {"role": "assistant", "content": response}
-            ])
+            # Add messages to conversation using the real system (like Slack app does)
+            add_message_to_conversation(conversation_id, "user", turn['query'])
+            add_message_to_conversation(conversation_id, "assistant", response)
+            
+            # Verify context was properly stored
+            updated_context = get_conversation_context(conversation_id)
+            expected_context_length = i * 2  # user + assistant for each turn
+            print(f"💾 Stored context: {len(updated_context)} messages (expected: {expected_context_length})")
+            
+            # Validate context storage
+            context_stored_correctly = len(updated_context) == expected_context_length
+            if not context_stored_correctly:
+                print(f"⚠️  Context storage issue: expected {expected_context_length}, got {len(updated_context)}")
+            
+            # Check if response shows understanding of context
+            context_understanding = True
+            if turn.get('should_understand_context', False):
+                # Check if response contains expected keywords from context
+                response_lower = response.lower()
+                expected_keywords = turn.get('expected_keywords', [])
+                keywords_found = sum(1 for keyword in expected_keywords if keyword.lower() in response_lower)
+                context_understanding = keywords_found >= len(expected_keywords) * 0.5  # At least 50% of keywords
+                
+                print(f"🧠 Context understanding: {'✅' if context_understanding else '❌'}")
+                print(f"   Expected keywords: {expected_keywords}")
+                print(f"   Keywords found: {keywords_found}/{len(expected_keywords)}")
             
             # Judge the response
             criteria = f"""
@@ -324,17 +365,24 @@ def test_conversation_context(pipeline):
             2. Should demonstrate understanding of conversation flow
             3. Should provide accurate information without fabrication
             4. Should maintain professional tone suitable for sales team
+            5. Source citation should use file names (e.g., "Certifications_2025_07.txt")
             """
             
-            if 'expected_context' in turn:
-                criteria += f"\n5. Should show understanding of context: {turn['expected_context']}"
+            if turn.get('should_understand_context', False):
+                criteria += f"\n6. Should show understanding of context with keywords: {turn.get('expected_keywords', [])}"
             
             judge_result = judge_response(
                 response,
                 "Conversation Context",
                 criteria,
-                turn.get('expected_context')
+                turn.get('expected_keywords')
             )
+            
+            # Additional validation for context understanding
+            if turn.get('should_understand_context', False) and not context_understanding:
+                judge_result['score'] = max(1, judge_result['score'] - 3)  # Penalize for poor context understanding
+                judge_result['passed'] = judge_result['score'] >= 6
+                judge_result['weaknesses'].append("Failed to demonstrate understanding of conversation context")
             
             test_result = {
                 "test": f"2.{i}",
@@ -342,7 +390,9 @@ def test_conversation_context(pipeline):
                 "response": response,
                 "sources": sources,
                 "processing_time": processing_time,
-                "conversation_length": len(conversation_history),
+                "conversation_length": len(updated_context),
+                "context_stored_correctly": context_stored_correctly,
+                "context_understanding": context_understanding,
                 "judge_score": judge_result['score'],
                 "judge_passed": judge_result['passed'],
                 "judge_feedback": judge_result
@@ -352,16 +402,32 @@ def test_conversation_context(pipeline):
             
             print(f"🎯 Judge Score: {judge_result['score']}/10")
             print(f"✅ Passed: {judge_result['passed']}")
+            print(f"💾 Context Stored: {'✅' if context_stored_correctly else '❌'}")
+            print(f"🧠 Context Understood: {'✅' if context_understanding else '❌'}")
             
         except Exception as e:
             print(f"❌ Test failed: {e}")
+            import traceback
+            traceback.print_exc()
             results.append({
                 "test": f"2.{i}",
                 "query": turn['query'],
                 "error": str(e),
                 "judge_score": 0,
-                "judge_passed": False
+                "judge_passed": False,
+                "context_stored_correctly": False,
+                "context_understanding": False
             })
+    
+    # Clean up test conversation
+    try:
+        mapping = load_conversation_mapping()
+        if conversation_id in mapping:
+            del mapping[conversation_id]
+            save_conversation_mapping(mapping)
+        print(f"🧹 Cleaned up test conversation: {conversation_id}")
+    except Exception as e:
+        print(f"⚠️  Warning: Could not clean up test conversation: {e}")
     
     return results
 
@@ -421,6 +487,7 @@ def test_fabrication_detection(pipeline):
             3. Should use phrase "reach out to the Education team on Slack"
             4. Should NOT provide specific numbers, statistics, or company names not in documents
             5. Should maintain professional tone while admitting limitations
+            6. If sources are provided, they should use file names (e.g., "Certifications_2025_07.txt")
             """
             
             judge_result = judge_response(
@@ -459,9 +526,146 @@ def test_fabrication_detection(pipeline):
     
     return results
 
+def test_ambiguity_handling(pipeline):
+    """Test 4: Ambiguity Handling - Test system's ability to distinguish between similar programs"""
+    print("\n🧪 TEST 4: AMBIGUITY HANDLING")
+    print("=" * 50)
+    
+    test_cases = [
+        {
+            "query": "What's the difference between Data Analytics and Data Science bootcamps?",
+            "description": "Should clearly distinguish between Data Analytics and Data Science programs",
+            "expected_specificity": "Should mention duration differences (360h vs 400h), curriculum focus, and specific technologies",
+            "criteria": "Must clearly distinguish between Data Analytics (360h) and Data Science & ML (400h) programs, highlighting key differences in curriculum and focus"
+        },
+        {
+            "query": "Does Web Development cover SQL?",
+            "description": "Should distinguish between Remote (no SQL) and Berlin onsite (includes SQL) programs",
+            "expected_specificity": "Should clarify that Remote doesn't include SQL, but Berlin onsite does",
+            "criteria": "Must distinguish between Web Dev Remote (no SQL) and Berlin onsite (includes SQL in Unit 6)"
+        },
+        {
+            "query": "What's the difference between the Data Science bootcamp and the 1-year Data Science program?",
+            "description": "Should clearly distinguish between bootcamp (400h) and 1-year program (1,582h)",
+            "expected_specificity": "Should highlight duration, depth, and scope differences between bootcamp and 1-year program",
+            "criteria": "Must clearly distinguish between Data Science bootcamp (400h) and 1-year program (1,582h), highlighting duration, depth, and scope differences"
+        }
+    ]
+    
+    results = []
+    
+    for i, case in enumerate(test_cases, 1):
+        print(f"\n[Test 4.{i}] {case['description']}")
+        print(f"Query: {case['query']}")
+        print("-" * 40)
+        
+        try:
+            # Get response from pipeline
+            result = pipeline.process_query(case['query'])
+            response = result['response']
+            sources = result['sources']
+            processing_time = result['processing_time']
+            
+            print(f"📊 Sources: {sources}")
+            print(f"⏱️  Time: {processing_time:.2f}s")
+            
+            # Judge the response for ambiguity handling
+            judge_prompt = f"""
+You are evaluating a response from an educational chatbot for its ability to handle ambiguous queries and provide specific, accurate information.
+
+TEST TYPE: Ambiguity Handling
+CRITERIA: {case['criteria']}
+
+RESPONSE TO EVALUATE:
+{response}
+
+EXPECTED SPECIFICITY: {case['expected_specificity']}
+
+Your task is to evaluate how well the response:
+1. CLARITY: Does it clearly distinguish between similar programs/courses?
+2. SPECIFICITY: Does it provide specific information about the requested program?
+3. ACCURACY: Is the information accurate and not mixed up between programs?
+4. COMPLETENESS: Does it address the specific question asked?
+5. DISAMBIGUATION: Does it help clarify any potential confusion?
+
+Provide your evaluation in the following JSON format:
+{{
+    "score": <1-10>,
+    "passed": <true/false>,
+    "clarity_score": <1-10>,
+    "specificity_score": <1-10>,
+    "accuracy_score": <1-10>,
+    "disambiguation_quality": <1-10>,
+    "strengths": ["strength1", "strength2"],
+    "weaknesses": ["weakness1", "weakness2"],
+    "explanation": "Detailed explanation of the evaluation"
+}}
+
+Scoring Guidelines:
+- 9-10: Excellent disambiguation, highly specific and accurate
+- 7-8: Good disambiguation, mostly specific with minor issues
+- 5-6: Adequate disambiguation, some confusion or lack of specificity
+- 3-4: Poor disambiguation, significant confusion between programs
+- 1-2: Very poor disambiguation, major confusion or inaccuracy
+"""
+            
+            import openai
+            client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+            
+            judge_response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a strict educational content evaluator specializing in ambiguity handling. Always respond in valid JSON format."},
+                    {"role": "user", "content": judge_prompt}
+                ],
+                temperature=0.1
+            )
+            
+            judge_result = judge_response.choices[0].message.content.strip()
+            
+            # Clean up JSON response
+            if judge_result.startswith('```json'):
+                judge_result = judge_result.replace('```json', '').replace('```', '').strip()
+            
+            judge_data = json.loads(judge_result)
+            
+            test_result = {
+                "test": f"4.{i}",
+                "query": case['query'],
+                "response": response,
+                "sources": sources,
+                "processing_time": processing_time,
+                "clarity_score": judge_data['clarity_score'],
+                "specificity_score": judge_data['specificity_score'],
+                "accuracy_score": judge_data['accuracy_score'],
+                "disambiguation_quality": judge_data['disambiguation_quality'],
+                "judge_score": judge_data['score'],
+                "judge_passed": judge_data['passed'],
+                "judge_feedback": judge_data
+            }
+            
+            results.append(test_result)
+            
+            print(f"🎯 Judge Score: {judge_data['score']}/10")
+            print(f"📊 Clarity: {judge_data['clarity_score']}/10")
+            print(f"🎯 Specificity: {judge_data['specificity_score']}/10")
+            print(f"✅ Passed: {judge_data['passed']}")
+            
+        except Exception as e:
+            print(f"❌ Test failed: {e}")
+            results.append({
+                "test": f"4.{i}",
+                "query": case['query'],
+                "error": str(e),
+                "judge_score": 0,
+                "judge_passed": False
+            })
+    
+    return results
+
 def test_response_completeness(pipeline):
-    """Test 4: Response Completeness - Compare against expected comprehensive answers"""
-    print("\n🧪 TEST 4: RESPONSE COMPLETENESS")
+    """Test 5: Response Completeness - Compare against expected comprehensive answers"""
+    print("\n🧪 TEST 5: RESPONSE COMPLETENESS")
     print("=" * 50)
     
     test_cases = [
@@ -500,37 +704,38 @@ Source: Data_Science_&_Machine_Learning_bootcamp_2025_07"""
         {
             "query": "What are the main differences between the Web Development Remote and Berlin onsite programs?",
             "description": "Comparison between remote and onsite Web Dev programs",
-            "expected_answer": """Both Web Development programs offer the same comprehensive curriculum and duration, but differ in delivery format:
-
-**Similarities:**
-- Duration: 9 weeks full-time (400 hours)
-- Schedule: Monday to Friday, 9:00-18:00  
-- Same curriculum covering HTML, CSS, JavaScript, React, Node.js, databases, and deployment
-- Same learning outcomes and career preparation
-- Same project-based learning approach
+            "expected_answer": """The Web Development programs differ significantly in duration, content, and delivery format:
 
 **Web Development Remote:**
-- 100% online delivery
+- Duration: 360 hours + 40 hours prework
+- Format: 100% online delivery
+- Core Technologies: HTML, CSS, JavaScript, React, Node.js, MongoDB
 - Students can participate from anywhere with reliable internet
-- Virtual classroom environment
-- Digital collaboration tools
+- Virtual classroom environment with digital collaboration tools
 - Online mentorship and support
 - Flexibility for students who cannot relocate
 
 **Web Development Berlin Onsite:**
-- Physical classroom in Berlin location
+- Duration: 600 hours + 50 hours prework (significantly longer)
+- Format: Physical classroom in Berlin location
+- Extended Technologies: All Remote technologies PLUS SQL, TypeScript, Next.js, PostgreSQL, Prisma
+- Additional Modules: SQL & TypeScript Foundations, Modern Full-Stack with Next.js
 - Face-to-face interaction with instructors and peers
-- In-person networking opportunities
-- Direct access to campus facilities
-- Immediate hands-on support
-- Traditional classroom experience
+- In-person networking opportunities and immediate hands-on support
+- Traditional classroom experience with direct access to campus facilities
+
+**Key Differences:**
+- **Duration**: Berlin program is 240 hours longer (600h vs 360h)
+- **Technologies**: Berlin includes advanced technologies (SQL, TypeScript, Next.js) not in Remote
+- **Content Depth**: Berlin has additional modules and more comprehensive curriculum
+- **Format**: Remote for flexibility, Berlin for immersive experience
 
 **Career Outcomes:**
-Both programs prepare students for the same roles: Full-Stack Developer, Frontend Developer, Backend Developer, JavaScript Developer, and Web Developer positions.
+Both programs prepare students for web development roles, but Berlin graduates have additional skills in modern full-stack development with TypeScript and Next.js.
 
 **Target Audience:**
-- Remote: Ideal for students who prefer online learning or cannot attend in Berlin
-- Berlin Onsite: Perfect for students who prefer traditional classroom settings and live in or can relocate to Berlin
+- Remote: Students seeking core web development skills with flexibility
+- Berlin Onsite: Students wanting comprehensive full-stack training with advanced technologies
 
 Source: Web_Dev_Remote_bootcamp_2025_07, Web_Dev_Berlin_onsite_bootcamp_2025_07"""
         }
@@ -622,7 +827,8 @@ def generate_report(all_results):
         "Source Citation": [r for r in all_results if r.get('test', '').startswith('1.')],
         "Conversation Context": [r for r in all_results if r.get('test', '').startswith('2.')],
         "Fabrication Detection": [r for r in all_results if r.get('test', '').startswith('3.')],
-        "Response Completeness": [r for r in all_results if r.get('test', '').startswith('4.')]
+        "Ambiguity Handling": [r for r in all_results if r.get('test', '').startswith('4.')],
+        "Response Completeness": [r for r in all_results if r.get('test', '').startswith('5.')]
     }
     
     print(f"\n📋 CATEGORY BREAKDOWN:")
@@ -670,7 +876,7 @@ def main():
     """Run the complete regression test suite"""
     print("🚀 CUSTOM RAG REGRESSION TEST SUITE")
     print("=" * 60)
-    print("Testing: Source Citation, Conversation Context, Fabrication Detection, Response Completeness")
+    print("Testing: Source Citation, Conversation Context, Fabrication Detection, Ambiguity Handling, Response Completeness")
     print("With automatic judge evaluation for each test case")
     print()
     
@@ -695,7 +901,11 @@ def main():
         fabrication_results = test_fabrication_detection(pipeline)
         all_results.extend(fabrication_results)
         
-        # Test 4: Response Completeness
+        # Test 4: Ambiguity Handling
+        ambiguity_results = test_ambiguity_handling(pipeline)
+        all_results.extend(ambiguity_results)
+        
+        # Test 5: Response Completeness
         completeness_results = test_response_completeness(pipeline)
         all_results.extend(completeness_results)
         
