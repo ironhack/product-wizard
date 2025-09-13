@@ -26,6 +26,10 @@ sys.path.append(str(Path(__file__).parent.parent))
 # Load environment
 load_dotenv()
 
+# Set mock Slack environment variables before importing to avoid Slack initialization errors
+os.environ['SLACK_BOT_TOKEN'] = 'xoxb-test-token-for-testing'
+os.environ['SLACK_SIGNING_SECRET'] = 'test-signing-secret-for-testing'
+
 def initialize_pipeline():
     """Initialize the Custom RAG Pipeline"""
     try:
@@ -129,7 +133,7 @@ Your task is to evaluate how well the actual response covers the information pro
 3. STRUCTURE: Is the response well-organized and easy to follow?
 4. COMPLETENESS: Are there major omissions that would impact usefulness?
 5. RELEVANCE: Does it stay focused on the question asked?
-6. SOURCE CITATION: If sources are provided, they should use file names (e.g., "Certifications_2025_07.txt")
+6. SOURCE CITATION: If sources are provided, they should use file names (e.g., "Certifications 2025 07")
 
 Provide your evaluation in the following JSON format:
 {{
