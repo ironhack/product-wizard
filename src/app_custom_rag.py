@@ -142,6 +142,44 @@ class CustomRAGPipeline:
         self._id_to_filename: Dict[str, str] = {}
         self._evidence_chunks: List[Dict] = []
 
+    # ---------- dynamic safe fallback ----------
+    def generate_safe_fallback(self, query: str, reason: str = "") -> str:
+        try:
+            system_msg = (
+                "You generate a single short fallback message when the assistant cannot answer "
+                "from the retrieved curriculum documents. The message must: (1) politely explain "
+                "we're not answering to avoid inventing facts, (2) be lightly friendly/playful, "
+                "optionally referencing not making Rudy upset about fabrications, (3) invite the "
+                "user to contact the Education team on Slack, (4) be at most 2 sentences, (5) no "
+                "document citations or sources section, (6) no promises or speculative numbers, "
+                "(7) respond in the same language as the user's query; if language is unclear, "
+                "default to English. If the query is in English, include the exact phrase: "
+                "'reach out to the Education team on Slack'."
+            )
+            user_msg = (
+                f"Query: {query or ''}\n"
+                f"Reason: {reason or 'unspecified'}\n"
+                "Instructions: Respond in the same language as the query; if unsure, use English. "
+                "If the query is in English, include exactly: 'reach out to the Education team on Slack'."
+            )
+            resp = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": user_msg},
+                ],
+                temperature=0.6,
+                max_tokens=120,
+            )
+            text = (resp.choices[0].message.content or "").strip()
+            # Guardrails: ensure no Sources block sneaks in
+            text = re.sub(r"\n+Sources:\n(?:- .+\n?)+$", "", text, flags=re.IGNORECASE | re.MULTILINE).strip()
+            if not text:
+                return SAFE_FALLBACK_MSG
+            return text
+        except Exception:
+            return SAFE_FALLBACK_MSG
+
     # ---------- helpers ----------
     def _normalize_filename(self, filename: str) -> str:
         if not filename:
@@ -183,7 +221,14 @@ class CustomRAGPipeline:
             return query
         context_info = []
         mentioned_programs = set()
-        for msg in conversation_context[-4:]:
+        last_program = ""
+        last_variant = ""
+        last_intent = ""
+
+        duration_tokens = ['how long', 'duration', 'hours', 'weeks', 'length', 'part-time', 'full-time']
+
+        # Look further back for better reference resolution
+        for msg in conversation_context[-6:]:
             role = msg.get('role')
             content = (msg.get('content') or "")
             lower = content.lower()
@@ -191,7 +236,17 @@ class CustomRAGPipeline:
                 for program, toks in PROGRAM_TOKENS.items():
                     if any(t in lower for t in toks):
                         mentioned_programs.add(program)
-                        context_info.append(f"Previously discussed: {content}")
+                        last_program = program
+                for vt in VARIANT_TOKENS:
+                    if vt in lower:
+                        last_variant = vt
+                if any(tok in lower for tok in duration_tokens):
+                    last_intent = 'duration'
+                elif self._is_cert_query(lower):
+                    last_intent = 'certifications'
+                elif self._is_coverage_query(lower):
+                    last_intent = 'coverage'
+                context_info.append(f"Previously discussed: {content}")
             elif role == 'assistant':
                 if any(term in lower for term in ['bootcamp', 'program', 'certification', 'course']):
                     first_sentence = content.split('.', 1)[0].strip()
@@ -200,8 +255,32 @@ class CustomRAGPipeline:
                     for program, toks in PROGRAM_TOKENS.items():
                         if any(t in lower for t in toks):
                             mentioned_programs.add(program)
-        if any(ref in (query or "").lower() for ref in ['that', 'this', 'it', 'they', 'them']) and mentioned_programs:
-            context_info.insert(0, f"Referring to: {', '.join(sorted(mentioned_programs))}")
+                            last_program = program
+                    for vt in VARIANT_TOKENS:
+                        if vt in lower:
+                            last_variant = vt
+                    if any(tok in lower for tok in duration_tokens):
+                        last_intent = 'duration'
+                    elif self._is_cert_query(lower):
+                        last_intent = 'certifications'
+                    elif self._is_coverage_query(lower):
+                        last_intent = 'coverage'
+
+        qlower = (query or "").lower()
+        # Strengthen pronoun/ellipsis resolution for references like "that bootcamp"
+        if any(ref in qlower for ref in ['that bootcamp', 'that program', 'that', 'this', 'it', 'they', 'them']):
+            if last_program:
+                referring = f"Referring to: {last_program}"
+                if last_variant:
+                    referring += f" ({last_variant})"
+                context_info.insert(0, referring)
+            elif mentioned_programs:
+                context_info.insert(0, f"Referring to: {', '.join(sorted(mentioned_programs))}")
+
+        # If the intent appears to be duration, make that explicit to guide retrieval
+        if any(tok in qlower for tok in duration_tokens) or last_intent == 'duration':
+            context_info.append("Intent: duration (seek hours/weeks) for the referred program")
+
         if context_info:
             return f"{query} (Context: {' '.join(context_info)})"
         return query
@@ -482,7 +561,7 @@ class CustomRAGPipeline:
 
         except Exception as e:
             logger.error(f"Error generating response: {e}", exc_info=True)
-            return SAFE_FALLBACK_MSG
+            return self.generate_safe_fallback(query, reason="generation_error")
 
     def generate_response_fallback(self, query, retrieved_docs, conversation_context=None, sources=None):
         try:
@@ -521,7 +600,7 @@ SOURCE INFORMATION:
             return generated
         except Exception as e:
             logger.error(f"Error generating fallback response: {e}", exc_info=True)
-            return SAFE_FALLBACK_MSG
+            return self.generate_safe_fallback(query, reason="fallback_error")
 
     # ---------- validation ----------
     def _strip_sources_section(self, text):
@@ -610,7 +689,7 @@ RESPONSE TO VALIDATE:
                 "explanation": "Skipped validation because no documents were retrieved and safe fallback was used."
             }
             return {
-                "response": SAFE_FALLBACK_MSG,
+                "response": self.generate_safe_fallback(query, reason="no_documents"),
                 "retrieved_docs_count": 0,
                 "sources": sources,
                 "validation": validation,
@@ -623,7 +702,7 @@ RESPONSE TO VALIDATE:
         confidence_threshold = 0.6
         if (validation.get('confidence', 0) < confidence_threshold or
             not validation.get('contains_only_retrieved_info', False)):
-            response = SAFE_FALLBACK_MSG
+            response = self.generate_safe_fallback(query, reason="validation_failure")
             validation = {
                 "contains_only_retrieved_info": True,
                 "unsupported_claims": [],
