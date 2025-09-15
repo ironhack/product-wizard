@@ -9,7 +9,8 @@ alwaysApply: true
 ## Development Workflow
 
 ### 1. Before Making Changes
-- **Edit directly**: Modify `assistant_config/MASTER_PROMPT.md` or `src/app_custom_rag.py` directly
+- **Edit directly**: Modify configuration files in `assistant_config/` or `src/app_custom_rag.py` directly
+- **Configuration files**: Use the 4 streamlined config files (MASTER_PROMPT.md, GENERATION_INSTRUCTIONS.md, VALIDATION_INSTRUCTIONS.md, RETRIEVAL_DEFAULT.md)
 - **No manual versioning**: Git handles all version control automatically
 - **Document purpose**: Use clear commit messages to describe changes
 
@@ -20,15 +21,16 @@ alwaysApply: true
 - **Never delete test files** - preserve all `test_*.py` files for future reference
 - **Save test results** to `tests/results/` with timestamps and judge scores
 
-### 3. Current System Management
-- **Production file**: `assistant_config/MASTER_PROMPT.md` (Git versioned)
+### 3. Current System Management (Streamlined)
+- **Configuration files**: 4 focused config files in `assistant_config/` (Git versioned)
 - **Production app**: `src/app_custom_rag.py` (Custom RAG Pipeline)
 - **Single source of truth**: Git history provides all versioning needs
 - **No backup files**: Git handles version control completely
+- **Architecture**: Streamlined from 7 files to 4 focused configuration files
 
 ### 4. Deployment Process
 - **Heroku-based**: Deploy via Git push to Heroku (no manual scripts needed)
-- **Source reading**: Custom RAG Pipeline reads from `assistant_config/MASTER_PROMPT.md` in repository
+- **Source reading**: Custom RAG Pipeline reads from all `assistant_config/` files in repository
 - **Health check**: Monitor `/health` endpoint for pipeline status
 - **Application restart**: Heroku app automatically picks up changes from Git
 
@@ -118,6 +120,16 @@ def test_specific_scenario():
 - Pattern: `[test_name]_[timestamp].json`
 - Automatic timestamps with judge scores and validation metrics
 
+### Updating the Application (Streamlined Configuration)
+1. Edit `src/app_custom_rag.py` for pipeline changes
+2. Edit configuration files in `assistant_config/` for behavior changes:
+   - `MASTER_PROMPT.md` - Core behavior guidelines
+   - `GENERATION_INSTRUCTIONS.md` - Advanced pipeline features
+   - `VALIDATION_INSTRUCTIONS.md` - Validation system
+   - `RETRIEVAL_DEFAULT.md` - Automated retrieval
+3. Test with comprehensive test suite
+4. **Commit to GitHub + Deploy Heroku app**
+
 ## Integration with Repository Rules
 
 This file works in conjunction with the main repository structure rules. When in doubt:
@@ -125,6 +137,7 @@ This file works in conjunction with the main repository structure rules. When in
 2. Fall back to general repository rules
 3. Always test actual production code, never simulations
 4. Prioritize system reliability and data integrity
+5. Use the 4 streamlined configuration files instead of creating redundant ones
 
 ## Emergency Rollback Process
 

@@ -20,11 +20,14 @@ This repository serves three main purposes:
 - **Vector Store Files**: Always update corresponding TXT files in `knowledge_base/database_txt/` when modifying Markdown
 - **Synchronization Rule**: Every `.md` file must have a corresponding `.txt` file with identical content
 
-### Prompt Management
-- **Current Version**: `assistant_config/MASTER_PROMPT.md` (production prompt - the only version)
-- **Versioning**: Git handles all version control - no manual prompt versioning needed
-- **Update Process**: Edit `MASTER_PROMPT.md` directly, commit changes, and deploy
-- **No Backup Files**: Git history is the single source of truth for versioning
+### Configuration Management (Streamlined)
+- **Core Prompt**: `assistant_config/MASTER_PROMPT.md` (streamlined behavior guidelines)
+- **Generation Features**: `assistant_config/GENERATION_INSTRUCTIONS.md` (advanced pipeline capabilities)
+- **Validation System**: `assistant_config/VALIDATION_INSTRUCTIONS.md` (confidence scoring and evidence verification)
+- **Retrieval System**: `assistant_config/RETRIEVAL_DEFAULT.md` (automated query enhancement)
+- **Versioning**: Git handles all version control - no manual configuration versioning needed
+- **Update Process**: Edit configuration files directly, commit changes, and deploy
+- **Architecture**: Streamlined from 7 files to 4 focused configuration files
 
 ### Application Structure
 - **Production App**: `src/app_custom_rag.py` (Custom RAG Pipeline with automatic validation - PRODUCTION)
@@ -63,7 +66,11 @@ This repository serves three main purposes:
 #### Production Deployment (Custom RAG Pipeline):
 1. Edit source files (Markdown in `knowledge_base/database/` and/or `src/app_custom_rag.py`)
 2. Update corresponding TXT files (`knowledge_base/database_txt/`) when needed
-3. Update `assistant_config/MASTER_PROMPT.md` if needed
+3. Update configuration files in `assistant_config/` if needed:
+   - `MASTER_PROMPT.md` - Core behavior guidelines
+   - `GENERATION_INSTRUCTIONS.md` - Advanced pipeline features
+   - `VALIDATION_INSTRUCTIONS.md` - Validation system
+   - `RETRIEVAL_DEFAULT.md` - Automated retrieval
 4. Test changes locally with comprehensive test suite (`tests/regression_test.py`, etc.)
 5. **Commit and push to GitHub**
 6. **Deploy Heroku app** (Custom RAG Pipeline reads from repository)
@@ -71,9 +78,12 @@ This repository serves three main purposes:
 
 ## Key Files & Their Roles
 
-### Critical Configuration
+### Critical Configuration (Modernized)
 - `src/app_custom_rag.py` - Custom RAG Pipeline application (PRODUCTION)
-- `assistant_config/MASTER_PROMPT.md` - Current production assistant prompt (Git versioned)
+- `assistant_config/MASTER_PROMPT.md` - Core assistant behavior and constraints
+- `assistant_config/GENERATION_INSTRUCTIONS.md` - Advanced generation features and variant handling
+- `assistant_config/VALIDATION_INSTRUCTIONS.md` - Sophisticated validation with confidence scoring
+- `assistant_config/RETRIEVAL_DEFAULT.md` - Automated retrieval system instructions
 - `index.yaml` - Course structure for third-party apps (root level)
 - `src/app_response.py` - Responses API Slack middleware (fallback)
 
@@ -104,6 +114,8 @@ This is a production system serving Ironhack's sales team. Any changes must:
 - Ensure sales-appropriate responses with conversational tone
 - Test actual production `CustomRAGPipeline` code, not simulations
 - Include judge-based evaluation for objective quality assessment
-- Keep all three components (knowledge base, Custom RAG Pipeline, tools) functioning
+- Keep all components (knowledge base, streamlined configuration, Custom RAG Pipeline, tools) functioning
+- Reflect automated pipeline capabilities in configuration files
+- Avoid creating redundant configuration files
 
 Always prioritize data integrity and system reliability over feature additions.

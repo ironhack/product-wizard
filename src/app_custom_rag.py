@@ -74,10 +74,7 @@ def load_master_prompt():
 MASTER_PROMPT = load_master_prompt()
 GENERATION_INSTRUCTIONS = load_config_file('GENERATION_INSTRUCTIONS.md')
 VALIDATION_INSTRUCTIONS = load_config_file('VALIDATION_INSTRUCTIONS.md')
-RETRIEVAL_CONTEXT_AWARE_INSTRUCTIONS = load_config_file('RETRIEVAL_CONTEXT_AWARE_QUERIES.md')
-RETRIEVAL_COMPARISON_INSTRUCTIONS = load_config_file('RETRIEVAL_COMPARISON_QUERIES.md')
-RETRIEVAL_OVERVIEW_INSTRUCTIONS = load_config_file('RETRIEVAL_OVERVIEW_QUERIES.md')
-RETRIEVAL_DEFAULT_INSTRUCTIONS = load_config_file('RETRIEVAL_DEFAULT.md')
+RETRIEVAL_INSTRUCTIONS = load_config_file('RETRIEVAL_DEFAULT.md')
 
 # ---------------- Tokens grounded to your docs ----------------
 # Variants: ONLY remote and berlin (as per your corpus)
@@ -88,32 +85,34 @@ VARIANT_TOKENS = ("remote", "berlin", "onsite", "online")
 # We derive aliases strictly from those headings + their acronyms; no extra nicknames.
 PROGRAM_TOKENS: Dict[str, List[str]] = {
     "web development": [
-        "web development", "web_development", "wdft", "wdpt", "wd"
+        "web development", "web_development", "web dev", "web_dev", "webdev", "wdft", "wdpt", "wd"
     ],
     "ux/ui design": [
-        "ux/ui design", "ux_ui_design", "uxft", "uxpt", "ux"
+        "ux/ui design", "ux_ui_design", "uxui", "uxft", "uxpt", "ux"
     ],
     "data analytics": [
-        "data analytics", "data_analytics", "daft", "dapt", "da"
+        "data analytics", "data_analytics", "dataanalytics", "daft", "dapt", "da"
     ],
     "data science & machine learning": [
         "data science & machine learning",
         "data science and machine learning",
         "data_science_and_machine_learning",
         "data_science_machine_learning",
+        "data_science_&_machine_learning",
+        "data science & ml", "data_science_&_ml", "ds_ml",
         "mlft", "mlpt", "dsml", "ml"
     ],
     "ai engineering": [
-        "ai engineering", "ai_engineering", "aift", "aipt", "ai"
+        "ai engineering", "ai_engineering", "ai eng", "ai_eng", "aieng", "aift", "aipt", "ai"
     ],
     "devops": [
-        "devops", "dvft", "dvpt", "dv"
+        "devops", "dev ops", "dev_ops", "dvft", "dvpt", "dv"
     ],
     "marketing": [
-        "marketing", "mkft", "mkpt", "mk"
+        "marketing", "mktg", "mkft", "mkpt", "mk"
     ],
     "cybersecurity": [
-        "cybersecurity", "cyft", "cypt", "cy"
+        "cybersecurity", "cyber security", "cyber_security", "cysec", "cyft", "cypt", "cy"
     ],
     "data science and ai 1-year program germany": [
         "data science and ai 1-year program germany",
@@ -127,6 +126,12 @@ PROGRAM_TOKENS: Dict[str, List[str]] = {
 
 CERT_TOKENS = ["certification", "certifications", "certificate", "certificates", "cert", "badge", "exam", "accreditation"]
 COVERAGE_TOKENS = ["does", "include", "cover", "teach", "have", "is there", "do you cover", "is it covered"]
+HARDWARE_TOKENS = [
+    "hardware", "computer", "laptop", "mac", "windows", "linux",
+    "specs", "specifications", "requirements", "minimum requirements",
+    "ram", "cpu", "m1", "disk space", "admin permissions", "administrator",
+    "8gb", "i5", "i3", "screen size", "13\"", "2015 or newer"
+]
 
 # ---------------- RAG Pipeline ----------------
 class CustomRAGPipeline:
@@ -205,16 +210,13 @@ class CustomRAGPipeline:
     def _is_coverage_query(self, query: str) -> bool:
         return self._contains_any(query, COVERAGE_TOKENS)
 
+    def _is_hardware_query(self, query: str) -> bool:
+        return self._contains_any(query, HARDWARE_TOKENS)
+
     def _get_retrieval_instructions(self, query):
-        q = (query or "").lower()
-        if any(tok in q for tok in ['that', 'this', 'it', 'they', 'them', 'what about', 'how about', 'also', 'too']):
-            return (RETRIEVAL_CONTEXT_AWARE_INSTRUCTIONS or "").strip()
-        if any(k in q for k in ['difference', 'compare', 'comparison', 'vs', 'versus']) or \
-           any(v in q for v in VARIANT_TOKENS):
-            return (RETRIEVAL_COMPARISON_INSTRUCTIONS or "").strip()
-        if any(k in q for k in ['tell me about', 'overview', 'explain', 'describe', 'what is', 'comprehensive']):
-            return (RETRIEVAL_OVERVIEW_INSTRUCTIONS or "").strip()
-        return (RETRIEVAL_DEFAULT_INSTRUCTIONS or "").strip()
+        # Use the consolidated retrieval instructions for all query types
+        # The automated system handles context-aware, comparison, and overview queries internally
+        return (RETRIEVAL_INSTRUCTIONS or "").strip()
 
     def _enhance_query_with_context(self, query, conversation_context):
         if not conversation_context:
@@ -226,6 +228,8 @@ class CustomRAGPipeline:
         last_intent = ""
 
         duration_tokens = ['how long', 'duration', 'hours', 'weeks', 'length', 'part-time', 'full-time']
+        # steer retrieval when conversation is about hardware requirements
+        hardware_tokens = HARDWARE_TOKENS
 
         # Look further back for better reference resolution
         for msg in conversation_context[-6:]:
@@ -246,6 +250,8 @@ class CustomRAGPipeline:
                     last_intent = 'certifications'
                 elif self._is_coverage_query(lower):
                     last_intent = 'coverage'
+                elif self._is_hardware_query(lower):
+                    last_intent = 'hardware'
                 context_info.append(f"Previously discussed: {content}")
             elif role == 'assistant':
                 if any(term in lower for term in ['bootcamp', 'program', 'certification', 'course']):
@@ -265,6 +271,8 @@ class CustomRAGPipeline:
                         last_intent = 'certifications'
                     elif self._is_coverage_query(lower):
                         last_intent = 'coverage'
+                    elif self._is_hardware_query(lower):
+                        last_intent = 'hardware'
 
         qlower = (query or "").lower()
         # Strengthen pronoun/ellipsis resolution for references like "that bootcamp"
@@ -280,6 +288,9 @@ class CustomRAGPipeline:
         # If the intent appears to be duration, make that explicit to guide retrieval
         if any(tok in qlower for tok in duration_tokens) or last_intent == 'duration':
             context_info.append("Intent: duration (seek hours/weeks) for the referred program")
+
+        if any(tok in qlower for tok in hardware_tokens) or last_intent == 'hardware':
+            context_info.append("Intent: hardware requirements (seek minimum computer specs)")
 
         if context_info:
             return f"{query} (Context: {' '.join(context_info)})"
@@ -299,6 +310,16 @@ class CustomRAGPipeline:
             v = self._variant_label_from_name(fname)
             byv.setdefault(v, []).append((fid, fname))
         return byv
+
+    def _variants_present_for_selected(self) -> List[str]:
+        variants = set()
+        id_to_name = self._id_to_filename or {}
+        for fid in getattr(self, "_selected_file_ids", []) or []:
+            fname = id_to_name.get(fid, "")
+            v = self._variant_label_from_name(fname)
+            if v in ("remote", "berlin"):
+                variants.add(v)
+        return sorted(list(variants))
 
     def _ensure_single_sources_block(self, text: str, filenames: List[str]) -> str:
         text = text or ""
@@ -396,7 +417,24 @@ class CustomRAGPipeline:
                 self._id_to_filename = {}
                 return [], []
 
-            top = sorted(by_file.items(), key=lambda kv: kv[1]["score"], reverse=True)[: self.TOP_K_FILES]
+            # Prefer files whose filename clearly matches the user's target program, to reduce cross-program noise
+            q_program = self._program_from_query(enhanced_query)
+            def filename_matches_program(fname: str, program_key: str) -> bool:
+                if not program_key:
+                    return False
+                name_lower = (fname or "").lower()
+                tokens = PROGRAM_TOKENS.get(program_key, [])
+                return any(tok in name_lower for tok in tokens)
+
+            sorted_all = sorted(by_file.items(), key=lambda kv: kv[1]["score"], reverse=True)
+            if q_program:
+                preferred = [it for it in sorted_all if filename_matches_program(it[0], q_program)]
+                others = [it for it in sorted_all if it not in preferred]
+                ranked = preferred + others
+            else:
+                ranked = sorted_all
+
+            top = ranked[: self.TOP_K_FILES]
 
             sources = []
             retrieved_content = []
@@ -533,6 +571,18 @@ class CustomRAGPipeline:
                 return self.generate_response_fallback(query, retrieved_docs, conversation_context, sources)
 
             msgs = [{"role": "system", "content": self.master_prompt}]
+            # Enforce side-by-side output when both variants are present
+            variants_present = self._variants_present_for_selected()
+            if "remote" in variants_present and "berlin" in variants_present:
+                msgs.append({
+                    "role": "system",
+                    "content": (
+                        "Both Remote and Berlin variants are present in the retrieved sources. "
+                        "Provide a concise, side-by-side answer with separate sections titled 'Remote' and 'Berlin'. "
+                        "Include a brief quote and filename per variant. Do not describe only one variant, and never blend content."
+                    )
+                })
+            # General generation instructions from config already include coverage guidance
             if conversation_context:
                 for m in conversation_context[-6:]:
                     role = "user" if m["role"] == "user" else "assistant"
@@ -578,6 +628,21 @@ SOURCE INFORMATION:
 
 {GENERATION_INSTRUCTIONS}
 """
+
+            # Enforce side-by-side output when both variants are present (fallback path)
+            variants_present = self._variants_present_for_selected()
+            if "remote" in variants_present and "berlin" in variants_present:
+                system_prompt += (
+                    "\n\nIMPORTANT: Both Remote and Berlin variants are present. "
+                    "Provide two clear sections ('Remote' and 'Berlin') with concise differences and cite the filename per variant."
+                )
+            # Coverage-specific guidance for fallback path
+            if self._is_coverage_query(query):
+                system_prompt += (
+                    "\n\nFor coverage questions: quote a short line if the topic is explicitly mentioned. "
+                    "If a variant has no explicit mention, say 'The [Variant] syllabus does not list <topic> in the retrieved document' and cite the filename. "
+                    "Avoid asserting 'does not cover' without an explicit statement."
+                )
 
             messages = [{"role": "system", "content": system_prompt}]
             if conversation_context:
@@ -697,27 +762,34 @@ RESPONSE TO VALIDATE:
             }
 
         response = self.generate_response(query, retrieved_docs, conversation_context, sources)
+        pre_validation_response = response
         validation = self.validate_response(response, retrieved_docs)
 
         confidence_threshold = 0.6
         if (validation.get('confidence', 0) < confidence_threshold or
             not validation.get('contains_only_retrieved_info', False)):
             response = self.generate_safe_fallback(query, reason="validation_failure")
-            validation = {
+            post_validation = {
                 "contains_only_retrieved_info": True,
                 "unsupported_claims": [],
                 "confidence": 1.0,
                 "explanation": "Used safe fallback due to validation failure."
             }
+        else:
+            post_validation = dict(validation)
 
         total_time = time.time() - start_time
-        return {
+        result_payload = {
             "response": response,
             "retrieved_docs_count": len(retrieved_docs),
             "sources": sources,
-            "validation": validation,
+            "validation": post_validation,
+            # debug fields for testers
+            "pre_validation_response": pre_validation_response,
+            "pre_validation": validation,
             "processing_time": total_time
         }
+        return result_payload
 
 # ---------------- Init pipeline ----------------
 custom_rag = CustomRAGPipeline(client, VECTOR_STORE_ID, MASTER_PROMPT)

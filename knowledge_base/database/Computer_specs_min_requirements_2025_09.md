@@ -1,0 +1,35 @@
+# Computer specs
+
+## DATA ANALYTICS -  DA/ DATA SCIENCE AND MACHINE LEARNING - ML/AI ENGINEERING - AI/WEB DEVELOPMENT - WD/DEVOPS - DV/CYBER - CY 
+
+**Mac, Windows or Linux (no preference)**
+
+**Minimum Specs:** 
+
+- 8GB of RAM minimum
+- i5 CPU (or at least i3 8th gen processor or later) or equivalent (M1)
+- Screen size 13'' or more
+- 50 GB of available disk space minimum
+
+‼ **Note:** Full admin permissions (in case you use a company-provided device, you need to make sure they are granted admin rights)
+
+## UX/UI DESIGN - UX/ MARKETING - MK👩🏻‍🎨
+
+**Mac or Windows (Linux possible but not recommended)**
+
+**Minimum Specs:** 
+
+- i5 processor or later
+    - 8GB of RAM minimum
+- 2015 or newer
+- Screen size 13'' or more
+- 30 GB of available disk space minimum
+
+‼ **Note:** Full admin permissions (in case you use a company-provided device, you need to make sure they are granted admin rights)
+
+<aside>
+📠 Please keep in mind that these are the recommended specs for a smooth experience and, in any way, mean you are unable to achieve success with different hardware that doesn't comply with these requirements.
+
+</aside>
+
+

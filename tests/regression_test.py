@@ -230,7 +230,7 @@ def test_source_citation(pipeline):
             criteria = f"""
             1. Response should contain factual information about {case['description'].lower()}
             2. Response MUST end with 'Sources:' followed by document references
-            3. Source citation should use file names (e.g., "Certifications_2025_07.txt")
+            3. Source citation should use file names (e.g., "Certifications 2025 07")
             4. No fabricated information should be present
             5. Response should be professional and helpful for sales team
             """
@@ -559,7 +559,7 @@ def test_ambiguity_handling(pipeline):
     results = []
     
     for i, case in enumerate(test_cases, 1):
-        print(f"\n[Test 4.{i}] {case['description']}")
+        print(f"\n[Test 5.{i}] {case['description']}")
         print(f"Query: {case['query']}")
         print("-" * 40)
         
@@ -777,7 +777,7 @@ Source: Web_Dev_Remote_bootcamp_2025_07, Web_Dev_Berlin_onsite_bootcamp_2025_07"
             print(f"❌ Missing Elements: {len(missing_elements)}")
             
             test_result = {
-                "test": f"4.{i}",
+                "test": f"5.{i}",
                 "query": case['query'],
                 "response": response,
                 "expected_answer": case['expected_answer'],
@@ -798,7 +798,7 @@ Source: Web_Dev_Remote_bootcamp_2025_07, Web_Dev_Berlin_onsite_bootcamp_2025_07"
         except Exception as e:
             print(f"❌ Test failed: {e}")
             results.append({
-                "test": f"4.{i}",
+                "test": f"5.{i}",
                 "query": case['query'],
                 "error": str(e),
                 "judge_score": 0,

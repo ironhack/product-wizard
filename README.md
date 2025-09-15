@@ -27,15 +27,20 @@ This repository contains three fundamental components:
 
 ```
 assistant_config/
-└── MASTER_PROMPT.md       # Current assistant prompt (production version - no versioning)
+├── MASTER_PROMPT.md           # Core assistant behavior and constraints (production)
+├── GENERATION_INSTRUCTIONS.md # Advanced pipeline generation features
+├── VALIDATION_INSTRUCTIONS.md # Sophisticated validation system guidelines
+└── RETRIEVAL_DEFAULT.md       # Automated retrieval system instructions
 
 knowledge_base/
-├── database/              # Course information in Markdown format (easier to maintain)
-├── database_txt/          # Course information in TXT format (loaded to OpenAI vector store)
+├── database/                  # Course information in Markdown format (easier to maintain)
+├── database_txt/              # Course information in TXT format (loaded to OpenAI vector store)
 └── [index.yaml now in root]
 
-index.yaml                 # Course structure configuration for third-party applications
+index.yaml                     # Course structure configuration for third-party applications
 ```
+
+**Configuration Architecture**: Streamlined from 7 files to 4 focused configuration files that reflect the automated Custom RAG Pipeline capabilities.
 
 **Note**: When you modify a Markdown file in `database/`, you must also update the corresponding TXT file in `database_txt/`.
 
@@ -54,8 +59,11 @@ runtime.txt               # Python version specification
 
 **Architecture**: The Custom RAG Pipeline combines:
 - **Responses API** for reliable document retrieval from vector store
-- **Chat Completions API** for controlled response generation
-- **Automatic validation** to ensure responses match retrieved documents
+- **Chat Completions API** for controlled response generation with conversation context
+- **Automatic validation** with confidence scoring and evidence-based verification
+- **Dynamic fallback generation** for missing information scenarios
+- **Variant-aware processing** for Remote vs Berlin program distinctions
+- **Evidence chunk extraction** for accurate source citations
 
 ### 3. 🧪 Development & Testing Tools
 
@@ -76,10 +84,13 @@ tools/                     # Utility scripts
 
 ## 🔄 Development Workflow
 
-### Prompt Management
-- **Current Version**: `assistant_config/MASTER_PROMPT.md` (production - the only version)
-- **Versioning**: Git handles all version control - no manual prompt versioning needed
-- **Process**: Edit `MASTER_PROMPT.md` directly, commit changes, and deploy
+### Configuration Management
+- **Core Prompt**: `assistant_config/MASTER_PROMPT.md` (streamlined behavior guidelines)
+- **Generation Features**: `assistant_config/GENERATION_INSTRUCTIONS.md` (advanced pipeline capabilities)
+- **Validation System**: `assistant_config/VALIDATION_INSTRUCTIONS.md` (confidence scoring and evidence verification)
+- **Retrieval System**: `assistant_config/RETRIEVAL_DEFAULT.md` (automated query enhancement)
+- **Versioning**: Git handles all version control - no manual configuration versioning needed
+- **Process**: Edit configuration files directly, commit changes, and deploy
 
 ### Knowledge Base Updates
 1. Edit Markdown files in `knowledge_base/database/`
@@ -202,10 +213,13 @@ All test results are saved to `tests/results/` with timestamps and detailed anal
 ### 🔬 Custom RAG Pipeline Architecture
 
 #### Multi-Step Process:
-1. **Document Retrieval**: Uses Responses API for reliable vector store access
-2. **Response Generation**: Uses Chat Completions API for controlled generation with conversation context
-3. **Automatic Validation**: Validates generated response against retrieved documents using GPT-4o
-4. **Decision Logic**: Determines final response based on validation confidence
+1. **Query Enhancement**: Automatic context-aware query processing with conversation history
+2. **Document Retrieval**: Uses Responses API for reliable vector store access with program grounding
+3. **Response Generation**: Uses Chat Completions API for controlled generation with variant detection
+4. **Evidence Extraction**: Automatically extracts evidence chunks and generates citations
+5. **Automatic Validation**: Validates generated response against retrieved documents using GPT-4o with confidence scoring
+6. **Dynamic Fallback**: Generates context-aware fallback messages when validation fails
+7. **Decision Logic**: Determines final response based on validation confidence and evidence quality
 
 #### Quality Assurance:
 - **Judge-Based Testing**: Every test includes GPT-4o evaluation with structured feedback
@@ -335,16 +349,20 @@ Our testing strategy uses **GPT-4o as an impartial judge** to evaluate pipeline 
 
 ### Key Files & Their Purposes
 - **`src/app_custom_rag.py`**: Production Custom RAG Pipeline application
-- **`assistant_config/MASTER_PROMPT.md`**: Current production prompt (Git versioned)
+- **`assistant_config/MASTER_PROMPT.md`**: Core assistant behavior and constraints
+- **`assistant_config/GENERATION_INSTRUCTIONS.md`**: Advanced generation features and variant handling
+- **`assistant_config/VALIDATION_INSTRUCTIONS.md`**: Sophisticated validation with confidence scoring
+- **`assistant_config/RETRIEVAL_DEFAULT.md`**: Automated retrieval system instructions
 - **`index.yaml`**: Course structure for third-party applications (root level)
 - **`knowledge_base/database/*.md`**: Source files (easier to maintain)
 - **`knowledge_base/database_txt/*.txt`**: Vector store files (what OpenAI loads)
 - **`tests/regression_test.py`**: Comprehensive test suite with judge evaluation
 
-### Simplified Architecture
-- **Single source of truth**: `MASTER_PROMPT.md` is the only prompt version (Git handles history)
-- **Production testing**: Tests execute actual `CustomRAGPipeline` from production code
-- **Automatic validation**: Pipeline validates each response against retrieved documents
+### Streamlined Architecture
+- **Focused Configuration**: 4 streamlined config files instead of 7 redundant ones
+- **Automated Pipeline**: Advanced features handle complexity automatically
+- **Production Testing**: Tests execute actual `CustomRAGPipeline` from production code
+- **Evidence-Based Validation**: Pipeline validates each response with confidence scoring and evidence chunks
 
 ## 🔒 Security
 
@@ -370,5 +388,5 @@ For technical issues:
 
 ---
 
-*Last Updated: Custom RAG Pipeline Migration*
-*Status: Production Ready - Deployed with Custom RAG Pipeline + Automatic Validation*
+*Last Updated: Configuration Architecture Modernization*
+*Status: Production Ready - Streamlined Configuration + Advanced Custom RAG Pipeline*
