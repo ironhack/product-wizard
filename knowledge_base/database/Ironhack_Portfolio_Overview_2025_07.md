@@ -11,34 +11,27 @@ Ironhack offers a comprehensive portfolio of technology education programs desig
 
 **Formats:**
 - **Full-Time**: 9 weeks (~40 hrs/week), Monday-Friday 9:00–18:00
-- **Part-Time**: 24 weeks (~15 hrs/week), Evenings + Saturdays  
-- **Berlin Onsite**: 15 weeks (extended format for Full-Time)
+- **Part-Time**: 24 weeks (~15 hrs/week), Evenings + Saturdays
 
 **Available Programs:**
 
 #### **Web Development** (WDFT/WDPT)
-- **Duration**: 360-600 hours + 40-50 hours prework
+- **Duration**: 600 hours + 50 hours prework
 - **Technologies**: JavaScript, React, Node.js, Express, MongoDB, TypeScript, Next.js, PostgreSQL
 - **Capstone**: Full-stack web application
-- **Variants**: 
-  - Remote: 360 hours, core technologies
-  - Berlin Onsite: 600 hours, includes TypeScript, Next.js, PostgreSQL
+- **Format**: Remote delivery with comprehensive full-stack curriculum
 
 #### **UX/UI Design** (UXFT/UXPT)
-- **Duration**: 360-600 hours + 40-50 hours prework
+- **Duration**: 600 hours + 50 hours prework
 - **Technologies**: Figma, Adobe Creative Suite, Sketch, Principle, AR/VR, gamification
 - **Capstone**: Complete design system and user research project
-- **Variants**:
-  - Remote: 360 hours, core design tools
-  - Berlin Onsite: 600 hours, includes AR/VR, gamification
+- **Format**: Remote delivery with comprehensive design curriculum including AR/VR
 
 #### **Data Analytics** (DAFT/DAPT)
-- **Duration**: 360-600 hours + 40-50 hours prework
+- **Duration**: 600 hours + 50 hours prework
 - **Technologies**: Python, SQL, Tableau, Power BI, advanced ML, statistics
 - **Capstone**: Data-driven business insights project
-- **Variants**:
-  - Remote: 360 hours, core analytics
-  - Berlin Onsite: 600 hours, includes advanced ML, statistics
+- **Format**: Remote delivery with comprehensive analytics curriculum including advanced ML
 
 #### **Data Science & Machine Learning** (MLFT/MLPT)
 - **Duration**: 360-600 hours + 40-50 hours prework
@@ -72,7 +65,7 @@ Ironhack offers a comprehensive portfolio of technology education programs desig
 - **Duration**: 1,582 hours over 12 months
 - **Format**: Part-time, evenings and weekends
 - **Technologies**: Advanced Python, ML, AI, data engineering
-- **Location**: Germany (Berlin/Munich)
+- **Location**: Germany (Munich)
 
 ### 3. Specialized AI Courses
 **Focused programs for specific AI applications**
@@ -88,7 +81,7 @@ Ironhack offers a comprehensive portfolio of technology education programs desig
 
 | Program Type | Duration | Format | Target Audience |
 |--------------|----------|--------|-----------------|
-| **Bootcamps** | 9-15 weeks | Full-Time/Part-Time/Onsite | Career changers |
+| **Bootcamps** | 9 weeks | Full-Time/Part-Time Remote | Career changers |
 | **1-Year Program** | 12 months | Part-Time | Deep specialization |
 | **AI Productivity** | 61-83 hours | Self-paced | Working professionals |
 

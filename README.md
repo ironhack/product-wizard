@@ -14,7 +14,7 @@ Product Wizard is a comprehensive system built with a **Custom RAG (Retrieval-Au
 - ✅ **Zero Fabrication Policy** - Only provides documented information with automatic validation
 - ✅ **Perfect Citations** - References specific curriculum documents
 - ✅ **Sales-Ready Responses** - Conversational tone for phone calls
-- ✅ **Variant Awareness** - Distinguishes Remote vs Berlin programs
+- ✅ **Program Clarity** - Clear information about remote-only programs
 - ✅ **Multi-Course Support** - All Ironhack bootcamps and programs
 - ✅ **Response Validation** - Each response is validated against retrieved documents
 - ✅ **Judge-Based Testing** - Automated quality evaluation using GPT-4o as impartial judge
@@ -62,7 +62,7 @@ runtime.txt               # Python version specification
 - **Chat Completions API** for controlled response generation with conversation context
 - **Automatic validation** with confidence scoring and evidence-based verification
 - **Dynamic fallback generation** for missing information scenarios
-- **Variant-aware processing** for Remote vs Berlin program distinctions
+- **Clear program delivery** format with remote-only options
 - **Evidence chunk extraction** for accurate source citations
 
 ### 3. 🧪 Development & Testing Tools
@@ -205,7 +205,7 @@ All test results are saved to `tests/results/` with timestamps and detailed anal
 - ✅ **Automatic Response Validation** - Each response validated against source documents
 - ✅ **Judge-Based Testing** - Objective quality evaluation using GPT-4o
 - ✅ **Perfect citations** with full document names
-- ✅ **Variant-aware responses** (Remote vs Berlin)
+- ✅ **Clear delivery format** (Remote programs)
 - ✅ **Sales-appropriate conversational tone**
 - ✅ **Threaded conversation support** for Slack integration
 - ✅ **Zero fabrication guarantee** - Pipeline prevents hallucination
@@ -234,12 +234,12 @@ All test results are saved to `tests/results/` with timestamps and detailed anal
 **Question**: "What technologies are covered in the Web Development bootcamp?"
 
 **Response**: 
-> According to the Web Development bootcamp curriculum, the program covers a comprehensive range of technologies. For the Berlin onsite bootcamp, the tools used include HTML & CSS, JavaScript (ES6+), TypeScript, Node.js, Express.js, Next.js, React, MongoDB... 【Web_Dev_Berlin_onsite_bootcamp_2025_07.txt】
+> According to the Web Development bootcamp curriculum, the program covers a comprehensive range of technologies. The remote bootcamp includes HTML & CSS, JavaScript (ES6+), TypeScript, Node.js, Express.js, Next.js, React, MongoDB, PostgreSQL... 【Web_Dev_Remote_bootcamp_2025_07.txt】
 
 **Benefits**:
 - Clear source attribution
 - Specific curriculum reference
-- Variant distinction (Berlin vs Remote)
+- Clear delivery format (Remote)
 - Professional but conversational tone
 
 ## 🔧 Configuration

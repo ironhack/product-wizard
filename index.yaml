@@ -22,22 +22,12 @@ course:
                 - type: html
                   file: "database/UXUI_Remote_bootcamp_2025_07.md"
                   mode: read
-            - name: "Detailed Syllabus - Berlin"
-              component:
-                - type: html
-                  file: "database/UXUI_Berlin_onsite_bootcamp_2025_07.md"
-                  mode: read
         - name: "Data Analytics Bootcamp"
           vertical:
             - name: "Detailed Syllabus - Remote"
               component:
                 - type: html
                   file: "database/Data_Analytics_Remote_bootcamp_2025_07.md"
-                  mode: read
-            - name: "Detailed Syllabus - Berlin"
-              component:
-                - type: html
-                  file: "database/Data_Analytics_Berlin_onsite_bootcamp_2025_07.md"
                   mode: read
         - name: "Data Science and Machine Learning Bootcamp"
           vertical:
@@ -52,11 +42,6 @@ course:
               component:
                 - type: html
                   file: "database/Web_Dev_Remote_bootcamp_2025_07.md"
-                  mode: read
-            - name: "Detailed Syllabus - Berlin"
-              component:
-                - type: html
-                  file: "database/Web_Dev_Berlin_onsite_bootcamp_2025_07.md"
                   mode: read
         - name: "Marketing Bootcamp"
           vertical:

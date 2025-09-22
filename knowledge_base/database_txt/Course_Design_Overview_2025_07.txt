@@ -4,7 +4,7 @@
 
 ### 1. Bootcamps
 
-**Definition:** Intensive, skills-focused programs available in Full-Time (~9 weeks) and Part-Time (~24 weeks) formats. Some have a dedicated Berlin version (Full-Time Berlin: 15 weeks).
+**Definition:** Intensive, skills-focused programs available in Full-Time (~9 weeks) and Part-Time (~24 weeks) formats, delivered remotely.
 
 **Naming:**
 - In Spain, Part-Time bootcamps are called "Masters"
@@ -23,9 +23,8 @@
 **Full-Time Bootcamps:**
 - Duration: 9 weeks (~40 hrs/week)
 - Schedule: Monday-Friday 9:00–18:00
-- Format: Immersive, fast-paced
+- Format: Immersive, fast-paced remote learning
 - Best for: Career changers
-- Berlin Onsite: 15 weeks (extended format)
 
 **Part-Time Bootcamps:**
 - Duration: 24 weeks (~15 hrs/week)
@@ -34,20 +33,18 @@
 - Best for: Those with work or other commitments
 
 **Common Elements:**
-- Prework: Both require 40–50 hours before start
-- Total learning hours: 360–400 regardless of format
+- Prework: Both require 50 hours before start
+- Total learning hours: 600 hours for comprehensive curriculum
 - Same curriculum, career services, and outcomes in both formats
 
-### Course Design Document Examples (Berlin/Remote):
+### Course Design Document Examples (Remote):
 
 **UX/UI Design:**
-- Berlin: 600 hrs + 50 hrs prework. Real client final project, career prep
-- Remote: 360 hrs + 40 hrs prework. Team projects, business analysis, design systems
+- Remote: 600 hrs + 50 hrs prework. Real client final project, comprehensive design systems, AR/VR, career prep
 - Technologies: See official UX/UI syllabus for detailed curriculum and tools
 
 **Web Development:**
-- Berlin: 600 hrs + 50 hrs prework. Full-stack development with capstone project
-- Remote: 360 hrs + 40 hrs prework. Full-stack development with capstone project
+- Remote: 600 hrs + 50 hrs prework. Full-stack development with TypeScript, Next.js, PostgreSQL and capstone project
 - Technologies: See official Web Development syllabus for detailed curriculum and programming languages
 
 **Data Science & Machine Learning:**
@@ -85,7 +82,7 @@
 
 1. **Format Equivalency:** Both Full-Time and Part-Time bootcamps have the same curriculum, outcomes, and support; the difference is pace and schedule.
 
-2. **Berlin Specificity:** The Berlin onsite versions are longer (15 weeks) for Full-Time bootcamps.
+2. **Comprehensive Curriculum:** All bootcamps now feature the extended 600-hour curriculum with advanced technologies.
 
 3. **1-Year Program Uniqueness:** Only remote, only for Germany, and far more in-depth than bootcamps.
 

@@ -1,1 +1,1 @@
-web: gunicorn src.app_custom_rag:flask_app
+web: gunicorn src.app_langgraph_rag:flask_app

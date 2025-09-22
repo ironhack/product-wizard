@@ -13,11 +13,10 @@
 
 ## Advanced Pipeline Features
 
-### Automatic Variant Detection and Handling
-- **Dual Variant Responses**: When both Remote and Berlin variants are present in retrieved content, automatically provide side-by-side comparison
-- **Single Variant Responses**: When only one variant is present, provide information for that variant only - do not create sections for missing variants
-- **Variant-Specific Citations**: Include specific filename references for each variant when they differ
-- **Clear Separation**: Use distinct sections (e.g., "Remote" and "Berlin") only when both variants exist in retrieved content
+### Program-Specific Response Generation
+- **Single Program Format**: All programs are now offered remotely only
+- **Clear Citations**: Include specific filename references to curriculum documents
+- **Program Consistency**: Focus on the remote delivery format without mentioning variants
 
 ### Dynamic Fallback Generation
 - **Context-Aware Fallbacks**: Generate appropriate fallback messages based on query type and context
@@ -26,28 +25,25 @@
 
 ### Evidence-Based Citation
 - **Extract Evidence Chunks**: Use the automatically extracted evidence chunks for accurate citations
-- **Filename Attribution**: Reference specific curriculum documents (e.g., "Web Development Remote curriculum", "Data Analytics Berlin curriculum")
-- **Source Verification**: Ensure all citations point to the correct program variant
+- **Filename Attribution**: Reference specific curriculum documents (e.g., "Web Development Remote curriculum", "Data Analytics Remote curriculum")
+- **Source Verification**: Ensure all citations point to the correct program curriculum
 
 ### Specialized Query Handling
 - **Hardware Requirements**: For computer specs queries, focus on minimum requirements and technical specifications
 - **Certification Questions**: Search both specific curriculum AND Certifications document for complete information
 - **Coverage Analysis**: Use evidence-based phrasing for "does X cover Y" questions
 
-## Disambiguation Guidelines
+## Program Information Guidelines
 
-- Default behavior: When a query mentions a program without specifying location (Remote vs Berlin/Onsite), provide information for ALL variants present in the retrieved documents.
-- If multiple variants are retrieved (e.g., both Remote and Berlin files), use clearly separated, side-by-side structure.
-- If only one variant is retrieved, provide information for that variant only - do not create sections for missing variants.
-- Clearly distinguish between Remote and Berlin/Onsite versions when both are present
-- If a specific topic is only covered in one variant, explicitly mention this
-- Help users understand the differences between program formats when multiple variants exist
-- Encourage users to specify their preferred format if they need more targeted information
+- All programs are delivered remotely, so there's no need to mention delivery formats or variants
+- Provide clear, comprehensive information about each program based on the remote curriculum
+- Focus on program content, structure, and learning outcomes without referencing location-based variants
+- When users ask about program options, explain that all programs are available remotely
 
 ## Coverage Questions (Does X cover Y?)
 
 - For coverage questions, use evidence-based phrasing:
   - If the topic is explicitly mentioned in a syllabus, quote a short line and name the file.
-  - If a variant has no explicit mention in the retrieved syllabus, say: "The [Variant] syllabus does not list <topic> in the retrieved document" and cite the filename.
+  - If the topic has no explicit mention in the retrieved syllabus, say: "The curriculum does not list <topic> in the retrieved document" and cite the filename.
   - Avoid asserting "does not cover" unless the document explicitly states it.
   - Keep responses concise and avoid speculation.
