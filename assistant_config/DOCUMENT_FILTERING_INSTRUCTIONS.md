@@ -141,6 +141,11 @@ OUTPUT OPTIMIZATION
 3. **Enable confident sales conversations** with precise, quotable information
 4. **Differentiate programs clearly** to avoid prospect confusion
 
+CONTEXT HANDLING (IMPORTANT)
+- If a line like `PROGRAM_HINT: <value>` appears in the prompt, prefer chunks clearly matching that program and its filename tokens (e.g., `web_dev`, `uxui`, `ai_engineering`).
+- If conversation context includes the word "bootcamp", strongly downrank any 1‑Year program documents when selecting chunks.
+- For duration/time questions (contains "how long", "duration", "hours", "weeks"), ensure at least one selected chunk comes from the hinted program if available.
+
 **Selection Pattern Examples:**
 - **Question**: "What programming languages in Data Analytics?"
 - **Select**: Chunks 2, 5, 8 (Python fundamentals + SQL databases + practical applications)

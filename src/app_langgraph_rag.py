@@ -377,6 +377,14 @@ class RAGState(TypedDict):
     processing_time: float
     retrieved_docs_count: int
     retry_expansion: bool
+    # Persisted program/source hint across turns
+    last_primary_source: str
+    # Slack/runtime flags
+    slack_mode: bool
+    clarification_needed: bool
+    clarification_question: str
+    # Program inference removed
+ # program inference removed
     
     # LangGraph managed conversation history (this replaces all manual context management!)
     messages: Annotated[Sequence[BaseMessage], add]
@@ -406,8 +414,10 @@ def retrieve_documents(state: RAGState) -> RAGState:
                         break  # Only use the most recent user message for context
             
             if context_parts:
-                # Enhance the query with conversation context
-                enhanced_query = f"{query}\n\nConversation context: {' '.join(context_parts)}"
+                # Enhance the query with conversation context and persisted source hint if present
+                source_hint = normalize_filename(state.get('last_primary_source', '')).strip()
+                hint_line = f"\nPROGRAM_HINT: {source_hint}" if source_hint else ""
+                enhanced_query = f"{query}\n\nConversation context: {' '.join(context_parts)}{hint_line}"
                 logger.info(f"Enhanced query with context: {enhanced_query[:100]}...")
                 query = enhanced_query
         
@@ -475,7 +485,8 @@ def retrieve_documents(state: RAGState) -> RAGState:
             if entry is None or score > entry["score"]:
                 by_file[fname] = {"text": text, "score": score, "file_id": fid}
         
-        # Select top 6 files (increased for AI filtering)
+        # Select top files, guided by AI program inference keywords when present
+        # Sort strictly by vector score (no re-ranking) to avoid bias/regressions
         sorted_files = sorted(by_file.items(), key=lambda kv: kv[1]["score"], reverse=True)
         top_files = sorted_files[:6]
         
@@ -543,6 +554,17 @@ def filter_documents_for_sales(state: RAGState) -> RAGState:
     logger.info("Using AI to select most relevant documents for sales")
     
     query = state["query"]
+    # Build a light conversation context hint (last user message before current)
+    context_hint = ""
+    try:
+        msgs = state.get("messages", []) or []
+        # Find the most recent HumanMessage before the current query
+        for m in reversed(msgs[:-1] if len(msgs) > 0 else msgs):
+            if isinstance(m, HumanMessage) and getattr(m, 'content', None):
+                context_hint = m.content.strip()
+                break
+    except Exception:
+        context_hint = ""
     original_sources = state["sources"]
     original_docs = state["retrieved_docs"]
     original_file_ids = state["selected_file_ids"]
@@ -577,6 +599,8 @@ def filter_documents_for_sales(state: RAGState) -> RAGState:
         analysis_prompt = f"""{DOCUMENT_FILTERING_INSTRUCTIONS}
 
 USER QUESTION: {query}
+
+CONVERSATION CONTEXT HINT (most recent user turn): {context_hint}
 
 AVAILABLE CONTENT CHUNKS:
 {chunk_descriptions}
@@ -629,13 +653,31 @@ Return ONLY the numbers of ALL relevant chunks separated by commas (e.g., "1, 3,
             filtered_file_ids = [original_file_ids[i] for i in fallback_indices]
             filtered_chunks = [original_chunks[i] for i in fallback_indices]
         
+        # Heuristic: detect ambiguity for duration-type follow-ups when context suggested a program
+        clarification_needed = False
+        clarification_question = ""
+        try:
+            ql = (query or "").lower()
+            ctxl = (context_hint or "").lower()
+            is_duration = any(k in ql for k in ["how long", "duration", "hours", "weeks"])
+            ctx_web = any(k in ctxl for k in ["web dev", "web development"])
+            has_web = any("web_dev" in (s or "").lower() for s in filtered_sources)
+            has_1y = any("1_year" in (s or "").lower() or "data_science_and_ai_1_year_program" in (s or "").lower() for s in filtered_sources)
+            if is_duration and ctx_web and not has_web and has_1y:
+                clarification_needed = True
+                clarification_question = "Quick check: do you mean the Web Development bootcamp or the 1‑Year program?"
+        except Exception:
+            pass
+
         return {
             **state,
             "sources": filtered_sources,
             "retrieved_docs": filtered_docs,
             "selected_file_ids": filtered_file_ids,
             "evidence_chunks": filtered_chunks,
-            "retrieved_docs_count": len(filtered_docs)
+            "retrieved_docs_count": len(filtered_docs),
+            "clarification_needed": clarification_needed,
+            "clarification_question": clarification_question
         }
         
     except Exception as e:
@@ -1141,10 +1183,17 @@ def finalize_response(state: RAGState) -> RAGState:
         # Create a new messages list with the assistant's response added
         current_messages = list(state.get("messages", []))
         current_messages.append(AIMessage(content=state["response"]))
-        
+        # Persist a primary source hint for next turn context steering
+        primary = ""
+        used = state.get("actual_sources_used") or []
+        if used:
+            primary = used[0]
+        elif state.get("sources"):
+            primary = state.get("sources")[0]
         return {
             **state,
-            "messages": current_messages
+            "messages": current_messages,
+            "last_primary_source": primary or state.get("last_primary_source", "")
         }
     
     return state
@@ -1329,6 +1378,10 @@ def should_apply_fallback(state: RAGState) -> str:
     
     logger.info(f"Fallback decision: confidence={confidence}, contains_only_retrieved={contains_only_retrieved}, threshold={confidence_threshold}")
     
+    # Clarification interrupt: if ambiguity detected and we're in Slack, ask a quick question instead of finalizing
+    if state.get("slack_mode") and state.get("clarification_needed") and state.get("clarification_question"):
+        logger.info("Clarification needed; routing to apply_fallback as placeholder (Slack will ask question)")
+        return "apply_fallback"
     if (confidence < confidence_threshold or not contains_only_retrieved):
         logger.info(f"APPLYING FALLBACK: confidence {confidence} < {confidence_threshold} OR contains_only_retrieved={contains_only_retrieved}")
         return "apply_fallback"
@@ -1375,6 +1428,7 @@ def create_rag_graph():
     workflow = StateGraph(RAGState)
     
     # Add main workflow nodes
+    # program inference removed
     workflow.add_node("retrieve_documents", retrieve_documents)
     workflow.add_node("filter_documents_for_sales", filter_documents_for_sales)
     workflow.add_node("classify_coverage", classify_coverage)
@@ -1395,6 +1449,7 @@ def create_rag_graph():
     workflow.add_node("retry_with_delay", retry_with_delay)
     
     # Define the main flow
+    # Temporarily disable program inference as entry to avoid context regressions
     workflow.set_entry_point("retrieve_documents")
     workflow.add_edge("retrieve_documents", "filter_documents_for_sales")
     workflow.add_edge("filter_documents_for_sales", "classify_coverage")
@@ -1509,11 +1564,12 @@ class SlackUpdateManager:
         self.last_update = 0.0
         # Step states: todo | in_progress | done
         self.steps = {
-            "Retrieval": "in_progress",
-            "Filtering": "todo",
-            "Coverage check": "todo",
-            "Generation": "todo",
-            "Validation": "todo",
+            "Finding the right docs": "in_progress",            # retrieve_documents
+            "Picking the good parts": "todo",            # filter_documents_for_sales
+            "Checking coverage": "todo",                 # classify_coverage / verify_coverage_with_ai
+            "Drafting the answer": "todo",               # generate_* nodes
+            "Quick safety check": "todo",                # validate_response
+            "Digging deeper": "todo",                    # expand_document_chunks (optional)
         }
         self.draft_text = None
 
@@ -1530,7 +1586,7 @@ class SlackUpdateManager:
             checklist_lines.append(f"{self._status_emoji(st)} {name}")
         checklist = "\n".join(checklist_lines)
 
-        header = "✨ On it! I’ll keep you posted step-by-step. 🎯"
+        header = "✨ On it! I'll keep you posted step-by-step. 🎯"
         body = header + "\n\n" + checklist
         if self.draft_text:
             body += "\n\n*Draft (will improve as we go):*\n" + self.draft_text
@@ -1588,7 +1644,7 @@ class SlackUpdateManager:
             for k in self.steps.keys():
                 if self.steps[k] != "done":
                     self.steps[k] = "todo"
-            text = convert_markdown_to_slack(f"😅 Little hiccup on my end — {message} \nI’ll keep things simple and share what I can. 🛟")
+            text = convert_markdown_to_slack(f"😅 Little hiccup on my end — {message} \nI'll keep things simple and share what I can. 🛟")
             if self.client:
                 if self.ts:
                     self.client.chat_update(channel=self.channel, ts=self.ts, text=text)
@@ -1658,6 +1714,7 @@ def process_message(event, say):
             "conversation_id": conversation_id,
             "messages": [HumanMessage(content=user_message)],  # Current message only
             "processing_time": 0.0,
+            "slack_mode": True,
             # Initialize error handling fields
             "error_count": 0,
             "last_error": {},
@@ -1689,21 +1746,23 @@ def process_message(event, say):
                         continue
                     n = str(node_name)
                     if "retrieve_documents" in n:
-                        manager.update_step("Retrieval", "done")  # 🔎
-                        manager.update_step("Filtering", "in_progress")  # 🧹
+                        manager.update_step("Finding the right docs", "done")  # 🔎
+                        manager.update_step("Picking the good parts", "in_progress")  # 🧹
                     elif "filter_documents_for_sales" in n:
-                        manager.update_step("Filtering", "done")
-                        manager.update_step("Coverage check", "in_progress")  # 🧭
+                        manager.update_step("Picking the good parts", "done")
+                        manager.update_step("Checking coverage", "in_progress")  # 🔎
                     elif "classify_coverage" in n or "verify_coverage_with_ai" in n:
-                        manager.update_step("Coverage check", "done")
-                        manager.update_step("Generation", "in_progress")  # ✍️
+                        manager.update_step("Checking coverage", "done")
+                        manager.update_step("Drafting the answer", "in_progress")  # ✍️
                     elif ("generate_response" in n or 
                           "generate_negative_coverage_response" in n or 
                           "generate_fun_fallback" in n):
-                        manager.update_step("Generation", "done")
-                        manager.update_step("Validation", "in_progress")  # 🔎
+                        manager.update_step("Drafting the answer", "done")
+                        manager.update_step("Quick safety check", "in_progress")  # 🛡️
                     elif "validate_response" in n:
-                        manager.update_step("Validation", "done")  # ✅
+                        manager.update_step("Quick safety check", "done")  # ✅
+                    elif "expand_document_chunks" in n:
+                        manager.update_step("Digging deeper", "in_progress")  # 🪜
 
             # Use streamed final state if available
             if streamed_result is not None:
@@ -1717,6 +1776,14 @@ def process_message(event, say):
         # Calculate processing time
         processing_time = time.time() - start_time
         
+        # Clarification path: if flagged, ask a clarifying question and exit turn
+        if result.get("clarification_needed") and result.get("clarification_question"):
+            try:
+                say(convert_markdown_to_slack(f"🤔 {result['clarification_question']}"), thread_ts=thread_ts)
+                logger.info("Clarification question sent; awaiting user reply")
+                return
+            except Exception as e:
+                logger.warning(f"Failed to send clarification question: {e}")
         assistant_message = result["response"]
         
         logger.info("Enhanced LangGraph RAG Results:")
