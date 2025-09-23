@@ -16,6 +16,7 @@ from operator import add
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
 from flask import Flask, request
+from collections import deque
 
 import openai
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
@@ -25,6 +26,27 @@ from langgraph.checkpoint.memory import MemorySaver
 # ---------------- Logging ----------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+# ---------------- Slack Event De-duplication ----------------
+# In-memory ring buffer of recently seen Slack event_ids to avoid double-processing.
+# Heroku or multi-request retries can deliver the same event twice.
+SEEN_EVENT_IDS: deque[str] = deque(maxlen=512)
+
+def _already_processed(event: Dict) -> bool:
+    try:
+        event_id = event.get('event_id') or request.headers.get('X-Slack-Retry-Num')
+        # Slack Bolt for Python passes raw event without event_id sometimes in handler; 
+        # the Flask adapter provides it via request headers `X-Slack-Request-Timestamp` and retry headers.
+        # Prefer `event_id` when present.
+        if not event_id:
+            # Build a synthetic key from channel+ts to reduce duplicates within short window
+            synthetic = f"{event.get('channel','')}:{event.get('ts','')}:{event.get('thread_ts','')}:{event.get('text','')[:32]}"
+            event_id = synthetic
+        if event_id in SEEN_EVENT_IDS:
+            return True
+        SEEN_EVENT_IDS.append(event_id)
+        return False
+    except Exception:
+        return False
 
 # ---------------- Environment Setup ----------------
 SLACK_BOT_TOKEN = os.environ.get("SLACK_BOT_TOKEN", "")
@@ -1735,6 +1757,7 @@ def process_message(event, say):
             stream_iter = getattr(rag_graph, "stream", None)
             if stream_iter is None:
                 raise RuntimeError("stream not available")
+            last_node_value = None
             for step in stream_iter(initial_state, config=config):
                 if not isinstance(step, dict):
                     continue
@@ -1744,7 +1767,12 @@ def process_message(event, say):
                     if node_name == "__end__":
                         streamed_result = node_value
                         continue
+                    # Track last seen node value in case __end__ is not emitted
+                    last_node_value = node_value
                     n = str(node_name)
+                    if n == "finalize_response":
+                        # Capture final state directly from finalize node
+                        streamed_result = node_value
                     if "retrieve_documents" in n:
                         manager.update_step("Finding the right docs", "done")  # 🔎
                         manager.update_step("Picking the good parts", "in_progress")  # 🧹
@@ -1764,10 +1792,13 @@ def process_message(event, say):
                     elif "expand_document_chunks" in n:
                         manager.update_step("Digging deeper", "in_progress")  # 🪜
 
-            # Use streamed final state if available
+            # Use streamed final state if available; otherwise use last streamed node
             if streamed_result is not None:
                 result = streamed_result
+            elif last_node_value is not None:
+                result = last_node_value
             else:
+                # As a very last resort, invoke once (but normally unreachable)
                 result = rag_graph.invoke(initial_state, config=config)
         except Exception as stream_err:
             logger.info(f"Stream not available or failed, falling back to invoke: {stream_err}")
@@ -1823,6 +1854,9 @@ if slack_app is not None:
         if _is_ignorable_slack_event(event):
             logger.info("Ignoring ignorable app_mention event (bot/edit)")
             return
+        if _already_processed(event):
+            logger.info("Duplicate app_mention suppressed")
+            return
         logger.info(f"App mention detected in channel {event.get('channel')}, thread_ts: {event.get('thread_ts')}")
         process_message(event, say)
 
@@ -1831,6 +1865,9 @@ if slack_app is not None:
         """Handle direct messages and thread replies where the bot was previously mentioned"""
         if _is_ignorable_slack_event(event):
             logger.info("Ignoring ignorable message event (bot/edit)")
+            return
+        if _already_processed(event):
+            logger.info("Duplicate message suppressed")
             return
         # Handle direct messages
         if event.get("channel_type") == "im":
