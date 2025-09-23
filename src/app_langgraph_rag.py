@@ -557,13 +557,54 @@ RETRIEVED CONTEXT:
         # Add current query
         messages.append({"role": "user", "content": state["query"]})
         
+        # Define structured response schema
+        response_schema = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "rag_response",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "answer": {"type": "string"},
+                        "found_answer_in_documents": {"type": "boolean"},
+                        "reason_if_not_found": {
+                            "type": "string",
+                            "enum": [
+                                "no_relevant_information",
+                                "insufficient_detail",
+                                "wrong_document_sections"
+                            ]
+                        }
+                    },
+                    "required": ["answer", "found_answer_in_documents"]
+                }
+            }
+        }
+        
         response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=messages,
-            temperature=0.3
+            temperature=0.3,
+            response_format=response_schema
         )
         
-        generated = response.choices[0].message.content
+        structured_response_raw = response.choices[0].message.content
+        
+        # Parse the structured JSON response
+        try:
+            structured_response = json.loads(structured_response_raw)
+            generated = structured_response.get("answer", "")
+            found_answer = structured_response.get("found_answer_in_documents", True)
+            reason_if_not_found = structured_response.get("reason_if_not_found", "")
+            
+            logger.info(f"Structured response - found_answer: {found_answer}, reason: {reason_if_not_found}")
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse structured response: {e}")
+            # Fallback to treating as plain text
+            generated = structured_response_raw
+            found_answer = True
+            reason_if_not_found = ""
         
         # Smart detection of which sources were actually referenced
         actual_sources_used = []
@@ -598,6 +639,9 @@ RETRIEVED CONTEXT:
         return {
             **state,
             "response": generated,
+            "structured_response": structured_response_raw,
+            "found_answer_in_documents": found_answer,
+            "reason_if_not_found": reason_if_not_found,
             "actual_sources_used": actual_sources_used
         }
         
@@ -809,25 +853,77 @@ def expand_document_chunks(state: RAGState) -> RAGState:
         # Return original state if expansion fails
         return state
 
-def apply_fallback(state: RAGState) -> RAGState:
-    """Apply safe fallback if validation fails"""
-    logger.info("Applying fallback due to validation failure")
+def generate_fun_fallback(state: RAGState) -> RAGState:
+    """Generate a fun, personality-driven fallback response"""
+    logger.info("Generating fun fallback response")
     
-    fallback_msg = FALLBACK_MESSAGE
+    query = state.get("query", "")
+    found_answer = state.get("found_answer_in_documents", True)
+    reason_if_not_found = state.get("reason_if_not_found", "")
+    
+    # Categorize the query to determine which team to suggest
+    query_lower = query.lower()
+    
+    # Content/curriculum/certification queries → Education team
+    edu_keywords = ["curriculum", "course", "content", "syllabus", "certification", "taught", "covered", "learn", "study", "technologies", "tools", "languages", "duration", "hours", "weeks"]
+    
+    # Operations/logistics/process queries → Program team  
+    program_keywords = ["schedule", "start", "when", "application", "apply", "price", "cost", "payment", "location", "format", "requirements", "prerequisites", "job", "placement", "career"]
+    
+    is_edu_query = any(keyword in query_lower for keyword in edu_keywords)
+    is_program_query = any(keyword in query_lower for keyword in program_keywords)
+    
+    # Choose team and generate fun response
+    if is_edu_query:
+        team = "Education team"
+        team_context = "They know all the curriculum secrets!"
+    elif is_program_query:
+        team = "Program team (the ones actually running these courses)"
+        team_context = "They handle all the logistics and can give you the real scoop!"
+    else:
+        team = "Education team"
+        team_context = "When in doubt, they're your best bet!"
+    
+    # Generate fun responses based on reason
+    if not found_answer:
+        if reason_if_not_found == "insufficient_detail":
+            personality_intro = "🤔 I found some info but not enough to give you the full picture (don't want to hurt Rudy's feelings with incomplete answers!)"
+        elif reason_if_not_found == "no_relevant_information":
+            personality_intro = "🕵️ I searched high and low through our docs but came up empty-handed - better to admit defeat than start a fight with the Product team about missing documentation!"
+        elif reason_if_not_found == "wrong_document_sections":
+            personality_intro = "📚 I might be looking in the wrong sections of our docs (happens to the best of us!)"
+        else:
+            personality_intro = "🤷 I'm playing it safe here rather than risk giving you dodgy information"
+    else:
+        # This shouldn't happen but let's handle it gracefully
+        personality_intro = "🛡️ I'm being extra cautious with this one"
+    
+    fun_response = f"""{personality_intro}
+
+For the most accurate info about your question, I'd recommend reaching out to our **{team}** on Slack. {team_context}
+
+They'll have the detailed answers you're looking for and won't give me grief about sending you their way! 😄"""
     
     fallback_validation = {
         "contains_only_retrieved_info": True,
         "unsupported_claims": [],
         "confidence": 1.0,
-        "explanation": "Used safe fallback due to validation failure."
+        "explanation": "Used fun fallback response with appropriate team routing."
     }
     
     return {
         **state,
-        "response": fallback_msg,
+        "response": fun_response,
         "validation_result": fallback_validation,
         "confidence": 1.0
     }
+
+def apply_fallback(state: RAGState) -> RAGState:
+    """Apply safe fallback if validation fails"""
+    logger.info("Applying fallback due to validation failure")
+    
+    # Use the fun fallback generator
+    return generate_fun_fallback(state)
 
 def finalize_response(state: RAGState) -> RAGState:
     """Add assistant response to conversation history and finalize state"""
@@ -953,26 +1049,32 @@ def is_fallback_response(response: str) -> bool:
     return False
 
 def should_expand_chunks(state: RAGState) -> str:
-    """Determine if we should expand chunks and retry generation"""
+    """Determine if we should expand chunks and retry generation using structured response data"""
     response = state.get("response", "")
     retry_expansion = state.get("retry_expansion", False)
     sources = state.get("sources", [])
+    found_answer = state.get("found_answer_in_documents", True)
+    reason_if_not_found = state.get("reason_if_not_found", "")
     
     logger.info(f"Checking for chunk expansion: response_length={len(response)}, has_sources={bool(sources)}, already_tried={retry_expansion}")
-    logger.info(f"Response preview: {response[:100]}...")
-    
-    is_fallback = is_fallback_response(response)
-    logger.info(f"Is fallback response: {is_fallback}")
+    logger.info(f"Raw state keys: {list(state.keys())}")
+    logger.info(f"found_answer_in_documents in state: {state.get('found_answer_in_documents', 'NOT FOUND')}")
+    logger.info(f"Structured response analysis: found_answer={found_answer}, reason={reason_if_not_found}")
     
     # Only expand if:
-    # 1. We got a fallback response
-    # 2. We have source documents
+    # 1. Model explicitly says it didn't find the answer in documents
+    # 2. We have source documents to expand from
     # 3. We haven't already tried expansion (prevent infinite loop)
-    if (is_fallback and sources and not retry_expansion):
-        logger.info("Detected fallback response with available sources - expanding chunks for retry")
+    if (not found_answer and sources and not retry_expansion):
+        logger.info(f"Model couldn't find answer ({reason_if_not_found}) with available sources - expanding chunks for retry")
         return "expand_document_chunks"
     
-    logger.info("No expansion needed - proceeding to validation")
+    # If we tried expansion and still no answer, use fun fallback
+    if (not found_answer and retry_expansion):
+        logger.info(f"Expansion failed to find answer ({reason_if_not_found}) - using fun fallback")
+        return "generate_fun_fallback"
+    
+    logger.info("Model found answer or no expansion needed - proceeding to validation")
     return "validate_response"
 
 def should_apply_fallback(state: RAGState) -> str:
@@ -1035,6 +1137,7 @@ def create_rag_graph():
     workflow.add_node("filter_documents_for_sales", filter_documents_for_sales)
     workflow.add_node("generate_response", generate_response)
     workflow.add_node("expand_document_chunks", expand_document_chunks)
+    workflow.add_node("generate_fun_fallback", generate_fun_fallback)
     workflow.add_node("validate_response", validate_response)
     workflow.add_node("apply_fallback", apply_fallback)
     workflow.add_node("finalize_response", finalize_response)
@@ -1056,6 +1159,7 @@ def create_rag_graph():
         should_expand_chunks,
         {
             "expand_document_chunks": "expand_document_chunks",
+            "generate_fun_fallback": "generate_fun_fallback",
             "validate_response": "validate_response"
         }
     )
@@ -1078,6 +1182,7 @@ def create_rag_graph():
     
     # Standard completion
     workflow.add_edge("apply_fallback", "finalize_response")
+    workflow.add_edge("generate_fun_fallback", "finalize_response")
     workflow.add_edge("finalize_response", END)
     
     # Error recovery completion paths
