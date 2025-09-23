@@ -88,6 +88,14 @@ COVERAGE_CLASSIFICATION_PROMPT = load_config_file('COVERAGE_CLASSIFICATION.md')
 COVERAGE_VERIFICATION_PROMPT = load_config_file('COVERAGE_VERIFICATION.md')
 FUN_FALLBACK_GENERATION_SYSTEM_PROMPT = load_config_file('FUN_FALLBACK_GENERATION_SYSTEM.md')
 FUN_FALLBACK_GENERATION_USER_PROMPT = load_config_file('FUN_FALLBACK_GENERATION_USER.md')
+PROGRAM_HINTING_PROMPT = load_config_file('PROGRAM_HINTING.md')
+PROGRAM_SYNONYMS_TEXT = load_config_file('PROGRAM_SYNONYMS.json') or '{}'
+try:
+    PROGRAM_SYNONYMS = json.loads(PROGRAM_SYNONYMS_TEXT)
+except Exception:
+    PROGRAM_SYNONYMS = {}
+
+COMPARISON_INSTRUCTIONS = load_config_file('COMPARISON_INSTRUCTIONS.md')
 
 def _parse_patterns(text: str) -> List[str]:
     patterns = []
@@ -198,6 +206,9 @@ def _build_conversation_context(messages: Sequence[BaseMessage], max_tokens: int
     
     logger.info(f"Built conversation context: {len(conversation_messages)} messages, ~{total_chars} chars")
     return conversation_messages
+
+# ---------------- Program Hinting (AI-based) ----------------
+# Removed duplicate hint_program at end (moved earlier)
 
 def classify_error(error: Exception) -> tuple[str, str]:
     """
@@ -411,6 +422,11 @@ class RAGState(TypedDict):
     
     # LangGraph managed conversation history (this replaces all manual context management!)
     messages: Annotated[Sequence[BaseMessage], add]
+    program_hint: str
+    program_hint_confidence: float
+    program_hints: List[str]
+    program_hint_confidences: Dict[str, float]
+    comparison_mode: bool
 
 # ---------------- Graph Nodes ----------------
 
@@ -445,6 +461,15 @@ def retrieve_documents(state: RAGState) -> RAGState:
                 query = enhanced_query
         
         instructions = RETRIEVAL_INSTRUCTIONS or ""
+        
+        # Inject program hint(s) if confident or when multiple programs detected
+        hint = state.get("program_hint") or ""
+        hint_conf = float(state.get("program_hint_confidence") or 0.0)
+        hints = state.get("program_hints") or ([hint] if hint else [])
+        query_lower = (query or "").lower()
+        is_cert_query = ("certification" in query_lower)
+        if hints and ((hint_conf >= 0.8) or len(hints) > 1):
+            instructions = f"PROGRAM_HINT: {', '.join(hints)}\n\n" + instructions
         
         resp = openai_client.responses.create(
             model="gpt-4o-mini",
@@ -528,6 +553,103 @@ def retrieve_documents(state: RAGState) -> RAGState:
                 "text": entry["text"]
             })
         
+        # Debug: trace initial retrieval sources and file ids
+        try:
+            logger.info(f"Retrieved sources (pre-filter): {sources}")
+            logger.info(f"Retrieved selected_file_ids (pre-filter): {selected_file_ids}")
+        except Exception:
+            pass
+
+        # Enforce program hint on retrieved files if confident or comparison
+        if hints and ((hint_conf >= 0.8) or len(hints) > 1):
+            allowed = _allowed_filenames_for_hints(hints) if len(hints) > 1 else _allowed_filenames_for_hint(hint)
+            # Certification queries must also allow the Certifications doc
+            if is_cert_query:
+                allowed = set(allowed)
+                allowed.add("certifications_2025_07")
+            if allowed:
+                filtered_top = []
+                for fname, entry in top_files:
+                    base = fname.replace('.txt', '').replace('.md', '').lower()
+                    if base in allowed:
+                        filtered_top.append((fname, entry))
+                if filtered_top:
+                    top_files = filtered_top
+                    # Rebuild outputs from filtered list
+                    sources = []
+                    retrieved_content = []
+                    selected_file_ids = []
+                    evidence_chunks = []
+                    for fname, entry in top_files:
+                        sources.append(fname)
+                        retrieved_content.append(entry["text"])
+                        selected_file_ids.append(entry["file_id"])
+                        evidence_chunks.append({
+                            "file_id": entry["file_id"],
+                            "filename": fname,
+                            "text": entry["text"]
+                        })
+                else:
+                    logger.info("Program hint enforcement produced no matches; keeping original top files")
+
+                # If certification query and Certifications doc missing, try to fetch it explicitly
+                present_bases = set((s or '').replace('.txt', '').replace('.md', '').lower() for s in sources)
+                if is_cert_query and "certifications_2025_07" not in present_bases:
+                    try:
+                        forced_query = f"{query}\n\nFOCUS_FILES: Certifications_2025_07"
+                        resp2 = openai_client.responses.create(
+                            model="gpt-4o-mini",
+                            input=[{"role": "user", "content": forced_query}],
+                            instructions=instructions,
+                            tools=[{
+                                "type": "file_search",
+                                "vector_store_ids": [VECTOR_STORE_ID],
+                                "max_num_results": 20
+                            }],
+                            tool_choice={"type": "file_search"},
+                            include=["file_search_call.results"]
+                        )
+                        extra_hits = []
+                        for out in getattr(resp2, "output", []):
+                            res = getattr(out, "results", None)
+                            if res:
+                                extra_hits = res
+                                break
+                            fsc = getattr(out, "file_search_call", None)
+                            if fsc:
+                                if getattr(fsc, "results", None):
+                                    extra_hits = fsc.results
+                                    break
+                                if getattr(fsc, "search_results", None):
+                                    extra_hits = fsc.search_results
+                                    break
+                        for r in extra_hits:
+                            fname = getattr(r, "filename", None) or getattr(getattr(r, "document", None), "filename", None)
+                            fid = getattr(r, "file_id", None) or getattr(getattr(r, "document", None), "id", None)
+                            text = ""
+                            if hasattr(r, "text") and r.text:
+                                text = r.text
+                            else:
+                                parts = getattr(r, "content", []) or []
+                                if parts and hasattr(parts[0], "text"):
+                                    text = parts[0].text
+                            if not fname or not fid or not text:
+                                continue
+                            base = fname.replace('.txt', '').replace('.md', '').lower()
+                            if base == "certifications_2025_07":
+                                sources.append(fname)
+                                retrieved_content.append(text)
+                                selected_file_ids.append(fid)
+                                evidence_chunks.append({
+                                    "file_id": fid,
+                                    "filename": fname,
+                                    "text": text
+                                })
+                                logger.info("Explicitly added Certifications_2025_07 due to certification query")
+                                break
+                    except Exception as e:
+                        logger.info(f"Failed to fetch Certifications doc explicitly: {e}")
+        
         return {
             **state,
             "retrieved_docs": retrieved_content,
@@ -588,6 +710,8 @@ def filter_documents_for_sales(state: RAGState) -> RAGState:
                 break
     except Exception:
         context_hint = ""
+    query_lower = (query or "").lower()
+    is_cert_query = ("certification" in query_lower)
     original_sources = state["sources"]
     original_docs = state["retrieved_docs"]
     original_file_ids = state["selected_file_ids"]
@@ -619,11 +743,37 @@ def filter_documents_for_sales(state: RAGState) -> RAGState:
         
         chunk_descriptions = "\n".join(chunk_list)
         
+        hint = state.get("program_hint") or ""
+        hint_conf = float(state.get("program_hint_confidence") or 0.0)
+        hints = state.get("program_hints") or ([hint] if hint else [])
+        if hints and ((hint_conf >= 0.8) or len(hints) > 1):
+            allowed = _allowed_filenames_for_hints(hints) if len(hints) > 1 else _allowed_filenames_for_hint(hint)
+            if is_cert_query:
+                allowed = set(allowed)
+                allowed.add("certifications_2025_07")
+            if allowed:
+                keep_idxs = []
+                for i, src in enumerate(original_sources):
+                    base = src.replace('.txt', '').replace('.md', '').lower()
+                    if base in allowed:
+                        keep_idxs.append(i)
+                if keep_idxs:
+                    original_sources = [original_sources[i] for i in keep_idxs]
+                    original_docs = [original_docs[i] for i in keep_idxs]
+                    original_file_ids = [original_file_ids[i] for i in keep_idxs]
+                    original_chunks = [original_chunks[i] for i in keep_idxs]
+                    logger.info(f"Pre-filtered by program hints {hints}: kept {len(keep_idxs)} chunks")
+                else:
+                    logger.info(f"Program hints {hints} had no matching chunks to pre-filter")
+
         analysis_prompt = f"""{DOCUMENT_FILTERING_INSTRUCTIONS}
 
 USER QUESTION: {query}
 
 CONVERSATION CONTEXT HINT (most recent user turn): {context_hint}
+
+PROGRAM_HINT: {hints}
+COMPARISON_MODE: {bool(len(hints) > 1)}
 
 AVAILABLE CONTENT CHUNKS:
 {chunk_descriptions}
@@ -676,6 +826,13 @@ Return ONLY the numbers of ALL relevant chunks separated by commas (e.g., "1, 3,
             filtered_file_ids = [original_file_ids[i] for i in fallback_indices]
             filtered_chunks = [original_chunks[i] for i in fallback_indices]
         
+        # Debug: trace filtered sources and file ids
+        try:
+            logger.info(f"Filtered sources: {filtered_sources}")
+            logger.info(f"Filtered selected_file_ids: {filtered_file_ids}")
+        except Exception:
+            pass
+
         # Heuristic: detect ambiguity for duration-type follow-ups when context suggested a program
         clarification_needed = False
         clarification_question = ""
@@ -691,6 +848,26 @@ Return ONLY the numbers of ALL relevant chunks separated by commas (e.g., "1, 3,
                 clarification_question = "Quick check: do you mean the Web Development bootcamp or the 1‑Year program?"
         except Exception:
             pass
+
+        # Pre-filter by strong program hint to avoid cross-program mixing
+        hint = state.get("program_hint") or ""
+        hint_conf = float(state.get("program_hint_confidence") or 0.0)
+        if hint and hint_conf >= 0.8:
+            allowed = _allowed_filenames_for_hint(hint)
+            if allowed:
+                keep_idxs = []
+                for i, src in enumerate(original_sources):
+                    base = src.replace('.txt', '').replace('.md', '').lower()
+                    if base in allowed:
+                        keep_idxs.append(i)
+                if keep_idxs:
+                    original_sources = [original_sources[i] for i in keep_idxs]
+                    original_docs = [original_docs[i] for i in keep_idxs]
+                    original_file_ids = [original_file_ids[i] for i in keep_idxs]
+                    original_chunks = [original_chunks[i] for i in keep_idxs]
+                    logger.info(f"Pre-filtered by program hint {hint}: kept {len(keep_idxs)} chunks")
+                else:
+                    logger.info(f"Program hint {hint} had no matching chunks to pre-filter")
 
         return {
             **state,
@@ -736,14 +913,51 @@ def generate_response(state: RAGState) -> RAGState:
                 "actual_sources_used": []
             }
         
+        # Debug: trace sources going into generation
+        try:
+            logger.info(f"Generation using sources: {state.get('sources', [])}")
+        except Exception:
+            pass
+
+        # Enforce program hint at generation time: restrict context to allowed sources if available
+        hint = state.get("program_hint") or ""
+        hint_conf = float(state.get("program_hint_confidence") or 0.0)
+        hints = state.get("program_hints") or ([hint] if hint else [])
+        sources_for_gen = list(state.get("sources", []))
+        docs_for_gen = list(state.get("retrieved_docs", []))
+        ql = (state.get("query") or "").lower()
+        is_cert_query = ("certification" in ql)
+        if sources_for_gen and docs_for_gen:
+            if state.get("comparison_mode") and len(hints) >= 2:
+                allowed = _allowed_filenames_for_hints(hints)
+            else:
+                allowed = _allowed_filenames_for_hints(hints) if len(hints) > 1 else (_allowed_filenames_for_hint(hint) if hint_conf >= 0.8 else set())
+            if is_cert_query:
+                allowed = set(allowed)
+                allowed.add("certifications_2025_07")
+            if allowed:
+                kept_sources = []
+                kept_docs = []
+                for s, d in zip(sources_for_gen, docs_for_gen):
+                    base = (s or '').replace('.txt', '').replace('.md', '').lower()
+                    if base in allowed:
+                        kept_sources.append(s)
+                        kept_docs.append(d)
+                if kept_sources:
+                    sources_for_gen = kept_sources
+                    docs_for_gen = kept_docs
+                    logger.info(f"Generation restricted to {len(sources_for_gen)} sources by hints {hints}")
+        
         # Build instructions for generation
         instructions = f"""{MASTER_PROMPT}
 
 {GENERATION_INSTRUCTIONS}
 """
+        if state.get("comparison_mode") and COMPARISON_INSTRUCTIONS:
+            instructions = instructions + f"\n\n{COMPARISON_INSTRUCTIONS}\n"
         
         # Build context from retrieved documents
-        context = "\n\n".join(state["retrieved_docs"])
+        context = "\n\n".join(docs_for_gen)
         
         # Create system message with instructions and context
         system_message = f"""{instructions}
@@ -811,20 +1025,34 @@ RETRIEVED CONTEXT:
             found_answer = True
             reason_if_not_found = ""
         
-        # Smart detection of which sources were actually referenced
+        # Smart detection of which sources were actually referenced (use restricted list if applied)
         actual_sources_used = []
         response_lower = generated.lower()
         
-        for source in state["sources"]:
+        for source in sources_for_gen:
             # Check for explicit mentions
             if (source.lower() in response_lower or 
                 source.replace('.txt', '').lower() in response_lower or
                 normalize_filename(source).lower() in response_lower):
                 actual_sources_used.append(source)
         
-        # If no explicit references found, use the most relevant source (first one)
-        if not actual_sources_used and state["sources"]:
-            actual_sources_used = [state["sources"][0]]
+        # If no explicit references found, avoid cross-program fallback; prefer first allowed if any
+        if not actual_sources_used:
+            if hint and hint_conf >= 0.8:
+                allowed = _allowed_filenames_for_hint(hint)
+                for source in sources_for_gen:
+                    base = source.replace('.txt', '').replace('.md', '').lower()
+                    if base in allowed:
+                        actual_sources_used = [source]
+                        break
+            # If still none, and we had restricted sources_for_gen, we can pick its first
+            if not actual_sources_used and sources_for_gen:
+                actual_sources_used = [sources_for_gen[0]]
+        else:
+            try:
+                logger.info(f"Detected explicit sources used: {actual_sources_used}")
+            except Exception:
+                pass
         
         # Fallback if no content generated
         if not generated:
@@ -847,7 +1075,10 @@ RETRIEVED CONTEXT:
             "structured_response": structured_response_raw,
             "found_answer_in_documents": found_answer,
             "reason_if_not_found": reason_if_not_found,
-            "actual_sources_used": actual_sources_used
+            "actual_sources_used": actual_sources_used,
+            # Persist restricted sources/docs to downstream
+            "sources": sources_for_gen,
+            "retrieved_docs": docs_for_gen
         }
         
     except Exception as e:
@@ -1057,6 +1288,10 @@ def expand_document_chunks(state: RAGState) -> RAGState:
                     })
         
         logger.info(f"Expanded to {len(final_docs)} chunks from {len(set(final_sources))} documents")
+        try:
+            logger.info(f"Expanded sources (post-expansion): {final_sources}")
+        except Exception:
+            pass
         
         return {
             **state,
@@ -1473,7 +1708,8 @@ def create_rag_graph():
     
     # Define the main flow
     # Temporarily disable program inference as entry to avoid context regressions
-    workflow.set_entry_point("retrieve_documents")
+    workflow.set_entry_point("hint_program")
+    workflow.add_edge("hint_program", "retrieve_documents")
     workflow.add_edge("retrieve_documents", "filter_documents_for_sales")
     workflow.add_edge("filter_documents_for_sales", "classify_coverage")
     # If it's a coverage question, verify presence before generating
@@ -1540,10 +1776,9 @@ def create_rag_graph():
     # Set up memory for persistent conversation state
     memory = MemorySaver()
     
+    workflow.add_node("hint_program", hint_program)
+    
     return workflow.compile(checkpointer=memory)
-
-# Initialize the simplified graph
-rag_graph = create_rag_graph()
 
 # ---------------- Slack Integration ----------------
 def clean_citations(text):
@@ -1585,16 +1820,21 @@ class SlackUpdateManager:
         self.thread_ts = thread_ts
         self.ts = None  # message timestamp for updates
         self.last_update = 0.0
-        # Step states: todo | in_progress | done
+        # Step states: todo | in_progress | done (preserve insertion order)
         self.steps = {
-            "Finding the right docs": "in_progress",            # retrieve_documents
-            "Picking the good parts": "todo",            # filter_documents_for_sales
-            "Checking coverage": "todo",                 # classify_coverage / verify_coverage_with_ai
-            "Drafting the answer": "todo",               # generate_* nodes
-            "Quick safety check": "todo",                # validate_response
-            "Digging deeper": "todo",                    # expand_document_chunks (optional)
+            "Figuring out the program": "in_progress",         # hint_program
+            "Finding the right docs": "todo",                 # retrieve_documents
+            "Picking the good parts": "todo",                 # filter_documents_for_sales
+            "Checking coverage": "todo",                      # classify_coverage / verify_coverage_with_ai
+            "Drafting the answer": "todo",                    # generate_* nodes
+            "Quick safety check": "todo",                     # validate_response
+            "Digging deeper": "todo",                         # expand_document_chunks
+            "Wrapping up": "todo"                             # finalize
         }
-        self.draft_text = None
+        # Context flags to enrich the playful/explanatory text
+        self.program_hint = ""
+        self.comparison_mode = False
+        self.is_cert_query = False
 
     def _status_emoji(self, state: str) -> str:
         return {
@@ -1603,24 +1843,58 @@ class SlackUpdateManager:
             "done": "✅",
         }.get(state, "▫️")
 
+    def set_context(self, program_hint: str = "", comparison_mode: bool = False, is_cert_query: bool = False):
+        self.program_hint = program_hint or ""
+        self.comparison_mode = bool(comparison_mode)
+        self.is_cert_query = bool(is_cert_query)
+
     def _render_text(self) -> str:
-        checklist_lines = []
-        for name, st in self.steps.items():
-            checklist_lines.append(f"{self._status_emoji(st)} {name}")
-        checklist = "\n".join(checklist_lines)
-
-        header = "✨ On it! I'll keep you posted step-by-step. 🎯"
-        body = header + "\n\n" + checklist
-        if self.draft_text:
-            body += "\n\n*Draft (will improve as we go):*\n" + self.draft_text
-        return convert_markdown_to_slack(body)
-
-    def _maybe_throttle(self):
-        now = time.time()
-        if now - self.last_update < 1.0:
-            return True
-        self.last_update = now
-        return False
+        # Playful header with context
+        header = ["🌊 Surfing your question — here's where I am:"]
+        context_bits = []
+        if self.program_hint:
+            context_bits.append(f"🎯 Program: {self.program_hint.replace('_', ' ')}")
+        if self.comparison_mode:
+            context_bits.append("👯 Comparison mode: on")
+        if self.is_cert_query:
+            context_bits.append("🎓 Certifications mode: on")
+        if context_bits:
+            header.append(" · ".join(context_bits))
+        # Step explanations
+        explanations = {
+            "Figuring out the program": "(mapping your wording to the right bootcamp)",
+            "Finding the right docs": "(grabbing the most relevant files)",
+            "Picking the good parts": "(keeping only the best chunks)",
+            "Checking coverage": "(verifying the topic is explicitly listed)",
+            "Drafting the answer": "(writing a clear, concise reply)",
+            "Quick safety check": "(validating against the retrieved text)",
+            "Digging deeper": "(expanding context when info is thin)",
+            "Wrapping up": "(tidying sources and shipping your answer)"
+        }
+        # Determine current step (show only one at a time)
+        step_names = list(self.steps.keys())
+        total = len(step_names)
+        current_index = None
+        for i, name in enumerate(step_names):
+            if self.steps.get(name) == "in_progress":
+                current_index = i
+                break
+        # If none in progress yet, pick the first todo if any
+        if current_index is None:
+            for i, name in enumerate(step_names):
+                if self.steps.get(name) == "todo":
+                    current_index = i
+                    break
+        # If still none, everything done
+        if current_index is None:
+            body = ["✅ All done — preparing your final answer…"]
+        else:
+            name = step_names[current_index]
+            note = explanations.get(name, "")
+            suffix = f" {note}" if note else ""
+            # Show only the current step with numbering
+            body = [f"⏳ Step {current_index+1}/{total}: {name}{suffix}"]
+        return "\n".join(header + ["", *body])
 
     def post_initial(self):
         try:
@@ -1632,54 +1906,64 @@ class SlackUpdateManager:
         except Exception as e:
             logger.warning(f"Failed to post initial Slack message: {e}")
 
+    def _maybe_throttle(self, min_interval: float = 1.5) -> bool:
+        """Return True if we should skip an update to avoid spamming Slack."""
+        try:
+            now = time.time()
+            if (now - float(self.last_update or 0.0)) < float(min_interval):
+                return True
+            self.last_update = now
+            return False
+        except Exception:
+            # On any error, don't throttle to ensure updates still go through
+            return False
+
+    def finalize(self, content: str):
+        """Finalize the Slack message with the assistant's answer.
+
+        If an initial message exists, update it; otherwise, post a new one in the thread.
+        """
+        try:
+            if not self.client:
+                return
+            # Mark all steps as done for a clean wrap-up
+            for k in list(self.steps.keys()):
+                self.steps[k] = "done"
+            text = convert_markdown_to_slack(clean_citations(content or ""))
+            if self.ts:
+                self.client.chat_update(channel=self.channel, ts=self.ts, text=text)
+            else:
+                resp = self.client.chat_postMessage(channel=self.channel, text=text, thread_ts=self.thread_ts)
+                self.ts = resp.get("ts") if isinstance(resp, dict) else getattr(resp, "data", {}).get("ts", None)
+        except Exception as e:
+            logger.warning(f"Failed to finalize Slack message: {e}")
+
+    def error(self, content: str):
+        """Show an error message in the same Slack thread/message if possible."""
+        try:
+            if not self.client:
+                return
+            # Move to wrapping state and present error
+            if "Wrapping up" in self.steps:
+                self.steps["Wrapping up"] = "in_progress"
+            text = convert_markdown_to_slack(clean_citations(content or "An error occurred."))
+            if self.ts:
+                self.client.chat_update(channel=self.channel, ts=self.ts, text=text)
+            else:
+                resp = self.client.chat_postMessage(channel=self.channel, text=text, thread_ts=self.thread_ts)
+                self.ts = resp.get("ts") if isinstance(resp, dict) else getattr(resp, "data", {}).get("ts", None)
+        except Exception as e:
+            logger.debug(f"Failed to send Slack error message: {e}")
+
     def update_step(self, name: str, state: str):
         if name in self.steps:
             self.steps[name] = state
         # Avoid spamming Slack
         if self._maybe_throttle():
             return
-        self._update()
-
-    def set_draft(self, text: str):
-        # Clean and trim draft for Slack
-        cleaned = clean_citations(text or "").strip()
-        # Keep it short for draft stage
-        if len(cleaned) > 900:
-            cleaned = cleaned[:900].rstrip() + "…"
-        self.draft_text = cleaned
-        if self._maybe_throttle():
-            return
-        self._update()
-
-    def finalize(self, final_text: str):
         try:
-            for k in self.steps.keys():
-                self.steps[k] = "done"
-            self.draft_text = None
-            text = convert_markdown_to_slack(clean_citations(final_text or ""))
-            if self.client and self.ts:
-                self.client.chat_update(channel=self.channel, ts=self.ts, text=text)
-        except Exception as e:
-            logger.warning(f"Failed to finalize Slack message: {e}")
-
-    def error(self, message: str):
-        try:
-            for k in self.steps.keys():
-                if self.steps[k] != "done":
-                    self.steps[k] = "todo"
-            text = convert_markdown_to_slack(f"😅 Little hiccup on my end — {message} \nI'll keep things simple and share what I can. 🛟")
-            if self.client:
-                if self.ts:
-                    self.client.chat_update(channel=self.channel, ts=self.ts, text=text)
-                else:
-                    self.client.chat_postMessage(channel=self.channel, text=text, thread_ts=self.thread_ts)
-        except Exception as e:
-            logger.warning(f"Failed to send error Slack message: {e}")
-
-    def _update(self):
-        if not (self.client and self.ts):
-            return
-        try:
+            if not (self.client and self.ts):
+                return
             self.client.chat_update(channel=self.channel, ts=self.ts, text=self._render_text())
         except Exception as e:
             logger.debug(f"Slack update throttled/failed: {e}")
@@ -1749,6 +2033,9 @@ def process_message(event, say):
         # Prepare Slack progressive updates (no draft content, only status)
         channel = event.get('channel')
         manager = SlackUpdateManager(slack_app.client if slack_app else None, channel, thread_ts)
+        # Set playful/explanatory context
+        ql_for_flags = (user_message or "").lower()
+        manager.set_context(program_hint="", comparison_mode=False, is_cert_query=("certification" in ql_for_flags))
         manager.post_initial()
 
         # Stream node updates for progress (fun + emojis, no draft content)
@@ -1775,29 +2062,29 @@ def process_message(event, say):
                         # Capture final state directly from finalize node
                         streamed_result = node_value
                     if "retrieve_documents" in n:
-                        manager.update_step("Finding the right docs", "done")  # 🔎
-                        manager.update_step("Picking the good parts", "in_progress")  # 🧹
+                        manager.update_step("Figuring out the program", "done")  # 🎯
+                        manager.update_step("Finding the right docs", "in_progress")  # 🔎
                     elif "filter_documents_for_sales" in n:
+                        manager.update_step("Finding the right docs", "done")
+                        manager.update_step("Picking the good parts", "in_progress")  # 🧹
+                    elif "classify_coverage" in n or "verify_coverage_with_ai" in n:
                         manager.update_step("Picking the good parts", "done")
                         manager.update_step("Checking coverage", "in_progress")  # 🔎
-                    elif "classify_coverage" in n or "verify_coverage_with_ai" in n:
-                        manager.update_step("Checking coverage", "done")
-                        manager.update_step("Drafting the answer", "in_progress")  # ✍️
                     elif ("generate_response" in n or 
                           "generate_negative_coverage_response" in n or 
                           "generate_fun_fallback" in n):
+                        manager.update_step("Checking coverage", "done")
+                        manager.update_step("Drafting the answer", "in_progress")  # ✍️
+                    elif "validate_response" in n:
                         manager.update_step("Drafting the answer", "done")
                         manager.update_step("Quick safety check", "in_progress")  # 🛡️
-                    elif "validate_response" in n:
-                        manager.update_step("Quick safety check", "done")  # ✅
                     elif "expand_document_chunks" in n:
+                        manager.update_step("Quick safety check", "done")
                         manager.update_step("Digging deeper", "in_progress")  # 🪜
 
             # Use streamed final state if available; otherwise use last streamed node
             if streamed_result is not None:
                 result = streamed_result
-            elif last_node_value is not None:
-                result = last_node_value
             else:
                 # As a very last resort, invoke once (but normally unreachable)
                 result = rag_graph.invoke(initial_state, config=config)
@@ -1846,6 +2133,18 @@ def process_message(event, say):
             manager.error(PROCESSING_ERROR_MESSAGE)
         except Exception as e2:
             logger.error(f"Error sending failure response: {str(e2)}")
+
+        # Update playful context with final program hint flags
+        try:
+            manager.set_context(
+                program_hint=(result.get("program_hint") or ""),
+                comparison_mode=bool(result.get("comparison_mode")),
+                is_cert_query=("certification" in (user_message or "").lower())
+            )
+        except Exception:
+            pass
+        manager.update_step("Digging deeper", "done")
+        manager.update_step("Wrapping up", "in_progress")
 
 # Register Slack handlers
 if slack_app is not None:
@@ -1927,6 +2226,70 @@ def health_check():
         "document_filtering": "ai_powered_sales_accuracy",
         "architecture": "clean_configurable_instructions"
     }
+
+def _allowed_filenames_for_hint(program_hint: str) -> set:
+    try:
+        entry = PROGRAM_SYNONYMS.get(program_hint) or {}
+        names = entry.get("filenames") or []
+        return set(str(n).lower() for n in names)
+    except Exception:
+        return set()
+
+def _allowed_filenames_for_hints(program_hints: List[str]) -> set:
+    allowed = set()
+    for h in program_hints or []:
+        try:
+            entry = PROGRAM_SYNONYMS.get(h) or {}
+            names = entry.get("filenames") or []
+            for n in names:
+                allowed.add(str(n).lower())
+        except Exception:
+            continue
+    return allowed
+
+def hint_program(state: 'RAGState') -> 'RAGState':
+    """AI node to infer program_hint(s) from the user's query using exhaustive synonyms."""
+    query = state.get("query", "")
+    try:
+        if not PROGRAM_HINTING_PROMPT or not PROGRAM_SYNONYMS_TEXT.strip():
+            return {**state, "program_hint": "", "program_hint_confidence": 0.0, "program_hints": [], "program_hint_confidences": {}, "comparison_mode": False}
+        prompt = f"{PROGRAM_HINTING_PROMPT}\n\nSYNONYMS JSON:\n{PROGRAM_SYNONYMS_TEXT}\n\nUSER QUESTION:\n{query}\n"
+        ai = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0
+        )
+        content = ai.choices[0].message.content.strip()
+        parsed = json.loads(content)
+        program_hint = str(parsed.get("program_hint") or "")
+        confidence = float(parsed.get("confidence") or 0.0)
+        programs = parsed.get("programs") or ([] if not program_hint else [program_hint])
+        confidences = parsed.get("confidences") or ({program_hint: confidence} if program_hint else {})
+        multi_program = bool(parsed.get("multi_program", False))
+        # Normalize types
+        programs = [str(p) for p in programs if p]
+        confidences = {str(k): float(v) for k, v in confidences.items() if k}
+        if not program_hint and programs:
+            # pick highest confidence as primary if available
+            if confidences:
+                program_hint = max(programs, key=lambda p: confidences.get(p, 0.0))
+                confidence = confidences.get(program_hint, 0.0)
+            else:
+                program_hint = programs[0]
+                confidence = 0.5
+        comparison_mode = multi_program or (len(programs) > 1)
+        logger.info(f"Program hints: {programs} (comparison_mode={comparison_mode})")
+        return {**state,
+                "program_hint": program_hint,
+                "program_hint_confidence": confidence,
+                "program_hints": programs,
+                "program_hint_confidences": confidences,
+                "comparison_mode": comparison_mode}
+    except Exception as e:
+        logger.warning(f"Program hinting failed: {e}")
+        return {**state, "program_hint": "", "program_hint_confidence": 0.0, "program_hints": [], "program_hint_confidences": {}, "comparison_mode": False}
+
+rag_graph = create_rag_graph()
 
 if __name__ == "__main__":
     flask_app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

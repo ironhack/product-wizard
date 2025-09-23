@@ -1,0 +1,38 @@
+{
+  "ai_engineering": {
+    "aliases": ["ai bootcamp", "ai", "ai eng", "ai engineering", "ai engineer", "ai course"],
+    "filenames": ["AI_Engineering_bootcamp_2025_07"]
+  },
+  "data_analytics": {
+    "aliases": ["da", "data analytics", "analytics bootcamp", "business analytics"],
+    "filenames": ["Data_Analytics_Remote_bootcamp_2025_07"]
+  },
+  "data_science_ml": {
+    "aliases": ["ds", "data science", "machine learning", "ml", "ml bootcamp"],
+    "filenames": ["Data_Science_&_Machine_Learning_bootcamp_2025_07"]
+  },
+  "web_development": {
+    "aliases": ["web dev", "web development", "full stack", "javascript bootcamp"],
+    "filenames": ["Web_Dev_Remote_bootcamp_2025_07"]
+  },
+  "ux_ui": {
+    "aliases": ["ux", "ui", "ux/ui", "ux design", "ui design"],
+    "filenames": ["UXUI_Remote_bootcamp_2025_07"]
+  },
+  "devops": {
+    "aliases": ["devops", "cloud devops", "kubernetes", "docker"],
+    "filenames": ["DevOps_bootcamp_2025_07"]
+  },
+  "cybersecurity": {
+    "aliases": ["cyber", "security", "cybersecurity bootcamp"],
+    "filenames": ["Cybersecurity_bootcamp_2025_07"]
+  },
+  "marketing": {
+    "aliases": ["digital marketing", "marketing bootcamp"],
+    "filenames": ["Marketing_bootcamp_2025_07"]
+  },
+  "data_science_ai_1_year": {
+    "aliases": ["1 year", "1-year", "germany program", "dsai 1 year"],
+    "filenames": ["Data_Science_and_AI_1_Year_Program_Germany_2025_07"]
+  }
+}
