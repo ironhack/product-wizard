@@ -252,8 +252,28 @@ def retrieve_documents(state: RAGState) -> RAGState:
     logger.info(f"Retrieving documents for: {state['query']}")
     
     try:
-        # Use the original query - let retrieval instructions handle enhancement
+        # Enhance query with conversation context for better document retrieval
         query = state["query"]
+        messages = state.get("messages", [])
+        
+        # Build context-enhanced query if we have conversation history
+        if messages and len(messages) > 1:
+            # Get recent conversation context (last 3 messages for context)
+            recent_messages = messages[-3:] if len(messages) > 3 else messages[:-1]  # Exclude current query
+            
+            context_parts = []
+            for msg in recent_messages:
+                if hasattr(msg, 'content') and msg.content:
+                    # Only include the most recent user message for context
+                    if isinstance(msg, HumanMessage):
+                        context_parts.append(f"Previous context: {msg.content}")
+                        break  # Only use the most recent user message for context
+            
+            if context_parts:
+                # Enhance the query with conversation context
+                enhanced_query = f"{query}\n\nConversation context: {' '.join(context_parts)}"
+                logger.info(f"Enhanced query with context: {enhanced_query[:100]}...")
+                query = enhanced_query
         
         instructions = RETRIEVAL_INSTRUCTIONS or ""
         
@@ -392,21 +412,40 @@ def filter_documents_for_sales(state: RAGState) -> RAGState:
     original_file_ids = state["selected_file_ids"]
     original_chunks = state["evidence_chunks"]
     
-    if len(original_sources) <= 2:
-        # If we have 2 or fewer documents, keep them all
-        logger.info(f"Keeping all {len(original_sources)} documents (small set)")
+    # Group chunks by document name to avoid losing relevant chunks from the same document
+    chunks_by_doc = {}
+    for i, source in enumerate(original_sources):
+        doc_name = source.replace('.txt', '').replace('.md', '')
+        if doc_name not in chunks_by_doc:
+            chunks_by_doc[doc_name] = []
+        chunks_by_doc[doc_name].append(i)
+    
+    # If we have chunks from only 1-2 unique documents, keep them all
+    if len(chunks_by_doc) <= 2:
+        logger.info(f"Keeping all {len(original_sources)} chunks from {len(chunks_by_doc)} documents")
         return state
     
     try:
-        # Create document analysis prompt
-        document_list = "\n".join([f"{i+1}. {source}" for i, source in enumerate(original_sources)])
+        # Create chunk analysis prompt with content previews
+        chunk_list = []
+        for i, (source, doc_content) in enumerate(zip(original_sources, original_docs)):
+            # Get first 200 chars of chunk content as preview
+            preview = doc_content[:200].replace('\n', ' ').strip()
+            if len(doc_content) > 200:
+                preview += "..."
+            doc_name = source.replace('.txt', '').replace('.md', '')
+            chunk_list.append(f"{i+1}. {doc_name} - \"{preview}\"")
+        
+        chunk_descriptions = "\n".join(chunk_list)
         
         analysis_prompt = f"""{DOCUMENT_FILTERING_INSTRUCTIONS}
 
 USER QUESTION: {query}
 
-AVAILABLE DOCUMENTS:
-{document_list}"""
+AVAILABLE CONTENT CHUNKS:
+{chunk_descriptions}
+
+Return ONLY the numbers of ALL relevant chunks separated by commas (e.g., "1, 3, 4, 6")."""
 
         response = openai_client.chat.completions.create(
             model="gpt-4o-mini",
@@ -416,30 +455,43 @@ AVAILABLE DOCUMENTS:
             temperature=0.1
         )
         
-        # Parse the AI response to get selected document indices
+        # Parse the AI response to get selected chunk indices
         ai_response = response.choices[0].message.content.strip()
-        logger.info(f"AI document selection: {ai_response}")
+        logger.info(f"AI chunk selection: {ai_response}")
         
         # Extract numbers from the response
         numbers = re.findall(r'\d+', ai_response)
-        selected_indices = [int(num) - 1 for num in numbers if int(num) <= len(original_sources)]
+        selected_chunk_indices = [int(num) - 1 for num in numbers if int(num) <= len(original_sources)]
         
-        if selected_indices:
-            filtered_sources = [original_sources[i] for i in selected_indices]
-            filtered_docs = [original_docs[i] for i in selected_indices]
-            filtered_file_ids = [original_file_ids[i] for i in selected_indices]  
-            filtered_chunks = [original_chunks[i] for i in selected_indices]
+        if selected_chunk_indices:
+            filtered_sources = [original_sources[i] for i in selected_chunk_indices]
+            filtered_docs = [original_docs[i] for i in selected_chunk_indices]
+            filtered_file_ids = [original_file_ids[i] for i in selected_chunk_indices]  
+            filtered_chunks = [original_chunks[i] for i in selected_chunk_indices]
             
-            logger.info(f"AI filtering: {len(original_sources)} → {len(filtered_sources)} documents")
-            for i in selected_indices:
-                logger.info(f"AI selected: {original_sources[i]}")
+            # Count selected docs for logging
+            selected_doc_names = set()
+            for i in selected_chunk_indices:
+                doc_name = original_sources[i].replace('.txt', '').replace('.md', '')
+                selected_doc_names.add(doc_name)
+            
+            logger.info(f"AI filtering: {len(original_sources)} chunks → {len(filtered_sources)} chunks from {len(selected_doc_names)} docs")
+            for i in selected_chunk_indices:
+                preview = original_docs[i][:100].replace('\n', ' ').strip()
+                if len(original_docs[i]) > 100:
+                    preview += "..."
+                logger.info(f"AI selected chunk {i+1}: {original_sources[i]} - \"{preview}\"")
         else:
-            # Fallback: keep first 2 documents
+            # Fallback: keep all chunks from first 2 documents
             logger.warning("AI selection failed, keeping first 2 documents")
-            filtered_sources = original_sources[:2]
-            filtered_docs = original_docs[:2]
-            filtered_file_ids = original_file_ids[:2]
-            filtered_chunks = original_chunks[:2]
+            fallback_indices = []
+            for doc_name in list(chunks_by_doc.keys())[:2]:
+                fallback_indices.extend(chunks_by_doc[doc_name])
+            
+            filtered_sources = [original_sources[i] for i in fallback_indices]
+            filtered_docs = [original_docs[i] for i in fallback_indices]
+            filtered_file_ids = [original_file_ids[i] for i in fallback_indices]
+            filtered_chunks = [original_chunks[i] for i in fallback_indices]
         
         return {
             **state,
@@ -452,14 +504,18 @@ AVAILABLE DOCUMENTS:
         
     except Exception as e:
         logger.error(f"Error in AI document filtering: {e}")
-        # Fallback: keep first 2 documents
+        # Fallback: keep all chunks from first 2 documents
+        fallback_indices = []
+        for doc_name in list(chunks_by_doc.keys())[:2]:
+            fallback_indices.extend(chunks_by_doc[doc_name])
+        
         return {
             **state,
-            "sources": original_sources[:2],
-            "retrieved_docs": original_docs[:2],
-            "selected_file_ids": original_file_ids[:2],
-            "evidence_chunks": original_chunks[:2],
-            "retrieved_docs_count": min(2, len(original_docs))
+            "sources": [original_sources[i] for i in fallback_indices],
+            "retrieved_docs": [original_docs[i] for i in fallback_indices],
+            "selected_file_ids": [original_file_ids[i] for i in fallback_indices],
+            "evidence_chunks": [original_chunks[i] for i in fallback_indices],
+            "retrieved_docs_count": len(fallback_indices)
         }
 
 def generate_response(state: RAGState) -> RAGState:
@@ -489,8 +545,6 @@ def generate_response(state: RAGState) -> RAGState:
 
 RETRIEVED CONTEXT:
 {context}
-
-Answer based ONLY on the context provided above. When referencing information, mention which specific document or curriculum the information comes from.
 """
         
         # Build conversation messages - LangGraph automatically manages conversation history
@@ -636,6 +690,125 @@ RESPONSE TO VALIDATE:
             "confidence": 1.0
         }
 
+def expand_document_chunks(state: RAGState) -> RAGState:
+    """Expand chunks from existing documents and retry with more content"""
+    logger.info("Expanding document chunks for retry generation")
+    
+    try:
+        query = state["query"]
+        original_sources = state["sources"]
+        
+        if not original_sources:
+            logger.info("No sources to expand from")
+            return state
+        
+        logger.info(f"Expanding chunks from {len(original_sources)} source documents")
+        
+        # Get more comprehensive chunks from the same documents
+        enhanced_query = f"{query} - provide detailed information from these specific documents"
+        logger.info(f"Enhanced query for expansion: {enhanced_query[:100]}...")
+        
+        resp = openai_client.responses.create(
+            model="gpt-4o-mini",
+            input=[{"role": "user", "content": enhanced_query}],
+            instructions=RETRIEVAL_INSTRUCTIONS or "",
+            tools=[{
+                "type": "file_search",
+                "vector_store_ids": [VECTOR_STORE_ID],
+                "max_num_results": 20  # Reduced from 60 to prevent timeouts
+            }],
+            tool_choice={"type": "file_search"},
+            include=["file_search_call.results"]
+        )
+        
+        # Extract hits (same logic as original retrieval)
+        hits = []
+        for out in getattr(resp, "output", []):
+            res = getattr(out, "results", None)
+            if res:
+                hits = res
+                break
+            fsc = getattr(out, "file_search_call", None)
+            if fsc:
+                if getattr(fsc, "results", None):
+                    hits = fsc.results
+                    break
+                if getattr(fsc, "search_results", None):
+                    hits = fsc.search_results
+                    break
+        
+        if not hits:
+            logger.info("No additional hits found - keeping original content")
+            return state
+        
+        # Focus on the same files we already retrieved, but get different/more chunks
+        target_files = set(original_sources)
+        expanded_chunks = {}
+        
+        for r in hits:
+            fname = getattr(r, "filename", None) or getattr(getattr(r, "document", None), "filename", None)
+            fid = getattr(r, "file_id", None) or getattr(getattr(r, "document", None), "id", None)
+            score = float(getattr(r, "score", 0.0) or 0.0)
+            
+            text = ""
+            if hasattr(r, "text") and r.text:
+                text = r.text
+            else:
+                parts = getattr(r, "content", []) or []
+                if parts and hasattr(parts[0], "text"):
+                    text = parts[0].text
+            
+            if not fname or not fid or not text or score < 0.0:
+                continue
+            
+            # Only keep chunks from our target files
+            if fname in target_files:
+                if fname not in expanded_chunks:
+                    expanded_chunks[fname] = []
+                expanded_chunks[fname].append({
+                    "text": text,
+                    "score": score,
+                    "file_id": fid
+                })
+        
+        # Combine original + expanded chunks, prioritizing expanded content
+        final_sources = []
+        final_docs = []
+        final_file_ids = []
+        final_evidence_chunks = []
+        
+        for fname in target_files:
+            if fname in expanded_chunks:
+                # Sort by score and take the best chunks
+                sorted_chunks = sorted(expanded_chunks[fname], key=lambda x: x["score"], reverse=True)
+                # Take up to 3 chunks per document to get comprehensive coverage
+                for chunk in sorted_chunks[:3]:
+                    final_sources.append(fname)
+                    final_docs.append(chunk["text"])
+                    final_file_ids.append(chunk["file_id"])
+                    final_evidence_chunks.append({
+                        "file_id": chunk["file_id"],
+                        "filename": fname,
+                        "text": chunk["text"]
+                    })
+        
+        logger.info(f"Expanded to {len(final_docs)} chunks from {len(set(final_sources))} documents")
+        
+        return {
+            **state,
+            "retrieved_docs": final_docs,
+            "sources": final_sources,
+            "selected_file_ids": final_file_ids,
+            "evidence_chunks": final_evidence_chunks,
+            "retrieved_docs_count": len(final_docs),
+            "retry_expansion": True  # Flag to indicate this is an expanded retry
+        }
+        
+    except Exception as e:
+        logger.error(f"Error expanding document chunks: {e}")
+        # Return original state if expansion fails
+        return state
+
 def apply_fallback(state: RAGState) -> RAGState:
     """Apply safe fallback if validation fails"""
     logger.info("Applying fallback due to validation failure")
@@ -757,14 +930,66 @@ def retry_with_delay(state: RAGState) -> RAGState:
     }
 
 # ---------------- Conditional Logic ----------------
+def is_fallback_response(response: str) -> bool:
+    """Check if the response is a default fallback message"""
+    fallback_indicators = [
+        "i don't have that specific information",
+        "i don't have complete information", 
+        "please reach out to the education team",
+        FALLBACK_MESSAGE.lower()
+    ]
+    response_lower = response.lower()
+    
+    # Debug logging
+    logger.info(f"Checking fallback indicators in response: {response_lower[:100]}...")
+    for indicator in fallback_indicators:
+        if indicator in response_lower:
+            logger.info(f"MATCHED fallback indicator: '{indicator}'")
+            return True
+        else:
+            logger.info(f"No match for indicator: '{indicator}'")
+    
+    logger.info("No fallback indicators found")
+    return False
+
+def should_expand_chunks(state: RAGState) -> str:
+    """Determine if we should expand chunks and retry generation"""
+    response = state.get("response", "")
+    retry_expansion = state.get("retry_expansion", False)
+    sources = state.get("sources", [])
+    
+    logger.info(f"Checking for chunk expansion: response_length={len(response)}, has_sources={bool(sources)}, already_tried={retry_expansion}")
+    logger.info(f"Response preview: {response[:100]}...")
+    
+    is_fallback = is_fallback_response(response)
+    logger.info(f"Is fallback response: {is_fallback}")
+    
+    # Only expand if:
+    # 1. We got a fallback response
+    # 2. We have source documents
+    # 3. We haven't already tried expansion (prevent infinite loop)
+    if (is_fallback and sources and not retry_expansion):
+        logger.info("Detected fallback response with available sources - expanding chunks for retry")
+        return "expand_document_chunks"
+    
+    logger.info("No expansion needed - proceeding to validation")
+    return "validate_response"
+
 def should_apply_fallback(state: RAGState) -> str:
     """Determine if we should apply fallback based on validation"""
     confidence_threshold = 0.4
     validation = state.get("validation_result", {})
     
-    if (validation.get('confidence', 0) < confidence_threshold or
-        not validation.get('contains_only_retrieved_info', False)):
+    confidence = validation.get('confidence', 0)
+    contains_only_retrieved = validation.get('contains_only_retrieved_info', False)
+    
+    logger.info(f"Fallback decision: confidence={confidence}, contains_only_retrieved={contains_only_retrieved}, threshold={confidence_threshold}")
+    
+    if (confidence < confidence_threshold or not contains_only_retrieved):
+        logger.info(f"APPLYING FALLBACK: confidence {confidence} < {confidence_threshold} OR contains_only_retrieved={contains_only_retrieved}")
         return "apply_fallback"
+    
+    logger.info("FINALIZING: validation passed")
     return "finalize"
 
 def should_retry_retrieval(state: RAGState) -> str:
@@ -809,6 +1034,7 @@ def create_rag_graph():
     workflow.add_node("retrieve_documents", retrieve_documents)
     workflow.add_node("filter_documents_for_sales", filter_documents_for_sales)
     workflow.add_node("generate_response", generate_response)
+    workflow.add_node("expand_document_chunks", expand_document_chunks)
     workflow.add_node("validate_response", validate_response)
     workflow.add_node("apply_fallback", apply_fallback)
     workflow.add_node("finalize_response", finalize_response)
@@ -823,7 +1049,19 @@ def create_rag_graph():
     workflow.set_entry_point("retrieve_documents")
     workflow.add_edge("retrieve_documents", "filter_documents_for_sales")
     workflow.add_edge("filter_documents_for_sales", "generate_response")
-    workflow.add_edge("generate_response", "validate_response")
+    
+    # Add conditional routing after generation - check for fallback response
+    workflow.add_conditional_edges(
+        "generate_response",
+        should_expand_chunks,
+        {
+            "expand_document_chunks": "expand_document_chunks",
+            "validate_response": "validate_response"
+        }
+    )
+    
+    # After expansion, generate again and validate
+    workflow.add_edge("expand_document_chunks", "generate_response")
     
     # Conditional routing after validation (original logic)
     workflow.add_conditional_edges(

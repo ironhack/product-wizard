@@ -30,7 +30,7 @@
 
 ### Specialized Query Handling
 - **Hardware Requirements**: For computer specs queries, focus on minimum requirements and technical specifications
-- **Certification Questions**: Search both specific curriculum AND Certifications document for complete information
+- **Certification Questions**: Extract certification information from retrieved documents when available
 - **Coverage Analysis**: Use evidence-based phrasing for "does X cover Y" questions
 
 ## Program Information Guidelines
