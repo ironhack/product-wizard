@@ -1008,11 +1008,14 @@ def generate_negative_coverage_response(state: 'RAGState') -> 'RAGState':
     logger.info("Generating negative coverage response")
     query = state.get("query", "")
     topic = (state.get("coverage_topic") or "the requested topic").strip() or "the requested topic"
-    filenames = [normalize_filename(s) for s in state.get("sources", [])]
+    # Choose sources as-is; avoid hardcoded bias. Future: AI-based selection.
+    sources = state.get("sources", [])
+    chosen_sources = sources
+    filenames = [normalize_filename(s) for s in chosen_sources]
     cited = filenames[0] if filenames else "retrieved curriculum"
     answer = f"No — according to the retrieved curriculum, {topic} is not listed."
     # Add a single Sources block
-    answer = ensure_single_sources_block(answer, state.get("sources", []))
+    answer = ensure_single_sources_block(answer, chosen_sources)
     validation = {
         "contains_only_retrieved_info": True,
         "unsupported_claims": [],
@@ -1199,7 +1202,14 @@ def should_expand_chunks(state: 'RAGState') -> str:
         if legacy_fallback:
             logger.info("Detected legacy fallback text from generation (heuristic)")
     
-    # Coverage negative: if coverage question AND not found but we have sources, go negative rather than fun fallback
+    # Coverage negative: if coverage question AND topic not present in retrieved evidence, go negative
+    if state.get("is_coverage_question", False) and sources:
+        topic = (state.get("coverage_topic") or "").strip().lower()
+        evidence_text = "\n\n".join(state.get("retrieved_docs", []))[:50000].lower()
+        if topic and topic not in evidence_text:
+            logger.info("Coverage question and topic absent from evidence; generating negative coverage response")
+            return "generate_negative_coverage_response"
+    # Otherwise, if coverage question AND not found, go negative rather than expand/fallback
     if state.get("is_coverage_question", False) and not found_answer and sources:
         logger.info("Coverage question with no explicit mention; generating negative coverage response")
         return "generate_negative_coverage_response"
