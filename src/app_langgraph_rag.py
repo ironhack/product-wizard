@@ -60,8 +60,11 @@ DOCUMENT_FILTERING_INSTRUCTIONS = load_config_file('DOCUMENT_FILTERING_INSTRUCTI
 FALLBACK_CLASSIFIER_PROMPT = load_config_file('FALLBACK_CLASSIFIER.md')
 FUN_FALLBACK_TEMPLATES = load_config_file('FUN_FALLBACK_TEMPLATES.md')
 EXPANSION_INSTRUCTIONS_TEXT = load_config_file('EXPANSION_INSTRUCTIONS.md')
-FALLBACK_DETECTION_PATTERNS_TEXT = load_config_file('FALLBACK_DETECTION_PATTERNS.md')
 TEAM_ROUTING_RULES_TEXT = load_config_file('TEAM_ROUTING_RULES.md')
+COVERAGE_CLASSIFICATION_PROMPT = load_config_file('COVERAGE_CLASSIFICATION.md')
+COVERAGE_VERIFICATION_PROMPT = load_config_file('COVERAGE_VERIFICATION.md')
+FUN_FALLBACK_GENERATION_SYSTEM_PROMPT = load_config_file('FUN_FALLBACK_GENERATION_SYSTEM.md')
+FUN_FALLBACK_GENERATION_USER_PROMPT = load_config_file('FUN_FALLBACK_GENERATION_USER.md')
 
 def _parse_patterns(text: str) -> List[str]:
     patterns = []
@@ -261,10 +264,7 @@ def classify_coverage(state: 'RAGState') -> 'RAGState':
                 }
             }
         }
-        prompt = (
-            "Classify if the following user query asks whether a program covers/teaches/includes a topic. "
-            "Return JSON with is_coverage_question and the topic (short phrase, e.g., 'SQL').\n\nQUERY:\n" + query
-        )
+        prompt = (COVERAGE_CLASSIFICATION_PROMPT or "Classify if this is a coverage question. Return JSON.") + f"\n\nQUERY: {query}"
         resp = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -277,10 +277,64 @@ def classify_coverage(state: 'RAGState') -> 'RAGState':
         parsed = json.loads(resp.choices[0].message.content)
         is_cov = bool(parsed.get("is_coverage_question", False))
         topic = str(parsed.get("topic", "")).strip()
+        logger.info(f"Coverage classification result: is_coverage={is_cov}, topic='{topic}', raw_response='{resp.choices[0].message.content}'")
         return {**state, "is_coverage_question": is_cov, "coverage_topic": topic}
     except Exception as e:
         logger.warning(f"Coverage classification failed, defaulting to not coverage: {e}")
         return {**state, "is_coverage_question": False, "coverage_topic": ""}
+
+# ---------------- Coverage Verification (AI-based) ----------------
+def verify_coverage_with_ai(state: 'RAGState') -> 'RAGState':
+    """Ask AI if the coverage topic is explicitly listed in the retrieved documents."""
+    topic = (state.get("coverage_topic") or "").strip()
+    docs: List[str] = state.get("retrieved_docs", [])
+    evidence_text = "\n\n".join(docs)[:20000]
+    try:
+        classification_schema = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "coverage_presence",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "explicitly_listed": {"type": "boolean"},
+                        "reason": {"type": "string"}
+                    },
+                    "required": ["explicitly_listed"]
+                }
+            }
+        }
+        base_prompt = COVERAGE_VERIFICATION_PROMPT or "Determine if topic is listed in excerpts. Return JSON."
+        prompt = base_prompt.format(topic=topic or 'UNKNOWN', evidence_text=evidence_text)
+        ai_resp = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Return only JSON following the schema."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0,
+            response_format=classification_schema
+        )
+        parsed = json.loads(ai_resp.choices[0].message.content)
+        explicitly_listed = bool(parsed.get("explicitly_listed", False))
+        reason = str(parsed.get("reason", ""))
+        logger.info(f"AI coverage verification: {explicitly_listed} ({reason})")
+        return {**state, "coverage_explicitly_listed": explicitly_listed, "coverage_verification_reason": reason}
+    except Exception as e:
+        logger.warning(f"AI coverage verification failed: {e}")
+        return {**state, "coverage_explicitly_listed": False, "coverage_verification_reason": "verification_error"}
+
+def route_after_coverage_check(state: 'RAGState') -> str:
+    """Route based on AI coverage classification and verification."""
+    is_coverage = state.get("is_coverage_question", False)
+    explicitly_listed = state.get("coverage_explicitly_listed")
+    logger.info(f"Coverage routing: is_coverage={is_coverage}, explicitly_listed={explicitly_listed}")
+    if state.get("is_coverage_question", False):
+        if state.get("coverage_explicitly_listed") is False:
+            logger.info("Routing to negative coverage response")
+            return "generate_negative_coverage_response"
+    logger.info("Routing to regular generate_response")
+    return "generate_response"
 
 # ---------------- LangGraph State ----------------
 class RAGState(TypedDict):
@@ -301,6 +355,12 @@ class RAGState(TypedDict):
     # Structured generation flags
     found_answer_in_documents: bool
     reason_if_not_found: str
+    
+    # Coverage classification
+    is_coverage_question: bool
+    coverage_topic: str
+    coverage_explicitly_listed: bool
+    coverage_verification_reason: str
     
     # Validation
     validation_result: Dict
@@ -599,6 +659,10 @@ def generate_response(state: RAGState) -> RAGState:
     logger.info("Generating response")
     
     try:
+        # Early exit for AI-verified negative coverage
+        if state.get("is_coverage_question", False) and state.get("coverage_explicitly_listed") is False:
+            logger.info("Early routing: negative coverage due to AI verification")
+            return generate_negative_coverage_response(state)
         if not state["retrieved_docs"]:
             # Generate safe fallback
             return {
@@ -825,10 +889,21 @@ def expand_document_chunks(state: RAGState) -> RAGState:
         logger.info(f"Expanding chunks from {len(original_sources)} source documents")
         
         # Get more comprehensive chunks from the same documents
-        suffix = " - provide detailed information from these specific documents"
-        if EXPANSION_INSTRUCTIONS_TEXT and 'Enhanced query suffix' in EXPANSION_INSTRUCTIONS_TEXT:
-            # keep current behavior; future: parse a configurable suffix if needed
-            pass
+        # Extract suffix from expansion instructions
+        default_suffix = " - provide detailed information from these specific documents"
+        suffix = default_suffix
+        
+        if EXPANSION_INSTRUCTIONS_TEXT:
+            # Look for the suffix line in the config
+            for line in EXPANSION_INSTRUCTIONS_TEXT.splitlines():
+                if line.strip().startswith('"') and 'provide detailed information' in line:
+                    # Extract the quoted suffix
+                    try:
+                        suffix = line.strip().strip('"')
+                        break
+                    except:
+                        suffix = default_suffix
+        
         enhanced_query = f"{query}{suffix}"
         logger.info(f"Enhanced query for expansion: {enhanced_query[:100]}...")
         
@@ -983,11 +1058,34 @@ def generate_fun_fallback(state: RAGState) -> RAGState:
         # This shouldn't happen but let's handle it gracefully
         personality_intro = "🛡️ I'm being extra cautious with this one"
     
-    fun_response = f"""{personality_intro}
+    # Try AI-crafted fun fallback using guardrails and templates
+    fun_response = None
+    try:
+        templates_text = FUN_FALLBACK_TEMPLATES or ""
+        system_prompt = FUN_FALLBACK_GENERATION_SYSTEM_PROMPT or "Generate a friendly fallback message."
+        user_prompt_template = FUN_FALLBACK_GENERATION_USER_PROMPT or "Craft a fallback for query: {query}"
+        user_prompt = user_prompt_template.format(
+            query=query,
+            reason=reason_if_not_found or 'unspecified',
+            team=team,
+            team_context=team_context,
+            templates_text=templates_text
+        )
+        ai = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.75,
+        )
+        fun_response = (ai.choices[0].message.content or "").strip()
+    except Exception:
+        fun_response = None
 
-For the most accurate info about your question, I'd recommend reaching out to our **{team}** on Slack. {team_context}
-
-They'll have the detailed answers you're looking for and won't give me grief about sending you their way! 😄"""
+    # If AI generation fails or returns empty, fall back to a neutral processing message
+    if not fun_response:
+        fun_response = PROCESSING_ERROR_MESSAGE
     
     fallback_validation = {
         "contains_only_retrieved_info": True,
@@ -1137,48 +1235,6 @@ def retry_with_delay(state: RAGState) -> RAGState:
     }
 
 # ---------------- Conditional Logic ----------------
-def is_fallback_response(response: str) -> bool:
-    """Ask AI to classify whether the response is a fallback (no substantive answer) with JSON output; fallback to heuristics on error"""
-    try:
-        prompt = (FALLBACK_CLASSIFIER_PROMPT or "Classify if the response is a fallback. Return JSON.")
-        classification_schema = {
-            "type": "json_schema",
-            "json_schema": {
-                "name": "fallback_classifier",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "is_fallback": {"type": "boolean"},
-                        "reason": {"type": "string"}
-                    },
-                    "required": ["is_fallback"]
-                }
-            }
-        }
-        full_prompt = prompt + "\n\nRESPONSE:\n" + response
-        ai_resp = openai_client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "Return only JSON following the schema."},
-                {"role": "user", "content": full_prompt}
-            ],
-            temperature=0,
-            response_format=classification_schema
-        )
-        parsed = json.loads(ai_resp.choices[0].message.content)
-        is_fb = bool(parsed.get("is_fallback", False))
-        logger.info(f"AI fallback classification: {is_fb} ({parsed.get('reason','')})")
-        return is_fb
-    except Exception as e:
-        logger.warning(f"AI fallback classification failed, using heuristics: {e}")
-        fallback_indicators = [
-            "i don't have that specific information",
-            "i don't have complete information", 
-            "please reach out to the education team",
-            FALLBACK_MESSAGE.lower()
-        ]
-        response_lower = response.lower()
-        return any(ind in response_lower for ind in fallback_indicators)
 
 def should_expand_chunks(state: 'RAGState') -> str:
     """Determine if we should expand chunks and retry generation using structured/AI fallback flags"""
@@ -1193,22 +1249,18 @@ def should_expand_chunks(state: 'RAGState') -> str:
     logger.info(f"Raw state keys: {list(state.keys())}")
     logger.info(f"found_answer_in_documents in state: {state.get('found_answer_in_documents', 'NOT FOUND')}")
     logger.info(f"Structured response analysis: found_answer={found_answer}, reason={reason_if_not_found}")
-    if is_fallback_ai is not None:
-        logger.info(f"AI fallback flag present: {is_fallback_ai}")
-        legacy_fallback = is_fallback_ai
-    else:
-        # Heuristic backup if classifier wasn't run
-        legacy_fallback = is_fallback_response(response)
-        if legacy_fallback:
-            logger.info("Detected legacy fallback text from generation (heuristic)")
+    # If AI coverage verification already determined it's not listed, route to negative coverage
+    if state.get("is_coverage_question", False) and state.get("coverage_explicitly_listed") is False:
+        logger.info("AI coverage verification says not listed; generating negative coverage response")
+        return "generate_negative_coverage_response"
+    # Prefer AI node-driven classification; avoid inline detection to keep logic centralized in the node
+    legacy_fallback = bool(is_fallback_ai)
+    logger.info(f"Using AI node classification for fallback: {legacy_fallback}")
     
-    # Coverage negative: if coverage question AND topic not present in retrieved evidence, go negative
-    if state.get("is_coverage_question", False) and sources:
-        topic = (state.get("coverage_topic") or "").strip().lower()
-        evidence_text = "\n\n".join(state.get("retrieved_docs", []))[:50000].lower()
-        if topic and topic not in evidence_text:
-            logger.info("Coverage question and topic absent from evidence; generating negative coverage response")
-            return "generate_negative_coverage_response"
+    # Coverage negative: if coverage question AND AI verification already said not listed, go negative
+    if state.get("is_coverage_question", False) and state.get("coverage_explicitly_listed") is False:
+        logger.info("Coverage question and AI verification says not listed; generating negative coverage response")
+        return "generate_negative_coverage_response"
     # Otherwise, if coverage question AND not found, go negative rather than expand/fallback
     if state.get("is_coverage_question", False) and not found_answer and sources:
         logger.info("Coverage question with no explicit mention; generating negative coverage response")
@@ -1231,11 +1283,11 @@ def should_expand_chunks(state: 'RAGState') -> str:
     return "validate_response"
 
 def classify_fallback(state: RAGState) -> RAGState:
-    """Classify if current response is a fallback using AI (with heuristic backup). Only runs when likely needed."""
+    """Classify if current response is a fallback using AI (node-only, no inline heuristics)."""
     response = state.get("response", "")
     found_answer = state.get("found_answer_in_documents", True)
-    # Only run when structured flags say not found OR heuristic suspects fallback
-    should_run = (not found_answer) or is_fallback_response(response)
+    # Only run when structured flags say not found or when response is short/empty
+    should_run = (not found_answer) or (len(response.strip()) < 20)
     if not should_run:
         return state
     try:
@@ -1253,11 +1305,7 @@ def classify_fallback(state: RAGState) -> RAGState:
                 }
             }
         }
-        prompt = (
-            "Classify if the following assistant response is a fallback/non-answer (polite deferral,"
-            " says cannot find info, suggests contacting teams) versus a substantive answer that provides"
-            " concrete information from documents. Return JSON.\n\nRESPONSE:\n" + response
-        )
+        prompt = (FALLBACK_CLASSIFIER_PROMPT or "Classify if response is a fallback. Return JSON.") + f"\n\nRESPONSE:\n{response}"
         ai_resp = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -1336,6 +1384,7 @@ def create_rag_graph():
     workflow.add_node("retrieve_documents", retrieve_documents)
     workflow.add_node("filter_documents_for_sales", filter_documents_for_sales)
     workflow.add_node("classify_coverage", classify_coverage)
+    workflow.add_node("verify_coverage_with_ai", verify_coverage_with_ai)
     workflow.add_node("generate_response", generate_response)
     workflow.add_node("classify_fallback", classify_fallback)
     workflow.add_node("expand_document_chunks", expand_document_chunks)
@@ -1355,7 +1404,23 @@ def create_rag_graph():
     workflow.set_entry_point("retrieve_documents")
     workflow.add_edge("retrieve_documents", "filter_documents_for_sales")
     workflow.add_edge("filter_documents_for_sales", "classify_coverage")
-    workflow.add_edge("classify_coverage", "generate_response")
+    # If it's a coverage question, verify presence before generating
+    workflow.add_conditional_edges(
+        "classify_coverage",
+        lambda s: "verify_coverage_with_ai" if s.get("is_coverage_question", False) else "generate_response",
+        {
+            "verify_coverage_with_ai": "verify_coverage_with_ai",
+            "generate_response": "generate_response",
+        }
+    )
+    workflow.add_conditional_edges(
+        "verify_coverage_with_ai",
+        route_after_coverage_check,
+        {
+            "generate_negative_coverage_response": "generate_negative_coverage_response",
+            "generate_response": "generate_response",
+        }
+    )
     
     # After generation, classify fallback when likely needed
     workflow.add_edge("generate_response", "classify_fallback")

@@ -1,121 +1,239 @@
 ---
-description: "Product Wizard repository structure and development guidelines"
+description: "Product Wizard - LangGraph AI-Driven Architecture & Development Guidelines"
 globs: ["**/*"]
 alwaysApply: true
 ---
 
-# Product Wizard - Repository Structure & Development Guidelines
+# Product Wizard - LangGraph AI-Driven Architecture & Development Guidelines
 
 ## Repository Overview
 
-This repository serves three main purposes:
-1. **Custom RAG Pipeline** - Hybrid approach combining Responses API (retrieval) + Chat Completions API (generation) with automatic validation
-2. **Heroku Slack Middleware** - App connecting assistant to Slack  
+This repository implements an **advanced AI-driven RAG system** built with **LangGraph** that serves three main purposes:
+1. **LangGraph RAG Pipeline** - Multi-node AI workflow with intelligent routing, verification, and fallback handling
+2. **Slack Integration Middleware** - Heroku app connecting assistant to Slack with conversation threading
 3. **Development Tools** - Testing, optimization, and deployment utilities
 
+## Core Architecture: LangGraph Multi-Node Workflow
+
+### AI-Driven Pipeline Flow
+```
+Query → Retrieval → Document Filtering → Coverage Classification
+                                              ↓
+Coverage Verification ← [If Coverage Question]
+         ↓
+Route: Negative Coverage | Standard Generation
+                        ↓
+         Generation → Fallback Classification → Expansion Check
+                                                     ↓
+                    Validation ← [If Expansion Needed] → Retry
+                         ↓
+                   Final Response
+```
+
+### Key AI Components
+- **Coverage Classification**: AI detects curriculum coverage questions using externalized prompts
+- **Coverage Verification**: AI verifies topic presence in retrieved documents
+- **Fallback Classification**: AI identifies non-substantive responses
+- **Fun Fallback Generation**: AI crafts contextual, professional fallback messages
+- **Dynamic Routing**: AI-driven conditional edges route queries optimally
+
 ## File Structure Guidelines
+
+### Configuration Management (Externalized AI Prompts)
+**All AI behavior controlled via config files - NO hardcoded prompts in code:**
+
+- **`assistant_config/MASTER_PROMPT.md`** - Core assistant behavior
+- **`assistant_config/GENERATION_INSTRUCTIONS.md`** - Advanced generation features
+- **`assistant_config/VALIDATION_INSTRUCTIONS.md`** - Response validation system
+- **`assistant_config/RETRIEVAL_INSTRUCTIONS.md`** - Document retrieval guidelines
+- **`assistant_config/COVERAGE_CLASSIFICATION.md`** - Coverage question detection (AI prompt)
+- **`assistant_config/COVERAGE_VERIFICATION.md`** - Topic presence verification (AI prompt)
+- **`assistant_config/FALLBACK_CLASSIFIER.md`** - AI fallback detection (AI prompt)
+- **`assistant_config/FUN_FALLBACK_GENERATION_SYSTEM.md`** - System prompt for AI fallbacks
+- **`assistant_config/FUN_FALLBACK_GENERATION_USER.md`** - User prompt for AI fallbacks
+- **`assistant_config/FUN_FALLBACK_TEMPLATES.md`** - Fallback message templates and guardrails
+- **`assistant_config/TEAM_ROUTING_RULES.md`** - Team routing keywords
+- **`assistant_config/EXPANSION_INSTRUCTIONS.md`** - Query expansion behavior
+- **`assistant_config/DOCUMENT_FILTERING_INSTRUCTIONS.md`** - AI document filtering
+
+**Benefits**: Easy AI behavior updates without code changes, version-controlled prompts, A/B testing capability
+
+### Application Structure
+- **Production App**: `src/app_langgraph_rag.py` (LangGraph RAG Pipeline - PRODUCTION)
+- **Configuration**: Root level files (`Procfile`, `requirements.txt`, `runtime.txt`)
+- **Environment**: Use `.env` file for local development (never commit)
+- **Required Env Vars**: `OPENAI_VECTOR_STORE_ID`, `OPENAI_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`
 
 ### Knowledge Base Management
 - **Source Files**: Edit Markdown files in `knowledge_base/database/`
 - **Vector Store Files**: Always update corresponding TXT files in `knowledge_base/database_txt/` when modifying Markdown
 - **Synchronization Rule**: Every `.md` file must have a corresponding `.txt` file with identical content
 
-### Configuration Management (Streamlined)
-- **Core Prompt**: `assistant_config/MASTER_PROMPT.md` (streamlined behavior guidelines)
-- **Generation Features**: `assistant_config/GENERATION_INSTRUCTIONS.md` (advanced pipeline capabilities)
-- **Validation System**: `assistant_config/VALIDATION_INSTRUCTIONS.md` (confidence scoring and evidence verification)
-- **Retrieval System**: `assistant_config/RETRIEVAL_DEFAULT.md` (automated query enhancement)
-- **Versioning**: Git handles all version control - no manual configuration versioning needed
-- **Update Process**: Edit configuration files directly, commit changes, and deploy
-- **Architecture**: Streamlined from 7 files to 4 focused configuration files
-
-### Application Structure
-- **Production App**: `src/app_custom_rag.py` (Custom RAG Pipeline with automatic validation - PRODUCTION)
-- **Fallback App**: `src/app_response.py` (Responses API Slack middleware - fallback)
-- **Configuration**: Root level files (`Procfile`, `requirements.txt`, `runtime.txt`)
-- **Environment**: Use `.env` file for local development (never commit)
-- **Required Env Vars**: `OPENAI_VECTOR_STORE_ID`, `OPENAI_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`
-
 ### Testing & Tools
-- **Production Testing**: Test actual `CustomRAGPipeline` from `src/app_custom_rag.py`
-- **Judge-Based Evaluation**: All tests include GPT-4o evaluation with structured feedback
-- **Core Tests**: `regression_test.py`, `custom_rag_pipeline_tester.py`, `conversation_context_tester.py`
-- **Test Preservation**: Keep all test files (`test_*.py`) - never delete, they may be useful
+- **Master Test**: `tests/master_test.py` - Flexible test runner with manual question mode
+- **AI Judge Evaluation**: All tests include GPT-4o evaluation with structured feedback
+- **Specialized Tests**: Context management, error handling, Slack threading
+- **Test Preservation**: Keep all test files - never delete, they may be useful
 - **Test Results**: Automatically saved to `tests/results/` with timestamps and judge scores
-- **Production Deployment**: Custom RAG Pipeline reads directly from `assistant_config/MASTER_PROMPT.md` via Heroku app deployment
-- **Utilities**: Additional tools in `tools/` directory
 
 ## Development Rules
+
+### LangGraph Development Guidelines
+1. **Node Functions**: Each AI operation should be a separate LangGraph node
+2. **State Management**: Use `RAGState` TypedDict for comprehensive state tracking
+3. **Conditional Routing**: Use AI-driven routing functions, not hardcoded logic
+4. **Error Recovery**: Implement graceful degradation with retry mechanisms
+5. **Memory Integration**: Leverage LangGraph's built-in conversation memory
+
+### AI Prompt Management
+1. **Never hardcode prompts** - always use externalized config files
+2. **Update AI behavior** by editing `assistant_config/*.md` files
+3. **Test prompt changes** with `master_test.py --manual "question"`
+4. **Version control** all prompt changes via Git
 
 ### File Editing Rules
 1. **Never edit TXT files directly** - always edit the corresponding Markdown file first
 2. **Always update both formats** when modifying course information
-3. **Test locally before deployment** using comprehensive test suite
-4. **Test production code** - import and test actual `CustomRAGPipeline` from `app_custom_rag.py`
+3. **Test locally before deployment** using `tests/master_test.py`
+4. **Test production code** - import and test actual LangGraph pipeline from `app_langgraph_rag.py`
 5. **Never delete test files** - preserve all `test_*.py` files for future reference
 6. **Include judge evaluation** - all tests should use GPT-4o for objective assessment
 
 ### Code Quality
 - **No API keys in code** - use environment variables
-- **Follow naming conventions** for test files: `test_*.py`
+- **No hardcoded prompts** - use externalized config files
+- **Follow LangGraph patterns** - state management, conditional routing, error handling
 - **Save test results** to `tests/results/` with descriptive names
 - **Document changes** in commit messages
 
-### Deployment Process
+## Testing Framework
 
-#### Production Deployment (Custom RAG Pipeline):
-1. Edit source files (Markdown in `knowledge_base/database/` and/or `src/app_custom_rag.py`)
-2. Update corresponding TXT files (`knowledge_base/database_txt/`) when needed
-3. Update configuration files in `assistant_config/` if needed:
-   - `MASTER_PROMPT.md` - Core behavior guidelines
-   - `GENERATION_INSTRUCTIONS.md` - Advanced pipeline features
-   - `VALIDATION_INSTRUCTIONS.md` - Validation system
-   - `RETRIEVAL_DEFAULT.md` - Automated retrieval
-4. Test changes locally with comprehensive test suite (`tests/regression_test.py`, etc.)
-5. **Commit and push to GitHub**
-6. **Deploy Heroku app** (Custom RAG Pipeline reads from repository)
-7. Verify in production environment via Slack and health endpoint
+### Manual Testing (Primary)
+```bash
+# Test specific questions
+python tests/master_test.py --tests manual --manual "Does Data Science contain Python?"
+
+# Test multiple areas
+python tests/master_test.py --tests source_citation conversation_context
+
+# Run all tests
+python tests/master_test.py --tests all
+```
+
+### Specialized Testing
+```bash
+# Test conversation context
+python tests/conversation_optimization_test.py
+
+# Test error handling
+python tests/error_handling_test.py
+
+# Test Slack threading
+python tests/slack_threading_test.py
+```
+
+### AI Judge Evaluation
+Every test includes GPT-4o evaluation providing:
+- **Score**: 1-10 rating
+- **Pass/Fail**: Automatic determination
+- **Feedback**: Detailed strengths/weaknesses analysis
+- **Criteria**: Accuracy, citations, fabrication risk assessment
+
+## Key Features Implemented
+
+### 1. Smart Coverage Detection
+- **AI Classification**: Detects curriculum coverage questions ("Does X contain Y?")
+- **AI Verification**: Verifies if topics are explicitly mentioned in retrieved docs
+- **Definitive Routing**: Routes to positive/negative coverage responses
+
+### 2. AI-Crafted Fallbacks
+- **Contextual Generation**: AI creates personalized fallback messages
+- **Professional Tone**: Maintains brand voice with appropriate team routing
+- **Template Guidance**: Uses guardrails and examples from config files
+
+### 3. Dynamic Response Routing
+- **Positive Coverage** → Comprehensive curriculum details
+- **Negative Coverage** → Clear "No" with source citation
+- **Complex Questions** → Full generation with expansion capability
+- **Missing Info** → AI-crafted fun fallback with intelligent team routing
+
+### 4. Intelligent Expansion
+- **Auto-Recovery**: Detects insufficient responses and expands document chunks
+- **Multi-Layer Fallback**: Expansion → Fun Fallback → Error Message
+- **Context Preservation**: Maintains conversation context throughout process
+
+## Deployment Process
+
+### Configuration Updates (No Code Changes)
+1. Edit relevant config file in `assistant_config/`
+2. Test locally: `python tests/master_test.py --manual "test question"`
+3. **Commit and push to GitHub**
+4. **Deploy Heroku app** (LangGraph pipeline reads from repository)
+5. Verify in production environment
+
+### Application Updates
+1. Edit `src/app_langgraph_rag.py` for LangGraph workflow changes
+2. Test with comprehensive test suite
+3. **Commit and push to GitHub**
+4. **Deploy Heroku app**
+5. Monitor health endpoint and Slack functionality
+
+### Knowledge Base Updates
+1. Edit Markdown files in `knowledge_base/database/`
+2. Update corresponding TXT files in `knowledge_base/database_txt/`
+3. Test with `python tests/master_test.py --manual "relevant question"`
+4. Deploy via Heroku app restart
 
 ## Key Files & Their Roles
 
-### Critical Configuration (Modernized)
-- `src/app_custom_rag.py` - Custom RAG Pipeline application (PRODUCTION)
-- `assistant_config/MASTER_PROMPT.md` - Core assistant behavior and constraints
-- `assistant_config/GENERATION_INSTRUCTIONS.md` - Advanced generation features and variant handling
-- `assistant_config/VALIDATION_INSTRUCTIONS.md` - Sophisticated validation with confidence scoring
-- `assistant_config/RETRIEVAL_DEFAULT.md` - Automated retrieval system instructions
-- `index.yaml` - Course structure for third-party apps (root level)
-- `src/app_response.py` - Responses API Slack middleware (fallback)
+### Critical Architecture Files
+- **`src/app_langgraph_rag.py`** - LangGraph RAG Pipeline application (PRODUCTION)
+- **`assistant_config/MASTER_PROMPT.md`** - Core assistant behavior and constraints
+- **`assistant_config/COVERAGE_CLASSIFICATION.md`** - AI prompt for coverage detection
+- **`assistant_config/COVERAGE_VERIFICATION.md`** - AI prompt for topic verification
+- **`assistant_config/FUN_FALLBACK_GENERATION_*.md`** - AI prompts for fallback generation
+- **`tests/master_test.py`** - Flexible test runner with manual question capability
 
 ### Knowledge Base
-- `knowledge_base/database/*.md` - Source course information (edit these)
-- `knowledge_base/database_txt/*.txt` - Vector store format (auto-sync with MD)
+- **`knowledge_base/database/*.md`** - Source course information (edit these)
+- **`knowledge_base/database_txt/*.txt`** - Vector store format (auto-sync with MD)
 
-### Development
-- `tests/regression_test.py` - Comprehensive test suite with judge evaluation
-- `tests/custom_rag_pipeline_tester.py` - Direct testing of production pipeline
-- `tests/conversation_context_tester.py` - Context management testing
-- `tests/results/` - Test results with timestamps and judge scores
-- `tools/` - Utility scripts for development and maintenance
+### Development Tools
+- **`tests/master_test.py`** - Primary testing tool with GPT-4o judge evaluation
+- **`tests/results/`** - Test results with timestamps and detailed feedback
+- **`tools/`** - Utility scripts for development and maintenance
 
 ## Forbidden Actions
+- ❌ Never hardcode AI prompts in Python code - use config files
 - ❌ Never commit API keys or sensitive credentials
 - ❌ Never edit TXT files without updating corresponding MD files
-- ❌ Never deploy without running comprehensive test suite first
-- ❌ Never test simulated code - always test actual production `CustomRAGPipeline`
-- ❌ Never modify the three-component repository structure
+- ❌ Never deploy without testing with `master_test.py`
+- ❌ Never test simulated code - always test actual production LangGraph pipeline
 - ❌ Never perform Git operations unless explicitly requested by user
 
 ## Context for AI Assistance
 
-This is a production system serving Ironhack's sales team. Any changes must:
-- Maintain zero fabrication policy with automatic validation
-- Preserve citation quality and source attribution
-- Ensure sales-appropriate responses with conversational tone
-- Test actual production `CustomRAGPipeline` code, not simulations
-- Include judge-based evaluation for objective quality assessment
-- Keep all components (knowledge base, streamlined configuration, Custom RAG Pipeline, tools) functioning
-- Reflect automated pipeline capabilities in configuration files
-- Avoid creating redundant configuration files
+This is a production system serving Ironhack's sales team with **advanced AI-driven architecture**. Any changes must:
 
-Always prioritize data integrity and system reliability over feature additions.
+### Technical Requirements
+- **Maintain LangGraph workflow integrity** - preserve multi-node AI architecture
+- **Preserve externalized prompts** - no hardcoded AI instructions
+- **Test actual production code** - import and test real LangGraph pipeline
+- **Include AI judge evaluation** - use GPT-4o for objective quality assessment
+- **Maintain conversation context** - leverage LangGraph memory capabilities
+
+### Business Requirements  
+- **Zero fabrication policy** - multi-layer AI validation prevents hallucinations
+- **Professional fallbacks** - AI-crafted messages maintain brand voice
+- **Definitive coverage answers** - clear positive/negative responses for curriculum questions
+- **Sales-appropriate responses** - conversational tone suitable for live calls
+- **Accurate information** - 100% curriculum-based with proper citations
+
+### Architecture Principles
+- **AI-driven decisions** - use AI for routing, classification, and generation
+- **Externalized configuration** - all AI behavior controlled via config files
+- **Robust error recovery** - multi-layer fallback with graceful degradation
+- **State management** - comprehensive tracking across LangGraph nodes
+- **Intelligent routing** - AI determines optimal response type for each query
+
+**Always prioritize the AI-driven architecture and externalized configuration over hardcoded solutions.**
