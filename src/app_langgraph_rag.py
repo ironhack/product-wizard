@@ -56,6 +56,38 @@ VALIDATION_INSTRUCTIONS = load_config_file('VALIDATION_INSTRUCTIONS.md')
 RETRIEVAL_INSTRUCTIONS = load_config_file('RETRIEVAL_INSTRUCTIONS.md')
 DOCUMENT_FILTERING_INSTRUCTIONS = load_config_file('DOCUMENT_FILTERING_INSTRUCTIONS.md')
 
+# New externalized configs
+FALLBACK_CLASSIFIER_PROMPT = load_config_file('FALLBACK_CLASSIFIER.md')
+FUN_FALLBACK_TEMPLATES = load_config_file('FUN_FALLBACK_TEMPLATES.md')
+EXPANSION_INSTRUCTIONS_TEXT = load_config_file('EXPANSION_INSTRUCTIONS.md')
+FALLBACK_DETECTION_PATTERNS_TEXT = load_config_file('FALLBACK_DETECTION_PATTERNS.md')
+TEAM_ROUTING_RULES_TEXT = load_config_file('TEAM_ROUTING_RULES.md')
+
+def _parse_patterns(text: str) -> List[str]:
+    patterns = []
+    for line in (text or "").splitlines():
+        s = line.strip().lower()
+        if not s or s.startswith('#'):
+            continue
+        patterns.append(s)
+    return patterns
+
+# Note: We rely on AI-based fallback classification via `classify_fallback` and
+# a lightweight heuristic in `is_fallback_response`. No static pattern list needed.
+
+def _parse_team_rules(text: str) -> Dict[str, List[str]]:
+    edu, prog = [], []
+    lines = (text or "").splitlines()
+    for i, line in enumerate(lines):
+        low = line.strip().lower()
+        if low.startswith('education team keywords:') and i + 1 < len(lines):
+            edu = [w.strip().lower() for w in lines[i+1].split(',') if w.strip()]
+        if low.startswith('program team keywords:') and i + 1 < len(lines):
+            prog = [w.strip().lower() for w in lines[i+1].split(',') if w.strip()]
+    return {"edu": edu, "program": prog}
+
+TEAM_RULES = _parse_team_rules(TEAM_ROUTING_RULES_TEXT)
+
 # Constants for consistent messaging
 FALLBACK_MESSAGE = (
     "I don't have complete information about this topic in our curriculum materials. "
@@ -226,6 +258,9 @@ class RAGState(TypedDict):
     # Generation
     response: str
     actual_sources_used: List[str]  # Sources actually used by Responses API
+    # Structured generation flags
+    found_answer_in_documents: bool
+    reason_if_not_found: str
     
     # Validation
     validation_result: Dict
@@ -241,6 +276,7 @@ class RAGState(TypedDict):
     # Metadata
     processing_time: float
     retrieved_docs_count: int
+    retry_expansion: bool
     
     # LangGraph managed conversation history (this replaces all manual context management!)
     messages: Annotated[Sequence[BaseMessage], add]
@@ -749,7 +785,11 @@ def expand_document_chunks(state: RAGState) -> RAGState:
         logger.info(f"Expanding chunks from {len(original_sources)} source documents")
         
         # Get more comprehensive chunks from the same documents
-        enhanced_query = f"{query} - provide detailed information from these specific documents"
+        suffix = " - provide detailed information from these specific documents"
+        if EXPANSION_INSTRUCTIONS_TEXT and 'Enhanced query suffix' in EXPANSION_INSTRUCTIONS_TEXT:
+            # keep current behavior; future: parse a configurable suffix if needed
+            pass
+        enhanced_query = f"{query}{suffix}"
         logger.info(f"Enhanced query for expansion: {enhanced_query[:100]}...")
         
         resp = openai_client.responses.create(
@@ -865,10 +905,15 @@ def generate_fun_fallback(state: RAGState) -> RAGState:
     query_lower = query.lower()
     
     # Content/curriculum/certification queries → Education team
-    edu_keywords = ["curriculum", "course", "content", "syllabus", "certification", "taught", "covered", "learn", "study", "technologies", "tools", "languages", "duration", "hours", "weeks"]
+    # Load keywords from config; fall back to defaults
+    edu_keywords = TEAM_RULES.get("edu") or [
+        "curriculum", "course", "content", "syllabus", "certification", "taught", "covered", "learn", "study", "technologies", "tools", "languages", "duration", "hours", "weeks"
+    ]
     
     # Operations/logistics/process queries → Program team  
-    program_keywords = ["schedule", "start", "when", "application", "apply", "price", "cost", "payment", "location", "format", "requirements", "prerequisites", "job", "placement", "career"]
+    program_keywords = TEAM_RULES.get("program") or [
+        "schedule", "start", "when", "application", "apply", "price", "cost", "payment", "location", "format", "requirements", "prerequisites", "job", "placement", "career"
+    ]
     
     is_edu_query = any(keyword in query_lower for keyword in edu_keywords)
     is_program_query = any(keyword in query_lower for keyword in program_keywords)
@@ -1027,55 +1072,129 @@ def retry_with_delay(state: RAGState) -> RAGState:
 
 # ---------------- Conditional Logic ----------------
 def is_fallback_response(response: str) -> bool:
-    """Check if the response is a default fallback message"""
-    fallback_indicators = [
-        "i don't have that specific information",
-        "i don't have complete information", 
-        "please reach out to the education team",
-        FALLBACK_MESSAGE.lower()
-    ]
-    response_lower = response.lower()
-    
-    # Debug logging
-    logger.info(f"Checking fallback indicators in response: {response_lower[:100]}...")
-    for indicator in fallback_indicators:
-        if indicator in response_lower:
-            logger.info(f"MATCHED fallback indicator: '{indicator}'")
-            return True
-        else:
-            logger.info(f"No match for indicator: '{indicator}'")
-    
-    logger.info("No fallback indicators found")
-    return False
+    """Ask AI to classify whether the response is a fallback (no substantive answer) with JSON output; fallback to heuristics on error"""
+    try:
+        prompt = (FALLBACK_CLASSIFIER_PROMPT or "Classify if the response is a fallback. Return JSON.")
+        classification_schema = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "fallback_classifier",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "is_fallback": {"type": "boolean"},
+                        "reason": {"type": "string"}
+                    },
+                    "required": ["is_fallback"]
+                }
+            }
+        }
+        full_prompt = prompt + "\n\nRESPONSE:\n" + response
+        ai_resp = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Return only JSON following the schema."},
+                {"role": "user", "content": full_prompt}
+            ],
+            temperature=0,
+            response_format=classification_schema
+        )
+        parsed = json.loads(ai_resp.choices[0].message.content)
+        is_fb = bool(parsed.get("is_fallback", False))
+        logger.info(f"AI fallback classification: {is_fb} ({parsed.get('reason','')})")
+        return is_fb
+    except Exception as e:
+        logger.warning(f"AI fallback classification failed, using heuristics: {e}")
+        fallback_indicators = [
+            "i don't have that specific information",
+            "i don't have complete information", 
+            "please reach out to the education team",
+            FALLBACK_MESSAGE.lower()
+        ]
+        response_lower = response.lower()
+        return any(ind in response_lower for ind in fallback_indicators)
 
 def should_expand_chunks(state: RAGState) -> str:
-    """Determine if we should expand chunks and retry generation using structured response data"""
+    """Determine if we should expand chunks and retry generation using structured/AI fallback flags"""
     response = state.get("response", "")
     retry_expansion = state.get("retry_expansion", False)
     sources = state.get("sources", [])
     found_answer = state.get("found_answer_in_documents", True)
     reason_if_not_found = state.get("reason_if_not_found", "")
+    is_fallback_ai = state.get("is_fallback_ai", None)
     
     logger.info(f"Checking for chunk expansion: response_length={len(response)}, has_sources={bool(sources)}, already_tried={retry_expansion}")
     logger.info(f"Raw state keys: {list(state.keys())}")
     logger.info(f"found_answer_in_documents in state: {state.get('found_answer_in_documents', 'NOT FOUND')}")
     logger.info(f"Structured response analysis: found_answer={found_answer}, reason={reason_if_not_found}")
+    if is_fallback_ai is not None:
+        logger.info(f"AI fallback flag present: {is_fallback_ai}")
+        legacy_fallback = is_fallback_ai
+    else:
+        # Heuristic backup if classifier wasn't run
+        legacy_fallback = is_fallback_response(response)
+        if legacy_fallback:
+            logger.info("Detected legacy fallback text from generation (heuristic)")
     
-    # Only expand if:
-    # 1. Model explicitly says it didn't find the answer in documents
-    # 2. We have source documents to expand from
-    # 3. We haven't already tried expansion (prevent infinite loop)
-    if (not found_answer and sources and not retry_expansion):
-        logger.info(f"Model couldn't find answer ({reason_if_not_found}) with available sources - expanding chunks for retry")
+    # Expand if model said not found or legacy fallback text produced, once
+    if ((legacy_fallback or not found_answer) and sources and not retry_expansion):
+        logger.info("Triggering expansion due to missing answer/legacy fallback")
         return "expand_document_chunks"
     
-    # If we tried expansion and still no answer, use fun fallback
-    if (not found_answer and retry_expansion):
-        logger.info(f"Expansion failed to find answer ({reason_if_not_found}) - using fun fallback")
+    # If we tried expansion and still no answer (or still legacy fallback), use fun fallback
+    if (retry_expansion and (legacy_fallback or not found_answer)):
+        logger.info("Expansion unsuccessful; routing to fun fallback")
         return "generate_fun_fallback"
     
     logger.info("Model found answer or no expansion needed - proceeding to validation")
     return "validate_response"
+
+def classify_fallback(state: RAGState) -> RAGState:
+    """Classify if current response is a fallback using AI (with heuristic backup). Only runs when likely needed."""
+    response = state.get("response", "")
+    found_answer = state.get("found_answer_in_documents", True)
+    # Only run when structured flags say not found OR heuristic suspects fallback
+    should_run = (not found_answer) or is_fallback_response(response)
+    if not should_run:
+        return state
+    try:
+        classification_schema = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "fallback_classifier",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "is_fallback": {"type": "boolean"},
+                        "reason": {"type": "string"}
+                    },
+                    "required": ["is_fallback"]
+                }
+            }
+        }
+        prompt = (
+            "Classify if the following assistant response is a fallback/non-answer (polite deferral,"
+            " says cannot find info, suggests contacting teams) versus a substantive answer that provides"
+            " concrete information from documents. Return JSON.\n\nRESPONSE:\n" + response
+        )
+        ai_resp = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Return only JSON following the schema."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0,
+            response_format=classification_schema
+        )
+        parsed = json.loads(ai_resp.choices[0].message.content)
+        is_fb = bool(parsed.get("is_fallback", False))
+        reason = str(parsed.get("reason", ""))
+        logger.info(f"AI fallback classification node: {is_fb} ({reason})")
+        return {**state, "is_fallback_ai": is_fb, "fallback_reason_ai": reason}
+    except Exception as e:
+        logger.warning(f"AI fallback classification node failed, using heuristic: {e}")
+        heuristic_flag = is_fallback_response(response)
+        return {**state, "is_fallback_ai": heuristic_flag, "fallback_reason_ai": "heuristic"}
 
 def should_apply_fallback(state: RAGState) -> str:
     """Determine if we should apply fallback based on validation"""
@@ -1136,6 +1255,7 @@ def create_rag_graph():
     workflow.add_node("retrieve_documents", retrieve_documents)
     workflow.add_node("filter_documents_for_sales", filter_documents_for_sales)
     workflow.add_node("generate_response", generate_response)
+    workflow.add_node("classify_fallback", classify_fallback)
     workflow.add_node("expand_document_chunks", expand_document_chunks)
     workflow.add_node("generate_fun_fallback", generate_fun_fallback)
     workflow.add_node("validate_response", validate_response)
@@ -1153,9 +1273,11 @@ def create_rag_graph():
     workflow.add_edge("retrieve_documents", "filter_documents_for_sales")
     workflow.add_edge("filter_documents_for_sales", "generate_response")
     
-    # Add conditional routing after generation - check for fallback response
+    # After generation, classify fallback when likely needed
+    workflow.add_edge("generate_response", "classify_fallback")
+    # Add conditional routing after classification - check for expansion/fallback
     workflow.add_conditional_edges(
-        "generate_response",
+        "classify_fallback",
         should_expand_chunks,
         {
             "expand_document_chunks": "expand_document_chunks",
