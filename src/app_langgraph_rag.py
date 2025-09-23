@@ -552,6 +552,28 @@ def retrieve_documents(state: RAGState) -> RAGState:
                 "filename": fname,
                 "text": entry["text"]
             })
+
+        # If this is a certification-focused query, prioritize the Certifications document exclusively when available
+        if is_cert_query:
+            try:
+                filt_sources = []
+                filt_docs = []
+                filt_ids = []
+                filt_chunks = []
+                for s, d, fid, ch in zip(sources, retrieved_content, selected_file_ids, evidence_chunks):
+                    base = (s or '').replace('.txt', '').replace('.md', '').lower()
+                    if base == 'certifications_2025_07':
+                        filt_sources.append(s)
+                        filt_docs.append(d)
+                        filt_ids.append(fid)
+                        filt_chunks.append(ch)
+                if filt_sources:
+                    sources = filt_sources
+                    retrieved_content = filt_docs
+                    selected_file_ids = filt_ids
+                    evidence_chunks = filt_chunks
+            except Exception:
+                pass
         
         # Debug: trace initial retrieval sources and file ids
         try:
@@ -716,6 +738,22 @@ def filter_documents_for_sales(state: RAGState) -> RAGState:
     original_docs = state["retrieved_docs"]
     original_file_ids = state["selected_file_ids"]
     original_chunks = state["evidence_chunks"]
+
+    # If it's a certification query, restrict to Certifications document early to avoid mixing "aligned" mentions
+    if is_cert_query:
+        try:
+            keep_idxs = []
+            for i, src in enumerate(original_sources):
+                base = (src or '').replace('.txt', '').replace('.md', '').lower()
+                if base == 'certifications_2025_07':
+                    keep_idxs.append(i)
+            if keep_idxs:
+                original_sources = [original_sources[i] for i in keep_idxs]
+                original_docs = [original_docs[i] for i in keep_idxs]
+                original_file_ids = [original_file_ids[i] for i in keep_idxs]
+                original_chunks = [original_chunks[i] for i in keep_idxs]
+        except Exception:
+            pass
     
     # Group chunks by document name to avoid losing relevant chunks from the same document
     chunks_by_doc = {}
@@ -927,6 +965,21 @@ def generate_response(state: RAGState) -> RAGState:
         docs_for_gen = list(state.get("retrieved_docs", []))
         ql = (state.get("query") or "").lower()
         is_cert_query = ("certification" in ql)
+        # For certification questions, strictly limit generation context to the Certifications document
+        if is_cert_query and sources_for_gen and docs_for_gen:
+            try:
+                cert_sources = []
+                cert_docs = []
+                for s, d in zip(sources_for_gen, docs_for_gen):
+                    base = (s or '').replace('.txt', '').replace('.md', '').lower()
+                    if base == 'certifications_2025_07':
+                        cert_sources.append(s)
+                        cert_docs.append(d)
+                if cert_sources:
+                    sources_for_gen = cert_sources
+                    docs_for_gen = cert_docs
+            except Exception:
+                pass
         if sources_for_gen and docs_for_gen:
             if state.get("comparison_mode") and len(hints) >= 2:
                 allowed = _allowed_filenames_for_hints(hints)
@@ -1095,7 +1148,29 @@ def validate_response(state: RAGState) -> RAGState:
     
     try:
         response = state["response"]
-        evidence_text = "\n\n".join(state["retrieved_docs"])
+        query_text = (state.get("query") or "")
+        is_cert_query = ("certification" in query_text.lower())
+
+        # Cap evidence size to reduce memory/latency
+        docs = state["retrieved_docs"]
+        evidence_pieces = []
+        total_cap = 8000
+        per_doc_cap = 2000
+        total_len = 0
+        for doc in docs:
+            if not doc:
+                continue
+            piece = doc[:per_doc_cap]
+            # Enforce overall cap progressively
+            remaining = max(0, total_cap - total_len)
+            if remaining <= 0:
+                break
+            piece = piece[:remaining]
+            evidence_pieces.append(piece)
+            total_len += len(piece)
+            if total_len >= total_cap:
+                break
+        evidence_text = "\n\n".join(evidence_pieces)
         
         if not evidence_text.strip():
             # No evidence to validate against - treat as safe
@@ -1124,7 +1199,7 @@ RESPONSE TO VALIDATE:
 """
         
         validation_response = openai_client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "Return only valid JSON with the requested keys. No prose."},
                 {"role": "user", "content": validation_instructions}
@@ -1141,14 +1216,15 @@ RESPONSE TO VALIDATE:
             "explanation": str(result_raw.get("explanation", "")),
         }
         
-        # Apply softening rules (same as original)
-        if (not validation_result["contains_only_retrieved_info"] and
-            ((len(validation_result["unsupported_claims"]) <= 2 and validation_result["confidence"] >= 0.3) or
-             (len(validation_result["unsupported_claims"]) == 1 and validation_result["confidence"] >= 0.2))):
-            validation_result["contains_only_retrieved_info"] = True
-            validation_result["unsupported_claims"] = []
-            validation_result["explanation"] = "Minor issues ignored for educational content."
-            validation_result["confidence"] = max(0.7, validation_result["confidence"])
+        # Apply softening rules except for certification queries where precision is critical
+        if not is_cert_query:
+            if (not validation_result["contains_only_retrieved_info"] and
+                ((len(validation_result["unsupported_claims"]) <= 2 and validation_result["confidence"] >= 0.3) or
+                 (len(validation_result["unsupported_claims"]) == 1 and validation_result["confidence"] >= 0.2))):
+                validation_result["contains_only_retrieved_info"] = True
+                validation_result["unsupported_claims"] = []
+                validation_result["explanation"] = "Minor issues ignored for educational content."
+                validation_result["confidence"] = max(0.7, validation_result["confidence"])
         
         return {
             **state,

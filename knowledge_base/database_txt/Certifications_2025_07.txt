@@ -74,6 +74,8 @@ Ironhack offers industry-recognized certifications for all bootcamp graduates an
   - *Focuses on security frameworks, compliance, and organizational security practices*
   - *Ideal for professionals seeking to understand cybersecurity from a business perspective*
 
+> Note: The Cybersecurity bootcamp curriculum may include preparation or alignment content for additional industry certifications (e.g., CompTIA Security+, CISSP, CNSS ICSI) within course materials. However, the paid certification options provided by Ironhack for Cybersecurity graduates are those listed above.
+
 #### UX/UI Design
 - **UXQB Certified Professional for Usability and UX (CPUX-F)** - [Link](https://www.uxqb.org/ux-training-and-certification/cpux-f/)
   - *Foundation-level certification in usability and user experience design*
