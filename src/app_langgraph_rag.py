@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 # In-memory ring buffer of recently seen Slack event_ids to avoid double-processing.
 # Heroku or multi-request retries can deliver the same event twice.
 SEEN_EVENT_IDS: deque[str] = deque(maxlen=512)
+SEEN_ENVELOPE_IDS: deque[str] = deque(maxlen=1024)
 
 def _already_processed(event: Dict) -> bool:
     try:
@@ -1885,6 +1886,26 @@ flask_app = Flask(__name__)
 
 @flask_app.route("/slack/events", methods=["POST"])
 def slack_events():
+    # Envelope-level dedupe and URL verification
+    try:
+        # Slack may send retry headers on re-delivery
+        retry_num = request.headers.get('X-Slack-Retry-Num')
+        retry_reason = request.headers.get('X-Slack-Retry-Reason')
+        if retry_num or retry_reason:
+            logger.info(f"Slack retry headers: num={retry_num}, reason={retry_reason}")
+        data = request.get_json(silent=True) or {}
+        # URL verification challenge (if events subscription is reconfigured)
+        if data.get("type") == "url_verification" and data.get("challenge"):
+            return data.get("challenge"), 200
+        envelope_id = request.headers.get('X-Slack-Request-Timestamp', '') + ":" + (data.get('event_id') or '')
+        if envelope_id and envelope_id in SEEN_ENVELOPE_IDS:
+            logger.info("Duplicate envelope suppressed at Flask route")
+            return "", 200
+        if envelope_id:
+            SEEN_ENVELOPE_IDS.append(envelope_id)
+    except Exception as e:
+        logger.debug(f"Envelope pre-processing failed: {e}")
+
     if handler:
         try:
             return handler.handle(request)
