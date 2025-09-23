@@ -329,10 +329,10 @@ def route_after_coverage_check(state: 'RAGState') -> str:
     is_coverage = state.get("is_coverage_question", False)
     explicitly_listed = state.get("coverage_explicitly_listed")
     logger.info(f"Coverage routing: is_coverage={is_coverage}, explicitly_listed={explicitly_listed}")
-    if state.get("is_coverage_question", False):
-        if state.get("coverage_explicitly_listed") is False:
-            logger.info("Routing to negative coverage response")
-            return "generate_negative_coverage_response"
+    # Only route to negative coverage if it's a coverage question and AI verified NOT listed
+    if is_coverage and explicitly_listed is False:
+        logger.info("Routing to negative coverage response")
+        return "generate_negative_coverage_response"
     logger.info("Routing to regular generate_response")
     return "generate_response"
 
@@ -1249,7 +1249,7 @@ def should_expand_chunks(state: 'RAGState') -> str:
     logger.info(f"Raw state keys: {list(state.keys())}")
     logger.info(f"found_answer_in_documents in state: {state.get('found_answer_in_documents', 'NOT FOUND')}")
     logger.info(f"Structured response analysis: found_answer={found_answer}, reason={reason_if_not_found}")
-    # If AI coverage verification already determined it's not listed, route to negative coverage
+    # If AI coverage verification already determined it's not listed, route negative
     if state.get("is_coverage_question", False) and state.get("coverage_explicitly_listed") is False:
         logger.info("AI coverage verification says not listed; generating negative coverage response")
         return "generate_negative_coverage_response"
@@ -1257,14 +1257,8 @@ def should_expand_chunks(state: 'RAGState') -> str:
     legacy_fallback = bool(is_fallback_ai)
     logger.info(f"Using AI node classification for fallback: {legacy_fallback}")
     
-    # Coverage negative: if coverage question AND AI verification already said not listed, go negative
-    if state.get("is_coverage_question", False) and state.get("coverage_explicitly_listed") is False:
-        logger.info("Coverage question and AI verification says not listed; generating negative coverage response")
-        return "generate_negative_coverage_response"
-    # Otherwise, if coverage question AND not found, go negative rather than expand/fallback
-    if state.get("is_coverage_question", False) and not found_answer and sources:
-        logger.info("Coverage question with no explicit mention; generating negative coverage response")
-        return "generate_negative_coverage_response"
+    # Do NOT force negative coverage if AI said explicitly listed (True or None). Only negative when explicitly False.
+    # If coverage question and not found, prefer expansion first; only negative when explicitly False.
     
     # Expand if model said not found or legacy fallback text produced, once
     if ((legacy_fallback or not found_answer) and sources and not retry_expansion):
@@ -1486,6 +1480,131 @@ def convert_markdown_to_slack(text):
     text = re.sub(r'^-\s+', '• ', text, flags=re.MULTILINE)  # bullets
     return text
 
+# Ignore Slack events that are edits/changes or from bots to avoid loops
+def _is_ignorable_slack_event(event: Dict) -> bool:
+    try:
+        subtype = event.get('subtype')
+        if subtype in {"message_changed", "message_deleted", "message_replied", "bot_message"}:
+            return True
+        if event.get('bot_id'):
+            return True
+        nested = event.get('message') or {}
+        if isinstance(nested, dict):
+            nsub = nested.get('subtype')
+            if nsub in {"message_changed", "message_deleted", "message_replied", "bot_message"}:
+                return True
+            if nested.get('bot_id'):
+                return True
+    except Exception:
+        return False
+    return False
+
+# Progressive Slack updates manager
+class SlackUpdateManager:
+    def __init__(self, client, channel: str, thread_ts: str | None):
+        self.client = client
+        self.channel = channel
+        self.thread_ts = thread_ts
+        self.ts = None  # message timestamp for updates
+        self.last_update = 0.0
+        # Step states: todo | in_progress | done
+        self.steps = {
+            "Retrieval": "in_progress",
+            "Filtering": "todo",
+            "Coverage check": "todo",
+            "Generation": "todo",
+            "Validation": "todo",
+        }
+        self.draft_text = None
+
+    def _status_emoji(self, state: str) -> str:
+        return {
+            "todo": "▫️",
+            "in_progress": "⏳",
+            "done": "✅",
+        }.get(state, "▫️")
+
+    def _render_text(self) -> str:
+        checklist_lines = []
+        for name, st in self.steps.items():
+            checklist_lines.append(f"{self._status_emoji(st)} {name}")
+        checklist = "\n".join(checklist_lines)
+
+        header = "✨ On it! I’ll keep you posted step-by-step. 🎯"
+        body = header + "\n\n" + checklist
+        if self.draft_text:
+            body += "\n\n*Draft (will improve as we go):*\n" + self.draft_text
+        return convert_markdown_to_slack(body)
+
+    def _maybe_throttle(self):
+        now = time.time()
+        if now - self.last_update < 1.0:
+            return True
+        self.last_update = now
+        return False
+
+    def post_initial(self):
+        try:
+            if not self.client:
+                return
+            text = self._render_text()
+            resp = self.client.chat_postMessage(channel=self.channel, text=text, thread_ts=self.thread_ts)
+            self.ts = resp.get("ts") if isinstance(resp, dict) else getattr(resp, "data", {}).get("ts", None)
+        except Exception as e:
+            logger.warning(f"Failed to post initial Slack message: {e}")
+
+    def update_step(self, name: str, state: str):
+        if name in self.steps:
+            self.steps[name] = state
+        # Avoid spamming Slack
+        if self._maybe_throttle():
+            return
+        self._update()
+
+    def set_draft(self, text: str):
+        # Clean and trim draft for Slack
+        cleaned = clean_citations(text or "").strip()
+        # Keep it short for draft stage
+        if len(cleaned) > 900:
+            cleaned = cleaned[:900].rstrip() + "…"
+        self.draft_text = cleaned
+        if self._maybe_throttle():
+            return
+        self._update()
+
+    def finalize(self, final_text: str):
+        try:
+            for k in self.steps.keys():
+                self.steps[k] = "done"
+            self.draft_text = None
+            text = convert_markdown_to_slack(clean_citations(final_text or ""))
+            if self.client and self.ts:
+                self.client.chat_update(channel=self.channel, ts=self.ts, text=text)
+        except Exception as e:
+            logger.warning(f"Failed to finalize Slack message: {e}")
+
+    def error(self, message: str):
+        try:
+            for k in self.steps.keys():
+                if self.steps[k] != "done":
+                    self.steps[k] = "todo"
+            text = convert_markdown_to_slack(f"😅 Little hiccup on my end — {message} \nI’ll keep things simple and share what I can. 🛟")
+            if self.client:
+                if self.ts:
+                    self.client.chat_update(channel=self.channel, ts=self.ts, text=text)
+                else:
+                    self.client.chat_postMessage(channel=self.channel, text=text, thread_ts=self.thread_ts)
+        except Exception as e:
+            logger.warning(f"Failed to send error Slack message: {e}")
+
+    def _update(self):
+        if not (self.client and self.ts):
+            return
+        try:
+            self.client.chat_update(channel=self.channel, ts=self.ts, text=self._render_text())
+        except Exception as e:
+            logger.debug(f"Slack update throttled/failed: {e}")
+
 # Initialize Slack app
 slack_app = None
 handler = None
@@ -1547,9 +1666,53 @@ def process_message(event, say):
             "error_history": []
         }
         
-        # Run the graph with conversation-specific thread - LangGraph merges with existing history
+        # Prepare Slack progressive updates (no draft content, only status)
+        channel = event.get('channel')
+        manager = SlackUpdateManager(slack_app.client if slack_app else None, channel, thread_ts)
+        manager.post_initial()
+
+        # Stream node updates for progress (fun + emojis, no draft content)
         config = {"configurable": {"thread_id": conversation_id}}
-        result = rag_graph.invoke(initial_state, config=config)
+        streamed_result = None
+        try:
+            stream_iter = getattr(rag_graph, "stream", None)
+            if stream_iter is None:
+                raise RuntimeError("stream not available")
+            for step in stream_iter(initial_state, config=config):
+                if not isinstance(step, dict):
+                    continue
+                for node_name, node_value in step.items():
+                    if node_name == "__start__":
+                        continue
+                    if node_name == "__end__":
+                        streamed_result = node_value
+                        continue
+                    n = str(node_name)
+                    if "retrieve_documents" in n:
+                        manager.update_step("Retrieval", "done")  # 🔎
+                        manager.update_step("Filtering", "in_progress")  # 🧹
+                    elif "filter_documents_for_sales" in n:
+                        manager.update_step("Filtering", "done")
+                        manager.update_step("Coverage check", "in_progress")  # 🧭
+                    elif "classify_coverage" in n or "verify_coverage_with_ai" in n:
+                        manager.update_step("Coverage check", "done")
+                        manager.update_step("Generation", "in_progress")  # ✍️
+                    elif ("generate_response" in n or 
+                          "generate_negative_coverage_response" in n or 
+                          "generate_fun_fallback" in n):
+                        manager.update_step("Generation", "done")
+                        manager.update_step("Validation", "in_progress")  # 🔎
+                    elif "validate_response" in n:
+                        manager.update_step("Validation", "done")  # ✅
+
+            # Use streamed final state if available
+            if streamed_result is not None:
+                result = streamed_result
+            else:
+                result = rag_graph.invoke(initial_state, config=config)
+        except Exception as stream_err:
+            logger.info(f"Stream not available or failed, falling back to invoke: {stream_err}")
+            result = rag_graph.invoke(initial_state, config=config)
         
         # Calculate processing time
         processing_time = time.time() - start_time
@@ -1571,18 +1734,17 @@ def process_message(event, say):
             for i, error in enumerate(error_history):
                 logger.warning(f"   Error {i+1}: {error.get('error_type', 'unknown')} in {error.get('node', 'unknown')}")
         
-        # Prepare message for Slack
-        cleaned_message = clean_citations(assistant_message)
-        slack_message = convert_markdown_to_slack(cleaned_message)
-        
-        # Reply in the correct thread context
-        say(slack_message, thread_ts=thread_ts)
-        logger.info(f"Response sent successfully in thread: {thread_ts}")
+        # Finalize the single Slack message with the answer
+        manager.finalize(assistant_message)
+        logger.info(f"Response finalized successfully in thread: {thread_ts}")
         
     except Exception as e:
         logger.error(f"Error processing message with Simplified LangGraph RAG: {str(e)}")
         try:
-            say(PROCESSING_ERROR_MESSAGE, thread_ts=thread_ts)
+            # Update the progress message instead of posting a new one
+            channel = event.get('channel')
+            manager = SlackUpdateManager(slack_app.client if slack_app else None, channel, thread_ts)
+            manager.error(PROCESSING_ERROR_MESSAGE)
         except Exception as e2:
             logger.error(f"Error sending failure response: {str(e2)}")
 
@@ -1591,12 +1753,18 @@ if slack_app is not None:
     @slack_app.event("app_mention")
     def handle_mention(event, say):
         """Handle @productwizard mentions in channels"""
+        if _is_ignorable_slack_event(event):
+            logger.info("Ignoring ignorable app_mention event (bot/edit)")
+            return
         logger.info(f"App mention detected in channel {event.get('channel')}, thread_ts: {event.get('thread_ts')}")
         process_message(event, say)
 
     @slack_app.event("message")
     def handle_message(event, say):
         """Handle direct messages and thread replies where the bot was previously mentioned"""
+        if _is_ignorable_slack_event(event):
+            logger.info("Ignoring ignorable message event (bot/edit)")
+            return
         # Handle direct messages
         if event.get("channel_type") == "im":
             logger.info(f"Direct message received from user")
