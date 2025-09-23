@@ -47,6 +47,6 @@
 
 - For coverage questions, use evidence-based phrasing:
   - If the topic is explicitly mentioned in a syllabus, quote a short line and name the file.
-  - If the topic has no explicit mention in the retrieved syllabus, say: "The curriculum does not list <topic> in the retrieved document" and cite the filename.
-  - Avoid asserting "does not cover" unless the document explicitly states it.
+  - If the topic has no explicit mention in the retrieved syllabus, answer succinctly: "No — according to the retrieved curriculum, <topic> is not listed." Then include a Sources block with the curriculum filename(s).
+  - If there is partial coverage or closely related topics, briefly note them only if they appear in the retrieved context.
   - Keep responses concise and avoid speculation.

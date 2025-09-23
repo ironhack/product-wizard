@@ -242,6 +242,46 @@ def ensure_single_sources_block(text: str, filenames: List[str]) -> str:
         text = f"{text}\n\nSources:\n{bullets}"
     return text.strip()
 
+# ---------------- Coverage Classification (AI-based) ----------------
+def classify_coverage(state: 'RAGState') -> 'RAGState':
+    """Use AI to determine if the query is a coverage question and extract the topic."""
+    query = state.get("query", "")
+    try:
+        schema = {
+            "type": "json_schema",
+            "json_schema": {
+                "name": "coverage_classifier",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "is_coverage_question": {"type": "boolean"},
+                        "topic": {"type": "string"}
+                    },
+                    "required": ["is_coverage_question"]
+                }
+            }
+        }
+        prompt = (
+            "Classify if the following user query asks whether a program covers/teaches/includes a topic. "
+            "Return JSON with is_coverage_question and the topic (short phrase, e.g., 'SQL').\n\nQUERY:\n" + query
+        )
+        resp = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Return only JSON following the schema."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0,
+            response_format=schema
+        )
+        parsed = json.loads(resp.choices[0].message.content)
+        is_cov = bool(parsed.get("is_coverage_question", False))
+        topic = str(parsed.get("topic", "")).strip()
+        return {**state, "is_coverage_question": is_cov, "coverage_topic": topic}
+    except Exception as e:
+        logger.warning(f"Coverage classification failed, defaulting to not coverage: {e}")
+        return {**state, "is_coverage_question": False, "coverage_topic": ""}
+
 # ---------------- LangGraph State ----------------
 class RAGState(TypedDict):
     """Enhanced state for robust RAG workflow with error handling"""
@@ -963,6 +1003,29 @@ They'll have the detailed answers you're looking for and won't give me grief abo
         "confidence": 1.0
     }
 
+def generate_negative_coverage_response(state: 'RAGState') -> 'RAGState':
+    """Generate a concise negative coverage answer based on absence in retrieved curriculum."""
+    logger.info("Generating negative coverage response")
+    query = state.get("query", "")
+    topic = (state.get("coverage_topic") or "the requested topic").strip() or "the requested topic"
+    filenames = [normalize_filename(s) for s in state.get("sources", [])]
+    cited = filenames[0] if filenames else "retrieved curriculum"
+    answer = f"No — according to the retrieved curriculum, {topic} is not listed."
+    # Add a single Sources block
+    answer = ensure_single_sources_block(answer, state.get("sources", []))
+    validation = {
+        "contains_only_retrieved_info": True,
+        "unsupported_claims": [],
+        "confidence": 0.9,
+        "explanation": f"Answered based on absence of explicit mention in {cited}."
+    }
+    return {
+        **state,
+        "response": answer,
+        "validation_result": validation,
+        "confidence": 0.9
+    }
+
 def apply_fallback(state: RAGState) -> RAGState:
     """Apply safe fallback if validation fails"""
     logger.info("Applying fallback due to validation failure")
@@ -1114,7 +1177,7 @@ def is_fallback_response(response: str) -> bool:
         response_lower = response.lower()
         return any(ind in response_lower for ind in fallback_indicators)
 
-def should_expand_chunks(state: RAGState) -> str:
+def should_expand_chunks(state: 'RAGState') -> str:
     """Determine if we should expand chunks and retry generation using structured/AI fallback flags"""
     response = state.get("response", "")
     retry_expansion = state.get("retry_expansion", False)
@@ -1136,13 +1199,21 @@ def should_expand_chunks(state: RAGState) -> str:
         if legacy_fallback:
             logger.info("Detected legacy fallback text from generation (heuristic)")
     
+    # Coverage negative: if coverage question AND not found but we have sources, go negative rather than fun fallback
+    if state.get("is_coverage_question", False) and not found_answer and sources:
+        logger.info("Coverage question with no explicit mention; generating negative coverage response")
+        return "generate_negative_coverage_response"
+    
     # Expand if model said not found or legacy fallback text produced, once
     if ((legacy_fallback or not found_answer) and sources and not retry_expansion):
         logger.info("Triggering expansion due to missing answer/legacy fallback")
         return "expand_document_chunks"
     
-    # If we tried expansion and still no answer (or still legacy fallback), use fun fallback
+    # If we tried expansion and still no answer (or still legacy fallback), prefer negative coverage if applicable, else fun fallback
     if (retry_expansion and (legacy_fallback or not found_answer)):
+        if state.get("is_coverage_question", False) and sources:
+            logger.info("Post-expansion: still missing; generating negative coverage response")
+            return "generate_negative_coverage_response"
         logger.info("Expansion unsuccessful; routing to fun fallback")
         return "generate_fun_fallback"
     
@@ -1254,11 +1325,13 @@ def create_rag_graph():
     # Add main workflow nodes
     workflow.add_node("retrieve_documents", retrieve_documents)
     workflow.add_node("filter_documents_for_sales", filter_documents_for_sales)
+    workflow.add_node("classify_coverage", classify_coverage)
     workflow.add_node("generate_response", generate_response)
     workflow.add_node("classify_fallback", classify_fallback)
     workflow.add_node("expand_document_chunks", expand_document_chunks)
     workflow.add_node("generate_fun_fallback", generate_fun_fallback)
     workflow.add_node("validate_response", validate_response)
+    workflow.add_node("generate_negative_coverage_response", generate_negative_coverage_response)
     workflow.add_node("apply_fallback", apply_fallback)
     workflow.add_node("finalize_response", finalize_response)
     
@@ -1271,7 +1344,8 @@ def create_rag_graph():
     # Define the main flow
     workflow.set_entry_point("retrieve_documents")
     workflow.add_edge("retrieve_documents", "filter_documents_for_sales")
-    workflow.add_edge("filter_documents_for_sales", "generate_response")
+    workflow.add_edge("filter_documents_for_sales", "classify_coverage")
+    workflow.add_edge("classify_coverage", "generate_response")
     
     # After generation, classify fallback when likely needed
     workflow.add_edge("generate_response", "classify_fallback")
@@ -1281,6 +1355,7 @@ def create_rag_graph():
         should_expand_chunks,
         {
             "expand_document_chunks": "expand_document_chunks",
+            "generate_negative_coverage_response": "generate_negative_coverage_response",
             "generate_fun_fallback": "generate_fun_fallback",
             "validate_response": "validate_response"
         }
