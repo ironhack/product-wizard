@@ -32,24 +32,47 @@ logger = logging.getLogger(__name__)
 SEEN_EVENT_IDS: deque[str] = deque(maxlen=512)
 SEEN_ENVELOPE_IDS: deque[str] = deque(maxlen=1024)
 
+def _build_event_dedupe_key(event: Dict) -> str | None:
+    """Build a reasonably stable dedupe key for Slack events.
+
+    Preference order:
+    - event_id (if present)
+    - client_msg_id (user-sent messages)
+    - channel + event_ts/ts (unique per message in channel)
+    Never use content-based keys to avoid suppressing repeated messages.
+    Returns None if we cannot build a meaningful key.
+    """
+    try:
+        if not isinstance(event, dict):
+            return None
+        ev_id = event.get('event_id')
+        if ev_id:
+            return f"id:{ev_id}"
+        client_msg_id = event.get('client_msg_id')
+        if client_msg_id:
+            ev_type = str(event.get('type') or '')
+            return f"cmid:{ev_type}:{client_msg_id}"
+        channel = str(event.get('channel', '') or '')
+        ts = event.get('event_ts') or event.get('ts')
+        ev_type = str(event.get('type') or '')
+        thread_ts = event.get('thread_ts') or ''
+        if channel and ts:
+            return f"ch_ts:{ev_type}:{channel}:{ts}:{thread_ts}"
+        return None
+    except Exception:
+        return None
+
 def _already_processed(event: Dict) -> bool:
     try:
-        # Prefer stable identifiers that do not change across Slack retries
-        # Note: listeners receive the inner event dict, which often lacks top-level event_id
-        event_id = (
-            event.get('event_id')
-            or event.get('client_msg_id')
-            or (event.get('channel', ''), event.get('ts') or event.get('event_ts'))
-        )
-        if isinstance(event_id, tuple):
-            event_id = f"{event_id[0]}:{event_id[1]}"
-        if not event_id:
-            # Build a conservative synthetic key
-            event_id = f"{event.get('channel','')}:{event.get('ts','') or event.get('event_ts','')}:{event.get('thread_ts','')}"
-        logger.debug(f"Dedup check key (handler): {event_id}")
-        if event_id in SEEN_EVENT_IDS:
+        key = _build_event_dedupe_key(event)
+        logger.debug(f"Dedup check key (handler): {key}")
+        # If we cannot build a meaningful key, do not dedupe
+        if not key:
+            return False
+        if key in SEEN_EVENT_IDS:
+            logger.info(f"Duplicate event suppressed in handler key={key} fields={{type:{event.get('type')}, channel:{event.get('channel')}, ts:{event.get('ts') or event.get('event_ts')}, thread_ts:{event.get('thread_ts')}, client_msg_id:{event.get('client_msg_id')}}}")
             return True
-        SEEN_EVENT_IDS.append(event_id)
+        SEEN_EVENT_IDS.append(key)
         return False
     except Exception:
         return False
@@ -2469,14 +2492,9 @@ def slack_events():
         if data.get("type") == "url_verification" and data.get("challenge"):
             return data.get("challenge"), 200
         # Use Slack's stable event_id when available; fall back to best-effort keys
-        envelope_id = (
-            data.get('event_id')
-            or (data.get('event') or {}).get('client_msg_id')
-            or (
-                f"{(data.get('event') or {}).get('channel','')}:{(data.get('event') or {}).get('event_ts','')}"
-                if data.get('event') else None
-            )
-        )
+        inner_event = data.get('event') or {}
+        # Only dedupe at route when Slack supplies a top-level event_id
+        envelope_id = f"id:{data.get('event_id')}" if data.get('event_id') else None
         logger.debug(f"Dedup check key (envelope): {envelope_id}")
         if envelope_id and envelope_id in SEEN_ENVELOPE_IDS:
             logger.info("Duplicate envelope suppressed at Flask route")
