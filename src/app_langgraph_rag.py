@@ -188,6 +188,25 @@ def normalize_filename(filename: str) -> str:
     return base.replace("_", " ").strip()
 
 
+# ---------------- Memory/Throughput Caps (Env-configurable) ----------------
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.environ.get(name, str(default)))
+    except Exception:
+        return default
+
+# Max number of top files to keep after retrieval (pre-filter)
+RAG_TOP_FILES = _env_int("RAG_TOP_FILES", 4)
+# Max characters of text to store per retrieved chunk
+RAG_PER_DOC_CHARS = _env_int("RAG_PER_DOC_CHARS", 1800)
+# Max total characters for generation context (aggregate of chunks)
+RAG_GENERATION_TOTAL_CHARS = _env_int("RAG_GENERATION_TOTAL_CHARS", 7000)
+# Max chunks per document to include during expansion
+RAG_EXPANSION_CHUNKS_PER_DOC = _env_int("RAG_EXPANSION_CHUNKS_PER_DOC", 2)
+# Max tokens-equivalent for conversation context in generation
+RAG_MAX_CONTEXT_TOKENS = _env_int("RAG_MAX_CONTEXT_TOKENS", 2000)
+
+
 def _build_conversation_context(messages: Sequence[BaseMessage], max_tokens: int = 3000) -> List[Dict[str, str]]:
     """
     Build optimized conversation context with smart truncation.
@@ -207,6 +226,8 @@ def _build_conversation_context(messages: Sequence[BaseMessage], max_tokens: int
     max_chars = max_tokens * 4  # Rough token estimation
     
     # Process messages from most recent backwards
+    # Apply a lower cap derived from env to reduce total context
+    max_tokens = min(max_tokens or 3000, RAG_MAX_CONTEXT_TOKENS)
     for msg in reversed(messages):
         if isinstance(msg, HumanMessage):
             role = "user"
@@ -229,7 +250,7 @@ def _build_conversation_context(messages: Sequence[BaseMessage], max_tokens: int
         total_chars += message_chars
         
         # Keep at most 8 messages total for performance
-        if len(conversation_messages) >= 8:
+        if len(conversation_messages) >= 6:
             break
     
     logger.info(f"Built conversation context: {len(conversation_messages)} messages, ~{total_chars} chars")
@@ -586,7 +607,7 @@ def retrieve_documents(state: RAGState) -> RAGState:
         # Select top files, guided by AI program inference keywords when present
         # Sort strictly by vector score (no re-ranking) to avoid bias/regressions
         sorted_files = sorted(by_file.items(), key=lambda kv: kv[1]["score"], reverse=True)
-        top_files = sorted_files[:6]
+        top_files = sorted_files[:max(1, RAG_TOP_FILES)]
         
         sources = []
         retrieved_content = []
@@ -595,12 +616,14 @@ def retrieve_documents(state: RAGState) -> RAGState:
         
         for fname, entry in top_files:
             sources.append(fname)
-            retrieved_content.append(entry["text"])
+            # Store only a trimmed snippet to reduce memory
+            snippet = (entry["text"] or "")[:RAG_PER_DOC_CHARS]
+            retrieved_content.append(snippet)
             selected_file_ids.append(entry["file_id"])
             evidence_chunks.append({
                 "file_id": entry["file_id"],
                 "filename": fname,
-                "text": entry["text"]
+                "text": snippet
             })
 
         # If this is a certification-focused query, prioritize the Certifications document exclusively when available
@@ -641,12 +664,13 @@ def retrieve_documents(state: RAGState) -> RAGState:
                     base = fname.replace('.txt', '').replace('.md', '').lower()
                     if base == 'certifications_2025_07' and fid not in selected_file_ids:
                         sources.append(fname)
-                        retrieved_content.append(text)
+                        snippet = (text or "")[:RAG_PER_DOC_CHARS]
+                        retrieved_content.append(snippet)
                         selected_file_ids.append(fid)
                         evidence_chunks.append({
                             "file_id": fid,
                             "filename": fname,
-                            "text": text
+                            "text": snippet
                         })
                         extra_added += 1
                 if extra_added:
@@ -703,12 +727,13 @@ def retrieve_documents(state: RAGState) -> RAGState:
                             base = fname.replace('.txt', '').replace('.md', '').lower()
                             if base == "certifications_2025_07" and fid not in selected_file_ids:
                                 sources.append(fname)
-                                retrieved_content.append(text)
+                                snippet = (text or "")[:RAG_PER_DOC_CHARS]
+                                retrieved_content.append(snippet)
                                 selected_file_ids.append(fid)
                                 evidence_chunks.append({
                                     "file_id": fid,
                                     "filename": fname,
-                                    "text": text
+                                    "text": snippet
                                 })
                                 added2 += 1
                         if added2:
@@ -753,12 +778,13 @@ def retrieve_documents(state: RAGState) -> RAGState:
                     evidence_chunks = []
                     for fname, entry in top_files:
                         sources.append(fname)
-                        retrieved_content.append(entry["text"])
+                        snippet = (entry["text"] or "")[:RAG_PER_DOC_CHARS]
+                        retrieved_content.append(snippet)
                         selected_file_ids.append(entry["file_id"])
                         evidence_chunks.append({
                             "file_id": entry["file_id"],
                             "filename": fname,
-                            "text": entry["text"]
+                            "text": snippet
                         })
                 else:
                     logger.info("Program hint enforcement produced no matches; keeping original top files")
@@ -809,12 +835,13 @@ def retrieve_documents(state: RAGState) -> RAGState:
                             base = fname.replace('.txt', '').replace('.md', '').lower()
                             if base == "certifications_2025_07":
                                 sources.append(fname)
-                                retrieved_content.append(text)
+                                snippet = (text or "")[:RAG_PER_DOC_CHARS]
+                                retrieved_content.append(snippet)
                                 selected_file_ids.append(fid)
                                 evidence_chunks.append({
                                     "file_id": fid,
                                     "filename": fname,
-                                    "text": text
+                                    "text": snippet
                                 })
                                 logger.info("Explicitly added Certifications_2025_07 due to certification query")
                                 break
@@ -1164,8 +1191,21 @@ def generate_response(state: RAGState) -> RAGState:
         if state.get("comparison_mode") and COMPARISON_INSTRUCTIONS:
             instructions = instructions + f"\n\n{COMPARISON_INSTRUCTIONS}\n"
         
-        # Build context from retrieved documents
-        context = "\n\n".join(docs_for_gen)
+        # Build context from retrieved documents with total cap
+        context_pieces = []
+        total_len = 0
+        for d in docs_for_gen:
+            if not d:
+                continue
+            remaining = max(0, RAG_GENERATION_TOTAL_CHARS - total_len)
+            if remaining <= 0:
+                break
+            piece = d[:remaining]
+            context_pieces.append(piece)
+            total_len += len(piece)
+            if total_len >= RAG_GENERATION_TOTAL_CHARS:
+                break
+        context = "\n\n".join(context_pieces)
         
         # Create system message with instructions and context
         system_message = f"""{instructions}
@@ -1548,15 +1588,15 @@ def expand_document_chunks(state: RAGState) -> RAGState:
             if fname in expanded_chunks:
                 # Sort by score and take the best chunks
                 sorted_chunks = sorted(expanded_chunks[fname], key=lambda x: x["score"], reverse=True)
-                # Take up to 3 chunks per document to get comprehensive coverage
-                for chunk in sorted_chunks[:3]:
+                # Take up to RAG_EXPANSION_CHUNKS_PER_DOC chunks per document
+                for chunk in sorted_chunks[:max(1, RAG_EXPANSION_CHUNKS_PER_DOC)]:
                     final_sources.append(fname)
-                    final_docs.append(chunk["text"])
+                    final_docs.append((chunk["text"] or "")[:RAG_PER_DOC_CHARS])
                     final_file_ids.append(chunk["file_id"])
                     final_evidence_chunks.append({
                         "file_id": chunk["file_id"],
                         "filename": fname,
-                        "text": chunk["text"]
+                        "text": (chunk["text"] or "")[:RAG_PER_DOC_CHARS]
                     })
         
         logger.info(f"Expanded to {len(final_docs)} chunks from {len(set(final_sources))} documents")
@@ -1720,8 +1760,17 @@ def finalize_response(state: RAGState) -> RAGState:
             primary = used[0]
         elif state.get("sources"):
             primary = state.get("sources")[0]
+        # Clear heavy fields to free memory between requests
+        cleared = {
+            "retrieved_docs": [],
+            "evidence_chunks": [],
+            "selected_file_ids": [],
+            "retrieved_docs_count": 0,
+            "retry_expansion": False
+        }
         return {
             **state,
+            **cleared,
             "messages": current_messages,
             "last_primary_source": primary or state.get("last_primary_source", "")
         }
@@ -2402,7 +2451,9 @@ def process_message(event, say):
         
         logger.info("Enhanced LangGraph RAG Results:")
         logger.info(f"   Retrieved docs: {result.get('retrieved_docs_count', 0)}")
-        logger.info(f"   Sources: {result.get('sources', [])}")
+        # Avoid logging large arrays entirely
+        _srcs = (result.get('sources', []) or [])
+        logger.info(f"   Sources: {_srcs[:5]}{'...' if len(_srcs) > 5 else ''}")
         logger.info(f"   Validation confidence: {result.get('confidence', 0):.2f}")
         logger.info(f"   Processing time: {processing_time:.2f}s")
         logger.info(f"   Error count: {result.get('error_count', 0)}")

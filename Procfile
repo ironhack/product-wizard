@@ -1,1 +1,1 @@
-web: gunicorn --workers 1 --threads 4 --timeout 120 src.app_langgraph_rag:flask_app
+web: gunicorn --workers 1 --threads 1 --timeout 120 src.app_langgraph_rag:flask_app
