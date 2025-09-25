@@ -574,6 +574,12 @@ def retrieve_documents(state: RAGState) -> RAGState:
     """Retrieve relevant documents using OpenAI Responses API"""
     logger.info(f"Retrieving documents for: {state['query']}")
     
+    # Check if this is flexible retrieval after deterministic retrieval failed
+    is_flexible_retry = state.get("used_deterministic") and not state.get("tried_flexible")
+    if is_flexible_retry:
+        logger.info("Performing flexible retrieval after deterministic retrieval failed")
+        state["tried_flexible"] = True
+    
     try:
         # Enhance query with conversation context for better document retrieval
         query = state["query"]
@@ -2133,7 +2139,8 @@ def create_rag_graph():
         should_apply_fallback,
         {
             "apply_fallback": "apply_fallback",
-            "finalize": "finalize_response"
+            "finalize": "finalize_response",
+            "retrieve_documents": "retrieve_documents"
         }
     )
     
