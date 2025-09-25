@@ -324,7 +324,8 @@ def ensure_single_sources_block(text: str, filenames: List[str]) -> str:
     # Strip existing Sources blocks
     text = re.sub(r'\n+Sources:\n(?:- .+\n?)+$', '', text, flags=re.IGNORECASE | re.MULTILINE)
     if filenames:
-        bullets = "\n".join(f"- {normalize_filename(fn)}" for fn in filenames)
+        # Use exact filenames (with underscores and extensions) to ensure verifiable citations
+        bullets = "\n".join(f"- {fn}" for fn in filenames)
         text = f"{text}\n\nSources:\n{bullets}"
     return text.strip()
 
@@ -496,8 +497,78 @@ class RAGState(TypedDict):
     program_hint_confidences: Dict[str, float]
     comparison_mode: bool
     certification_mode: bool
+    # Deterministic vs flexible retrieval flags
+    used_deterministic: bool
+    tried_flexible: bool
 
 # ---------------- Graph Nodes ----------------
+
+def deterministic_retrieve_exact_files(state: RAGState) -> RAGState:
+    """Deterministically load full files based on inferred program/cert/spec hints.
+
+    Strategy:
+    - Use `program_hints` (or `program_hint`) mapped via PROGRAM_SYNONYMS to exact filenames.
+    - If certification_mode or certification-like query, include Certifications file.
+    - Read full text from knowledge_base/database_txt/*.txt and set as retrieved_docs.
+    - If nothing found, return state unchanged (empty retrieval) so graph can fall back to flexible retrieval.
+    """
+    try:
+        query_lower = (state.get("query") or "").lower()
+        is_cert_query = _is_certification_query_text(query_lower) or bool(state.get("certification_mode"))
+        hints = state.get("program_hints") or ([])
+        if not hints:
+            hint = state.get("program_hint") or ""
+            if hint:
+                hints = [hint]
+
+        allowed: set = set()
+        if hints:
+            allowed = _allowed_filenames_for_hints(hints) if len(hints) > 1 else _allowed_filenames_for_hint(hints[0])
+
+        # Optionally include Certifications file for certification queries
+        if is_cert_query:
+            allowed = set(allowed) | {"certifications_2025_07"}
+
+        if not allowed:
+            return {**state, "retrieved_docs": [], "sources": [], "selected_file_ids": [], "evidence_chunks": [], "retrieved_docs_count": 0}
+
+        base_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "knowledge_base", "database_txt")
+        retrieved_docs: list[str] = []
+        sources: list[str] = []
+
+        for name in sorted(allowed):
+            # Ensure exact filename with .txt
+            fname = f"{name if name.endswith('.txt') else name + '.txt'}"
+            path = os.path.join(base_dir, fname)
+            try:
+                if os.path.isfile(path):
+                    with open(path, "r", encoding="utf-8") as f:
+                        text = f.read()
+                    if text:
+                        retrieved_docs.append(text)
+                        sources.append(fname)
+            except Exception as _e:
+                # Skip unreadable files; allow fallback later
+                continue
+
+        if not retrieved_docs:
+            return {**state, "retrieved_docs": [], "sources": [], "selected_file_ids": [], "evidence_chunks": [], "retrieved_docs_count": 0, "used_deterministic": True}
+
+        logger.info(f"Deterministic retrieval loaded {len(retrieved_docs)} files: {sources}")
+        return {
+            **state,
+            "retrieved_docs": retrieved_docs,
+            "sources": sources,
+            "selected_file_ids": [],
+            "evidence_chunks": [],
+            "retrieved_docs_count": len(retrieved_docs),
+            # Persist the primary source hint for subsequent turns
+            "last_primary_source": sources[0] if sources else state.get("last_primary_source", ""),
+            "used_deterministic": True
+        }
+    except Exception as e:
+        logger.warning(f"Deterministic retrieval failed: {e}")
+        return {**state, "retrieved_docs": [], "sources": [], "selected_file_ids": [], "evidence_chunks": [], "retrieved_docs_count": 0, "used_deterministic": True}
 
 def retrieve_documents(state: RAGState) -> RAGState:
     """Retrieve relevant documents using OpenAI Responses API"""
@@ -578,7 +649,8 @@ def retrieve_documents(state: RAGState) -> RAGState:
                 "sources": [],
                 "selected_file_ids": [],
                 "evidence_chunks": [],
-                "retrieved_docs_count": 0
+                "retrieved_docs_count": 0,
+                "tried_flexible": True
             }
         
         # Process hits with program-specific filtering for sales accuracy
@@ -854,7 +926,8 @@ def retrieve_documents(state: RAGState) -> RAGState:
             "sources": sources,
             "selected_file_ids": selected_file_ids,
             "evidence_chunks": evidence_chunks,
-            "retrieved_docs_count": len(retrieved_content)
+            "retrieved_docs_count": len(retrieved_content),
+            "tried_flexible": True
         }
         
     except Exception as e:
@@ -1337,46 +1410,7 @@ RETRIEVED CONTEXT:
             "actual_sources_used": []
         }
 
-def generate_certification_response(state: RAGState) -> RAGState:
-    """Generate a certifications-only response from Certifications_2025_07 with strict sourcing."""
-    logger.info("Generating certification-specific response")
-    try:
-        if not state.get("retrieved_docs"):
-            return {**state, "response": FALLBACK_MESSAGE, "actual_sources_used": []}
-        # Restrict to Certifications doc only
-        sources = []
-        docs = []
-        for s, d in zip(state.get("sources", []), state.get("retrieved_docs", [])):
-            base = (s or '').replace('.txt', '').replace('.md', '').lower()
-            if base == 'certifications_2025_07':
-                sources.append(s)
-                docs.append(d)
-        if not docs:
-            return generate_response(state)
-        context = "\n\n".join(docs)
-        system_msg = f"""{MASTER_PROMPT}
-
-{GENERATION_INSTRUCTIONS}
-
-You must answer only using explicit statements from the Certifications_2025_07 document.
-Distinguish between included paid certifications vs alignment/prep mentions.
-Provide a concise bullet list for Cybersecurity bootcamp certifications.
-"""
-        messages = [
-            {"role": "system", "content": system_msg + f"\n\nRETRIEVED CONTEXT:\n{context}\n"},
-            {"role": "user", "content": state["query"]}
-        ]
-        resp = openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            temperature=0.2
-        )
-        answer = resp.choices[0].message.content.strip()
-        answer = ensure_single_sources_block(answer, sources)
-        return {**state, "response": answer, "actual_sources_used": sources, "sources": sources, "retrieved_docs": docs}
-    except Exception as e:
-        logger.error(f"Error in certification generator: {e}")
-        return generate_response(state)
+ 
 
 def validate_response(state: RAGState) -> RAGState:
     """Validate the generated response for accuracy"""
@@ -1969,6 +2003,10 @@ def should_apply_fallback(state: RAGState) -> str:
         logger.info("Clarification needed; routing to apply_fallback as placeholder (Slack will ask question)")
         return "apply_fallback"
     if (confidence < confidence_threshold or not contains_only_retrieved):
+        # If deterministic retrieval was used and flexible retrieval hasn't been tried, fall back to flexible path
+        if state.get("used_deterministic") and not state.get("tried_flexible"):
+            logger.info("Validation failed after deterministic retrieval; falling back to flexible retrieval path")
+            return "retrieve_documents"
         logger.info(f"APPLYING FALLBACK: confidence {confidence} < {confidence_threshold} OR contains_only_retrieved={contains_only_retrieved}")
         return "apply_fallback"
     
@@ -2015,12 +2053,13 @@ def create_rag_graph():
     
     # Add main workflow nodes
     # program inference removed
+    # Deterministic exact-file retrieval (new): load full files by inferred program/cert/specs
+    workflow.add_node("deterministic_retrieve_exact_files", deterministic_retrieve_exact_files)
     workflow.add_node("retrieve_documents", retrieve_documents)
     workflow.add_node("filter_documents_for_sales", filter_documents_for_sales)
     workflow.add_node("classify_coverage", classify_coverage)
     workflow.add_node("verify_coverage_with_ai", verify_coverage_with_ai)
     workflow.add_node("generate_response", generate_response)
-    workflow.add_node("generate_certification_response", generate_certification_response)
     workflow.add_node("classify_fallback", classify_fallback)
     workflow.add_node("expand_document_chunks", expand_document_chunks)
     workflow.add_node("generate_fun_fallback", generate_fun_fallback)
@@ -2038,7 +2077,17 @@ def create_rag_graph():
     # Define the main flow
     # Temporarily disable program inference as entry to avoid context regressions
     workflow.set_entry_point("hint_program")
-    workflow.add_edge("hint_program", "retrieve_documents")
+    # First try deterministic exact-file retrieval using program/cert/spec hints
+    workflow.add_edge("hint_program", "deterministic_retrieve_exact_files")
+    # If deterministic retrieval finds docs, proceed through coverage check; else fall back to flexible vector search
+    workflow.add_conditional_edges(
+        "deterministic_retrieve_exact_files",
+        lambda s: "classify_coverage" if (s.get("retrieved_docs") or []) else "retrieve_documents",
+        {
+            "classify_coverage": "classify_coverage",
+            "retrieve_documents": "retrieve_documents",
+        }
+    )
     workflow.add_edge("retrieve_documents", "filter_documents_for_sales")
     workflow.add_edge("filter_documents_for_sales", "classify_coverage")
     # If it's a coverage question, verify presence before generating
@@ -2048,7 +2097,7 @@ def create_rag_graph():
         {
             "verify_coverage_with_ai": "verify_coverage_with_ai",
             "generate_response": "generate_response",
-            "generate_certification_response": "generate_certification_response",
+            
         }
     )
     workflow.add_conditional_edges(
@@ -2062,7 +2111,7 @@ def create_rag_graph():
     
     # After generation, classify fallback when likely needed
     workflow.add_edge("generate_response", "classify_fallback")
-    workflow.add_edge("generate_certification_response", "classify_fallback")
+    
     # Add conditional routing after classification - check for expansion/fallback
     workflow.add_conditional_edges(
         "classify_fallback",
@@ -2307,6 +2356,15 @@ try:
         slack_app = App(token=SLACK_BOT_TOKEN, signing_secret=SLACK_SIGNING_SECRET)
         handler = SlackRequestHandler(slack_app)
         logger.info("Slack app initialized successfully")
+        # Resolve bot user id for mention checks
+        try:
+            _auth = slack_app.client.auth_test()
+            BOT_USER_ID = _auth.get("user_id") or _auth.get("user")
+            os.environ["SLACK_BOT_USER_ID"] = BOT_USER_ID or ""
+            logger.info(f"Slack bot user id resolved: {BOT_USER_ID}")
+        except Exception as e:
+            BOT_USER_ID = os.environ.get("SLACK_BOT_USER_ID", "")
+            logger.warning(f"Failed to resolve bot user id via auth.test, using env fallback: {bool(BOT_USER_ID)} | {e}")
     else:
         logger.info("Slack env vars missing. Running without Slack handlers.")
 except Exception as e:
@@ -2508,23 +2566,20 @@ if slack_app is not None:
 
     @slack_app.event("message")
     def handle_message(event, say):
-        """Handle direct messages and thread replies where the bot was previously mentioned"""
+        """Handle only direct messages. Channel and thread messages require @mention (handled above)."""
         if _is_ignorable_slack_event(event):
             logger.info("Ignoring ignorable message event (bot/edit)")
             return
         if _already_processed(event):
             logger.info("Duplicate message suppressed")
             return
-        # Handle direct messages
+        # Only handle direct messages here
         if event.get("channel_type") == "im":
             logger.info(f"Direct message received from user")
             process_message(event, say)
-        # Handle replies in threads where we've already participated
-        elif event.get("thread_ts") and not event.get("bot_id"):
-            # This is a human message in a thread - check if we should respond
-            # Note: We rely on the conversation memory to determine if we're part of this thread
-            logger.info(f"Thread reply detected in thread {event.get('thread_ts')}")
-            process_message(event, say)
+        else:
+            # Ignore all non-DM message events; app mentions are handled in handle_mention
+            logger.info("Ignoring non-DM message without mention")
 
 # ---------------- Flask App ----------------
 flask_app = Flask(__name__)

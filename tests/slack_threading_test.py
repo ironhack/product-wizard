@@ -18,8 +18,21 @@ class TestSlackThreading(unittest.TestCase):
     """Test the Slack threading behavior to ensure proper conversation flow"""
     
     def setUp(self):
-        """Set up test cases"""
+        """Set up test cases and patch SlackUpdateManager"""
         self.mock_say = Mock()
+        self.slack_manager_patcher = patch('app_langgraph_rag.SlackUpdateManager')
+        self.MockManager = self.slack_manager_patcher.start()
+        # Configure instance methods we care about
+        self.mock_manager_instance = self.MockManager.return_value
+        self.mock_manager_instance.post_initial = Mock()
+        self.mock_manager_instance.finalize = Mock()
+        self.mock_manager_instance.error = Mock()
+
+    def tearDown(self):
+        try:
+            self.slack_manager_patcher.stop()
+        except Exception:
+            pass
         
     def test_initial_mention_creates_thread(self):
         """Test that initial @productwizard mention creates a new thread"""
@@ -48,20 +61,23 @@ class TestSlackThreading(unittest.TestCase):
             # Process the message
             process_message(event, self.mock_say)
             
-            # Verify the say function was called with the original message timestamp as thread_ts
-            # This creates a new thread starting from the user's mention
-            self.mock_say.assert_called_once()
-            call_args = self.mock_say.call_args
-            self.assertEqual(call_args[1]['thread_ts'], '1234567890.123456')
+            # Verify SlackUpdateManager was constructed with expected channel/thread_ts
+            self.MockManager.assert_called()
+            args, kwargs = self.MockManager.call_args
+            # args: (client, channel, thread_ts)
+            self.assertEqual(args[1], 'C1234567890')
+            self.assertEqual(args[2], '1234567890.123456')
+            # Finalize should have been called once with the assistant message
+            self.mock_manager_instance.finalize.assert_called_once()
             
             print("✅ Initial mention correctly creates new thread")
     
-    def test_thread_reply_continues_thread(self):
-        """Test that replies in an existing thread continue the conversation"""
+    def test_thread_reply_continues_thread_when_mentioning_bot(self):
+        """Test that replies in an existing thread continue the conversation when @mentioning the bot"""
         
         # Simulate a reply in an existing thread
         event = {
-            'text': 'Tell me more about the Web Development bootcamp',
+            'text': '@productwizard Tell me more about the Web Development bootcamp',
             'ts': '1234567890.234567',  # New message timestamp
             'thread_ts': '1234567890.123456',  # Original thread timestamp
             'channel': 'C1234567890',
@@ -83,13 +99,15 @@ class TestSlackThreading(unittest.TestCase):
             # Process the message
             process_message(event, self.mock_say)
             
-            # Verify the say function was called with the ORIGINAL thread timestamp
-            # This continues the existing thread conversation
-            self.mock_say.assert_called_once()
-            call_args = self.mock_say.call_args
-            self.assertEqual(call_args[1]['thread_ts'], '1234567890.123456')  # Original thread, not new message
+            # Verify SlackUpdateManager was constructed with the original thread timestamp
+            self.MockManager.assert_called()
+            args, kwargs = self.MockManager.call_args
+            self.assertEqual(args[1], 'C1234567890')
+            self.assertEqual(args[2], '1234567890.123456')
+            # Finalize should have been called
+            self.mock_manager_instance.finalize.assert_called_once()
             
-            print("✅ Thread reply correctly continues existing thread")
+            print("✅ Thread reply with @mention correctly continues existing thread")
     
     def test_conversation_id_consistency(self):
         """Test that conversation IDs are consistent for thread management"""
@@ -126,7 +144,19 @@ class TestSlackThreading(unittest.TestCase):
                 'error_history': []
             }
         
-        with patch('app_langgraph_rag.rag_graph.invoke', side_effect=capture_conversation_id):
+        # Patch stream to capture conversation_id from config and yield a terminal result
+        def fake_stream(initial_state, config=None):
+            conversation_ids.append(config['configurable']['thread_id'])
+            yield {'__end__': {
+                'response': 'Test response',
+                'retrieved_docs_count': 1,
+                'sources': [],
+                'confidence': 0.8,
+                'error_count': 0,
+                'degraded_mode': False,
+                'error_history': []
+            }}
+        with patch('app_langgraph_rag.rag_graph.stream', side_effect=fake_stream):
             # Process both messages
             process_message(event1, self.mock_say)
             process_message(event2, self.mock_say)
@@ -149,18 +179,18 @@ class TestSlackThreading(unittest.TestCase):
             'user': 'U1234567890'
         }
         
-        # Mock LangGraph to raise an exception
-        with patch('app_langgraph_rag.rag_graph.invoke', side_effect=Exception("Test error")):
+        # Mock LangGraph stream to raise an exception to trigger error path
+        with patch('app_langgraph_rag.rag_graph.stream', side_effect=Exception("Test error")):
             process_message(event, self.mock_say)
             
-            # Verify error message is sent to the correct thread
-            self.mock_say.assert_called_once()
-            call_args = self.mock_say.call_args
-            self.assertEqual(call_args[1]['thread_ts'], '1234567890.333333')
+            # Verify SlackUpdateManager constructed with correct thread_ts
+            self.MockManager.assert_called()
+            args, kwargs = self.MockManager.call_args
+            self.assertEqual(args[1], 'C1234567890')
+            self.assertEqual(args[2], '1234567890.333333')
             
-            # Verify it's sending the error message
-            error_message = call_args[0][0]
-            self.assertIn("trouble processing", error_message)
+            # Verify error method used to post error to thread
+            self.mock_manager_instance.error.assert_called_once()
             
             print("✅ Error handling preserves threading")
 
@@ -171,7 +201,7 @@ def run_threading_tests():
     # Create test suite
     suite = unittest.TestSuite()
     suite.addTest(TestSlackThreading('test_initial_mention_creates_thread'))
-    suite.addTest(TestSlackThreading('test_thread_reply_continues_thread'))
+    suite.addTest(TestSlackThreading('test_thread_reply_continues_thread_when_mentioning_bot'))
     suite.addTest(TestSlackThreading('test_conversation_id_consistency'))
     suite.addTest(TestSlackThreading('test_error_handling_preserves_threading'))
     
