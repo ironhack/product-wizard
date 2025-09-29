@@ -2662,10 +2662,14 @@ def _allowed_filenames_for_hints(program_hints: List[str]) -> set:
 def hint_program(state: 'RAGState') -> 'RAGState':
     """AI node to infer program_hint(s) from the user's query using exhaustive synonyms."""
     query = state.get("query", "")
+    # Build compact conversation context (recent turns, sources stripped)
+    conversation_context = _build_conversation_context(state.get("messages", []))
+    # Compose a context-aware prompt: include recent conversation before the current question
     try:
         if not PROGRAM_HINTING_PROMPT or not PROGRAM_SYNONYMS_TEXT.strip():
             return {**state, "program_hint": "", "program_hint_confidence": 0.0, "program_hints": [], "program_hint_confidences": {}, "comparison_mode": False}
-        prompt = f"{PROGRAM_HINTING_PROMPT}\n\nSYNONYMS JSON:\n{PROGRAM_SYNONYMS_TEXT}\n\nUSER QUESTION:\n{query}\n"
+        prior_dialog = "\n".join(f"{m.get('role')}: {m.get('content')}" for m in (conversation_context or [])[:-1])
+        prompt = f"{PROGRAM_HINTING_PROMPT}\n\nSYNONYMS JSON:\n{PROGRAM_SYNONYMS_TEXT}\n\nRECENT CONVERSATION (most recent last):\n{prior_dialog}\n\nUSER QUESTION:\n{query}\n"
         ai = openai_client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": prompt}],
@@ -2689,6 +2693,18 @@ def hint_program(state: 'RAGState') -> 'RAGState':
             else:
                 program_hint = programs[0]
                 confidence = 0.5
+        # Fallback to prior strong hint when new hint confidence is low
+        try:
+            prev_hint = state.get("program_hint") or ""
+            prev_conf = float(state.get("program_hint_confidence") or 0.0)
+            if prev_hint and prev_conf >= 0.8 and confidence < 0.6:
+                program_hint = prev_hint
+                confidence = prev_conf
+                if program_hint and program_hint not in programs:
+                    programs = [program_hint] + programs
+                    confidences[program_hint] = prev_conf
+        except Exception:
+            pass
         comparison_mode = multi_program or (len(programs) > 1)
         logger.info(f"Program hints: {programs} (comparison_mode={comparison_mode})")
         return {**state,
