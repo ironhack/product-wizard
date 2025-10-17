@@ -1328,10 +1328,13 @@ def handle_message(event, say):
         logger.error(f"Error processing DM: {e}")
         say(text="I encountered an error processing your question. Please try again.", channel=channel)
 
-# ---------------- Main ----------------
+# ---------------- Flask App Initialization ----------------
 
-if __name__ == "__main__":
-    # Initialize Slack app (only when running as main, not during import)
+# Initialize Flask app first
+flask_app = Flask(__name__)
+
+# Initialize Slack app with error handling
+try:
     slack_app = App(
         token=SLACK_BOT_TOKEN,
         signing_secret=SLACK_SIGNING_SECRET
@@ -1341,24 +1344,35 @@ if __name__ == "__main__":
     slack_app.event("app_mention")(handle_mention)
     slack_app.event("message")(handle_message)
     
-    # Initialize Flask app
-    flask_app = Flask(__name__)
     slack_handler = SlackRequestHandler(slack_app)
+    logger.info("Slack app initialized successfully")
     
-    @flask_app.route("/slack/events", methods=["POST"])
-    def slack_events():
-        """Handle Slack events."""
+except Exception as e:
+    logger.warning(f"Failed to initialize Slack app: {e}")
+    # Create a dummy handler for when Slack is not available
+    slack_app = None
+    slack_handler = None
+
+@flask_app.route("/slack/events", methods=["POST"])
+def slack_events():
+    """Handle Slack events."""
+    if slack_handler:
         return slack_handler.handle(flask_request)
-    
-    @flask_app.route("/health", methods=["GET"])
-    def health():
-        """Health check endpoint."""
-        return {
-            "status": "healthy",
-            "service": "rag-v2",
-            "vector_store_id": VECTOR_STORE_ID
-        }
-    
+    else:
+        return {"error": "Slack integration not available"}, 503
+
+@flask_app.route("/health", methods=["GET"])
+def health():
+    """Health check endpoint."""
+    return {
+        "status": "healthy",
+        "service": "rag-v2",
+        "vector_store_id": VECTOR_STORE_ID
+    }
+
+# ---------------- Main ----------------
+
+if __name__ == "__main__":
     # Start the server
     port = int(os.environ.get("PORT", 5000))
     logger.info(f"Starting RAG v2 application on port {port}")
