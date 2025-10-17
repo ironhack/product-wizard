@@ -1213,13 +1213,8 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
     detected_programs = state.get("detected_programs", [])
     program_name = detected_programs[0] if detected_programs else "the program"
     
+    # Clean, simple negative response
     response = f"No, {program_name} does not include {topic}. Based on the curriculum documents, this topic is not part of the program."
-    
-    # Add what the program does focus on if we have docs
-    filtered_docs = state.get("filtered_docs", [])
-    if filtered_docs:
-        focus_content = filtered_docs[0].get("content", "")[:200]
-        response += f"\n\nThe {program_name} program focuses on: {focus_content}..."
     
     return {
         **state,
@@ -1359,8 +1354,24 @@ def handle_mention(event, say):
         
         response = result.get("final_response", "I encountered an error processing your question.")
         
-        # Send response in thread
-        say(text=response, thread_ts=thread_ts, channel=channel)
+        # Update the progress message with the final answer
+        if _current_progress_message_ts:
+            try:
+                from slack_sdk import WebClient
+                client = WebClient(token=SLACK_BOT_TOKEN)
+                client.chat_update(
+                    channel=channel,
+                    ts=_current_progress_message_ts,
+                    text=response,
+                    thread_ts=thread_ts
+                )
+            except Exception as e:
+                logger.warning(f"Failed to update progress message with final answer: {e}")
+                # Fallback to sending new message
+                say(text=response, thread_ts=thread_ts, channel=channel)
+        else:
+            # Send response in thread
+            say(text=response, thread_ts=thread_ts, channel=channel)
         
     except Exception as e:
         logger.error(f"Error processing mention: {e}")
@@ -1401,7 +1412,23 @@ def handle_message(event, say):
         result = rag_workflow.invoke(initial_state, config)
         response = result.get("final_response", "I encountered an error processing your question.")
         
-        say(text=response, channel=channel)
+        # Update the progress message with the final answer
+        if _current_progress_message_ts:
+            try:
+                from slack_sdk import WebClient
+                client = WebClient(token=SLACK_BOT_TOKEN)
+                client.chat_update(
+                    channel=channel,
+                    ts=_current_progress_message_ts,
+                    text=response
+                )
+            except Exception as e:
+                logger.warning(f"Failed to update progress message with final answer: {e}")
+                # Fallback to sending new message
+                say(text=response, channel=channel)
+        else:
+            # Send response
+            say(text=response, channel=channel)
         
     except Exception as e:
         logger.error(f"Error processing DM: {e}")
