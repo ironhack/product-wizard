@@ -60,6 +60,12 @@ def get_conversation_history(channel: str, thread_ts: str, limit: int = 10) -> L
     """
     Retrieve conversation history from Slack thread.
     Returns a list of BaseMessage objects for use in RAG pipeline.
+    
+    Note: This requires the following Slack app scopes:
+    - channels:history (for public channels)
+    - groups:history (for private channels)  
+    - mpim:history (for multi-party direct messages)
+    - im:history (for direct messages)
     """
     try:
         from slack_sdk import WebClient
@@ -102,6 +108,11 @@ def get_conversation_history(channel: str, thread_ts: str, limit: int = 10) -> L
         
     except Exception as e:
         logger.warning(f"Failed to retrieve conversation history: {e}")
+        
+        # Check if it's a permissions issue
+        if "missing_scope" in str(e):
+            logger.warning("Missing Slack API scopes for conversation history. Required scopes: channels:history, groups:history, mpim:history, im:history")
+        
         return []
 
 def _already_processed(event: Dict) -> bool:
