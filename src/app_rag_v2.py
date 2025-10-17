@@ -141,8 +141,7 @@ class RAGState(TypedDict, total=False):
     retrieved_docs: List[Dict]
     retrieval_stats: Dict
     
-    # Slack Integration
-    slack_say: Optional[Any] = None
+    # Slack Integration (stored separately to avoid serialization issues)
     slack_channel: Optional[str] = None
     slack_thread_ts: Optional[str] = None
     
@@ -178,15 +177,88 @@ class RAGState(TypedDict, total=False):
 
 # ---------------- Slack Update Helper ----------------
 
-def send_slack_update(state: RAGState, message: str):
-    """Safely send Slack update with error handling."""
+# Global variables to store the current say function and progress message (avoid serialization issues)
+_current_say_function = None
+_current_progress_message_ts = None
+_progress_steps = [
+    "🔍 Analyzing your question...",
+    "🎯 Detecting program focus...", 
+    "📚 Searching curriculum documents...",
+    "⚖️ Assessing document relevance...",
+    "🔍 Filtering best matches...",
+    "❓ Checking if this is a coverage question...",
+    "✅ Verifying topic presence...",
+    "🤖 Generating response...",
+    "🔍 Verifying answer accuracy...",
+    "✅ Finalizing response..."
+]
+_current_step = 0
+
+def set_slack_say_function(say_func):
+    """Set the current Slack say function for updates."""
+    global _current_say_function, _current_progress_message_ts, _current_step
+    _current_say_function = say_func
+    _current_progress_message_ts = None
+    _current_step = 0
+
+def clear_slack_say_function():
+    """Clear the current Slack say function."""
+    global _current_say_function, _current_progress_message_ts, _current_step
+    _current_say_function = None
+    _current_progress_message_ts = None
+    _current_step = 0
+
+def send_slack_update(state: RAGState, step_name: str):
+    """Safely send/update Slack progress message with step numbering."""
     try:
-        if state.get("slack_say") and state.get("slack_channel"):
-            state["slack_say"](
-                text=message,
-                thread_ts=state.get("slack_thread_ts"),
-                channel=state.get("slack_channel")
-            )
+        if _current_say_function and state.get("slack_channel"):
+            global _current_step, _current_progress_message_ts
+            
+            # Find the step index
+            step_index = next((i for i, step in enumerate(_progress_steps) if step_name in step), _current_step)
+            _current_step = step_index
+            
+            # Create progress message with numbering
+            total_steps = len(_progress_steps)
+            progress_text = f"({_current_step + 1}/{total_steps}) {_progress_steps[_current_step]}"
+            
+            if _current_progress_message_ts:
+                # Update existing message using Slack Web API
+                try:
+                    from slack_sdk import WebClient
+                    client = WebClient(token=SLACK_BOT_TOKEN)
+                    client.chat_update(
+                        channel=state.get("slack_channel"),
+                        ts=_current_progress_message_ts,
+                        text=progress_text,
+                        thread_ts=state.get("slack_thread_ts")
+                    )
+                except Exception as update_error:
+                    logger.warning(f"Failed to update message, sending new one: {update_error}")
+                    # Fallback to sending new message
+                    response = _current_say_function(
+                        text=progress_text,
+                        thread_ts=state.get("slack_thread_ts"),
+                        channel=state.get("slack_channel")
+                    )
+                    # Try to extract timestamp from response
+                    if hasattr(response, 'get') and response.get('ts'):
+                        _current_progress_message_ts = response.get('ts')
+                    elif hasattr(response, 'ts'):
+                        _current_progress_message_ts = response.ts
+            else:
+                # Send new message and store timestamp
+                response = _current_say_function(
+                    text=progress_text,
+                    thread_ts=state.get("slack_thread_ts"),
+                    channel=state.get("slack_channel")
+                )
+                # Try to extract timestamp from response
+                if hasattr(response, 'get') and response.get('ts'):
+                    _current_progress_message_ts = response.get('ts')
+                elif hasattr(response, 'ts'):
+                    _current_progress_message_ts = response.ts
+                    
     except Exception as e:
         logger.warning(f"Failed to send Slack update: {e}")
 
@@ -250,7 +322,7 @@ def query_enhancement_node(state: RAGState) -> RAGState:
     - Score ambiguity level
     """
     logger.info("=== Query Enhancement Node ===")
-    send_slack_update(state, "🔍 Analyzing your question...")
+    send_slack_update(state, "Analyzing your question")
     
     query = state.get("query", "")
     conversation_history = state.get("conversation_history", [])
@@ -292,7 +364,7 @@ def program_detection_node(state: RAGState) -> RAGState:
     - Build namespace metadata filter
     """
     logger.info("=== Program Detection Node ===")
-    send_slack_update(state, "🎯 Detecting program focus...")
+    send_slack_update(state, "Detecting program focus")
     
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
     conversation_history = state.get("conversation_history", [])
@@ -390,7 +462,7 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
     - Boost keyword matches
     """
     logger.info("=== Hybrid Retrieval Node ===")
-    send_slack_update(state, "📚 Searching curriculum documents...")
+    send_slack_update(state, "Searching curriculum documents")
     
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
     detected_programs = state.get("detected_programs", [])
@@ -534,7 +606,7 @@ def relevance_assessment_node(state: RAGState) -> RAGState:
     - Detect cross-contamination
     """
     logger.info("=== Relevance Assessment Node ===")
-    send_slack_update(state, "⚖️ Assessing document relevance...")
+    send_slack_update(state, "Assessing document relevance")
     
     retrieved_docs = state.get("retrieved_docs", [])
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
@@ -627,7 +699,7 @@ def document_filtering_node(state: RAGState) -> RAGState:
     - Filter out contaminated chunks
     """
     logger.info("=== Document Filtering Node ===")
-    send_slack_update(state, "🔍 Filtering best matches...")
+    send_slack_update(state, "Filtering best matches")
     
     filtered_docs = state.get("filtered_docs", [])
     detected_programs = state.get("detected_programs", [])
@@ -691,7 +763,7 @@ def coverage_classification_node(state: RAGState) -> RAGState:
     Detect if query is asking about curriculum coverage.
     """
     logger.info("=== Coverage Classification Node ===")
-    send_slack_update(state, "❓ Checking if this is a coverage question...")
+    send_slack_update(state, "Checking if this is a coverage question")
     
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
     query_intent = state.get("query_intent", "general_info")
@@ -732,7 +804,7 @@ def coverage_verification_node(state: RAGState) -> RAGState:
     Verify if topic is explicitly present in retrieved documents.
     """
     logger.info("=== Coverage Verification Node ===")
-    send_slack_update(state, "✅ Verifying topic presence...")
+    send_slack_update(state, "Verifying topic presence")
     
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
     filtered_docs = state.get("filtered_docs", [])
@@ -779,7 +851,7 @@ def generate_response_node(state: RAGState) -> RAGState:
     - Constrained generation
     """
     logger.info("=== Generate Response Node ===")
-    send_slack_update(state, "🤖 Generating response...")
+    send_slack_update(state, "Generating response")
     
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
     filtered_docs = state.get("filtered_docs", [])
@@ -854,7 +926,7 @@ def faithfulness_verification_node(state: RAGState) -> RAGState:
     - Flag violations
     """
     logger.info("=== Faithfulness Verification Node ===")
-    send_slack_update(state, "🔍 Verifying answer accuracy...")
+    send_slack_update(state, "Verifying answer accuracy")
     
     generated_response = state.get("generated_response", "")
     filtered_docs = state.get("filtered_docs", [])
@@ -1043,7 +1115,7 @@ def finalize_response_node(state: RAGState) -> RAGState:
     Format final response with citations and metadata.
     """
     logger.info("=== Finalize Response Node ===")
-    send_slack_update(state, "✅ Finalizing response...")
+    send_slack_update(state, "Finalizing response")
     
     generated_response = state.get("generated_response", "")
     source_citations = state.get("source_citations", [])
@@ -1268,6 +1340,9 @@ def handle_mention(event, say):
     logger.info(f"Processing mention from {user_id}: {query}")
     
     try:
+        # Set the current say function for progress updates
+        set_slack_say_function(say)
+        
         # Run the RAG workflow
         config = {"configurable": {"thread_id": thread_ts}}
         initial_state = {
@@ -1275,8 +1350,7 @@ def handle_mention(event, say):
             "conversation_history": [],
             "iteration_count": 0,
             "metadata": {},
-            # Slack context for progress updates
-            "slack_say": say,
+            # Slack context for progress updates (no say function to avoid serialization)
             "slack_channel": channel,
             "slack_thread_ts": thread_ts
         }
@@ -1291,6 +1365,9 @@ def handle_mention(event, say):
     except Exception as e:
         logger.error(f"Error processing mention: {e}")
         say(text="I encountered an error processing your question. Please try again.", thread_ts=thread_ts, channel=channel)
+    finally:
+        # Clean up the say function
+        clear_slack_say_function()
 
 def handle_message(event, say):
     """Handle DMs."""
@@ -1307,14 +1384,16 @@ def handle_message(event, say):
     logger.info(f"Processing DM: {query}")
     
     try:
+        # Set the current say function for progress updates
+        set_slack_say_function(say)
+        
         config = {"configurable": {"thread_id": thread_ts}}
         initial_state = {
             "query": query,
             "conversation_history": [],
             "iteration_count": 0,
             "metadata": {},
-            # Slack context for progress updates
-            "slack_say": say,
+            # Slack context for progress updates (no say function to avoid serialization)
             "slack_channel": channel,
             "slack_thread_ts": thread_ts
         }
@@ -1327,6 +1406,9 @@ def handle_message(event, say):
     except Exception as e:
         logger.error(f"Error processing DM: {e}")
         say(text="I encountered an error processing your question. Please try again.", channel=channel)
+    finally:
+        # Clean up the say function
+        clear_slack_say_function()
 
 # ---------------- Flask App Initialization ----------------
 
