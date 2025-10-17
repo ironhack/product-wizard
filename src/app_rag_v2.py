@@ -56,6 +56,54 @@ def _build_event_dedupe_key(event: Dict) -> str | None:
     except Exception:
         return None
 
+def get_conversation_history(channel: str, thread_ts: str, limit: int = 10) -> List[BaseMessage]:
+    """
+    Retrieve conversation history from Slack thread.
+    Returns a list of BaseMessage objects for use in RAG pipeline.
+    """
+    try:
+        from slack_sdk import WebClient
+        from langchain_core.messages import HumanMessage, AIMessage
+        
+        client = WebClient(token=SLACK_BOT_TOKEN)
+        
+        # Get conversation history from the thread
+        response = client.conversations_replies(
+            channel=channel,
+            ts=thread_ts,
+            limit=limit
+        )
+        
+        messages = []
+        for msg in response.get("messages", []):
+            text = msg.get("text", "")
+            user_id = msg.get("user", "")
+            bot_id = msg.get("bot_id", "")
+            
+            # Skip empty messages
+            if not text.strip():
+                continue
+                
+            # Remove bot mentions from user messages
+            clean_text = re.sub(r'<@[A-Z0-9]+>', '', text).strip()
+            if not clean_text:
+                continue
+            
+            # Determine if it's a user message or bot message
+            if bot_id or user_id == "USLACKBOT":
+                # Bot message
+                messages.append(AIMessage(content=clean_text))
+            else:
+                # User message
+                messages.append(HumanMessage(content=clean_text))
+        
+        # Return messages in chronological order (oldest first)
+        return messages
+        
+    except Exception as e:
+        logger.warning(f"Failed to retrieve conversation history: {e}")
+        return []
+
 def _already_processed(event: Dict) -> bool:
     """Check if event was already processed."""
     try:
@@ -1333,16 +1381,20 @@ def handle_mention(event, say):
     query = re.sub(r'<@[A-Z0-9]+>', '', text).strip()
     
     logger.info(f"Processing mention from {user_id}: {query}")
-    
+
     try:
         # Set the current say function for progress updates
         set_slack_say_function(say)
+        
+        # Retrieve conversation history from the thread
+        conversation_history = get_conversation_history(channel, thread_ts, limit=10)
+        logger.info(f"Retrieved {len(conversation_history)} messages from conversation history")
         
         # Run the RAG workflow
         config = {"configurable": {"thread_id": thread_ts}}
         initial_state = {
             "query": query,
-            "conversation_history": [],
+            "conversation_history": conversation_history,
             "iteration_count": 0,
             "metadata": {},
             # Slack context for progress updates (no say function to avoid serialization)
@@ -1398,10 +1450,14 @@ def handle_message(event, say):
         # Set the current say function for progress updates
         set_slack_say_function(say)
         
+        # Retrieve conversation history from the thread
+        conversation_history = get_conversation_history(channel, thread_ts, limit=10)
+        logger.info(f"Retrieved {len(conversation_history)} messages from conversation history")
+        
         config = {"configurable": {"thread_id": thread_ts}}
         initial_state = {
             "query": query,
-            "conversation_history": [],
+            "conversation_history": conversation_history,
             "iteration_count": 0,
             "metadata": {},
             # Slack context for progress updates (no say function to avoid serialization)
