@@ -1,19 +1,19 @@
 ---
-description: "Product Wizard - LangGraph AI-Driven Architecture & Development Guidelines"
+description: "Product Wizard - RAG v2 AI-Driven Architecture & Development Guidelines"
 globs: ["**/*"]
 alwaysApply: true
 ---
 
-# Product Wizard - LangGraph AI-Driven Architecture & Development Guidelines
+# Product Wizard - RAG v2 AI-Driven Architecture & Development Guidelines
 
 ## Repository Overview
 
-This repository implements an **advanced AI-driven RAG system** built with **LangGraph** that serves three main purposes:
-1. **LangGraph RAG Pipeline** - Multi-node AI workflow with intelligent routing, verification, and fallback handling
+This repository implements an **advanced AI-driven RAG system** built with **RAG v2** that serves three main purposes:
+1. **RAG v2 Pipeline** - Advanced 14-node AI workflow with intelligent routing, verification, and fallback handling
 2. **Slack Integration Middleware** - Heroku app connecting assistant to Slack with conversation threading
 3. **Development Tools** - Testing, optimization, and deployment utilities
 
-## Core Architecture: LangGraph Multi-Node Workflow
+## Core Architecture: RAG v2 Multi-Node Workflow
 
 ### AI-Driven Pipeline Flow
 ```
@@ -59,7 +59,7 @@ Route: Negative Coverage | Standard Generation
 **Benefits**: Easy AI behavior updates without code changes, version-controlled prompts, A/B testing capability
 
 ### Application Structure
-- **Production App**: `src/app_langgraph_rag.py` (LangGraph RAG Pipeline - PRODUCTION)
+- **Production App**: `src/app_rag_v2.py` (RAG v2 Pipeline - PRODUCTION)
 - **Configuration**: Root level files (`Procfile`, `requirements.txt`, `runtime.txt`)
 - **Environment**: Use `.env` file for local development (never commit)
 - **Required Env Vars**: `OPENAI_VECTOR_STORE_ID`, `OPENAI_API_KEY`, `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET`
@@ -70,39 +70,39 @@ Route: Negative Coverage | Standard Generation
 - **Synchronization Rule**: Every `.md` file must have a corresponding `.txt` file with identical content
 
 ### Testing & Tools
-- **Master Test**: `tests/master_test.py` - Flexible test runner with manual question mode
+- **RAG v2 Test**: `tests/rag_v2_test.py` - Comprehensive test suite with parallel execution
+- **Web Dev Debug**: `tests/web_dev_debug.py` - Web Development focused debugging
 - **AI Judge Evaluation**: All tests include GPT-4o evaluation with structured feedback
-- **Specialized Tests**: Context management, error handling, Slack threading
 - **Test Preservation**: Keep all test files - never delete, they may be useful
 - **Test Results**: Automatically saved to `tests/results/` with timestamps and judge scores
 
 ## Development Rules
 
-### LangGraph Development Guidelines
-1. **Node Functions**: Each AI operation should be a separate LangGraph node
+### RAG v2 Development Guidelines
+1. **Node Functions**: Each AI operation should be a separate RAG v2 node
 2. **State Management**: Use `RAGState` TypedDict for comprehensive state tracking
 3. **Conditional Routing**: Use AI-driven routing functions, not hardcoded logic
 4. **Error Recovery**: Implement graceful degradation with retry mechanisms
-5. **Memory Integration**: Leverage LangGraph's built-in conversation memory
+5. **Memory Integration**: Leverage built-in conversation memory
 
 ### AI Prompt Management
 1. **Never hardcode prompts** - always use externalized config files
 2. **Update AI behavior** by editing `assistant_config/*.md` files
-3. **Test prompt changes** with `master_test.py --manual "question"`
+3. **Test prompt changes** with `rag_v2_test.py --manual "question"`
 4. **Version control** all prompt changes via Git
 
 ### File Editing Rules
 1. **Never edit TXT files directly** - always edit the corresponding Markdown file first
 2. **Always update both formats** when modifying course information
-3. **Test locally before deployment** using `tests/master_test.py`
-4. **Test production code** - import and test actual LangGraph pipeline from `app_langgraph_rag.py`
+3. **Test locally before deployment** using `tests/rag_v2_test.py`
+4. **Test production code** - import and test actual RAG v2 pipeline from `app_rag_v2.py`
 5. **Never delete test files** - preserve all `test_*.py` files for future reference
 6. **Include judge evaluation** - all tests should use GPT-4o for objective assessment
 
 ### Code Quality
 - **No API keys in code** - use environment variables
 - **No hardcoded prompts** - use externalized config files
-- **Follow LangGraph patterns** - state management, conditional routing, error handling
+- **Follow RAG v2 patterns** - state management, conditional routing, error handling
 - **Save test results** to `tests/results/` with descriptive names
 - **Document changes** in commit messages
 
@@ -111,25 +111,19 @@ Route: Negative Coverage | Standard Generation
 ### Manual Testing (Primary)
 ```bash
 # Test specific questions
-python tests/master_test.py --tests manual --manual "Does Data Science contain Python?"
+python tests/rag_v2_test.py --manual "Does Data Science contain Python?"
 
 # Test multiple areas
-python tests/master_test.py --tests source_citation conversation_context
+python tests/rag_v2_test.py --tests source_citation conversation_context
 
-# Run all tests
-python tests/master_test.py --tests all
+# Run all tests in parallel
+python tests/rag_v2_test.py --parallel --workers 4
 ```
 
 ### Specialized Testing
 ```bash
-# Test conversation context
-python tests/conversation_optimization_test.py
-
-# Test error handling
-python tests/error_handling_test.py
-
-# Test Slack threading
-python tests/slack_threading_test.py
+# Web Development focused debugging
+python tests/web_dev_debug.py --parallel --workers 4
 ```
 
 ### AI Judge Evaluation
@@ -166,13 +160,13 @@ Every test includes GPT-4o evaluation providing:
 
 ### Configuration Updates (No Code Changes)
 1. Edit relevant config file in `assistant_config/`
-2. Test locally: `python tests/master_test.py --manual "test question"`
+2. Test locally: `python tests/rag_v2_test.py --manual "test question"`
 3. **Commit and push to GitHub**
-4. **Deploy Heroku app** (LangGraph pipeline reads from repository)
+4. **Deploy Heroku app** (RAG v2 pipeline reads from repository)
 5. Verify in production environment
 
 ### Application Updates
-1. Edit `src/app_langgraph_rag.py` for LangGraph workflow changes
+1. Edit `src/app_rag_v2.py` for RAG v2 workflow changes
 2. Test with comprehensive test suite
 3. **Commit and push to GitHub**
 4. **Deploy Heroku app**
@@ -181,25 +175,26 @@ Every test includes GPT-4o evaluation providing:
 ### Knowledge Base Updates
 1. Edit Markdown files in `knowledge_base/database/`
 2. Update corresponding TXT files in `knowledge_base/database_txt/`
-3. Test with `python tests/master_test.py --manual "relevant question"`
+3. Test with `python tests/rag_v2_test.py --manual "relevant question"`
 4. Deploy via Heroku app restart
 
 ## Key Files & Their Roles
 
 ### Critical Architecture Files
-- **`src/app_langgraph_rag.py`** - LangGraph RAG Pipeline application (PRODUCTION)
+- **`src/app_rag_v2.py`** - RAG v2 Pipeline application (PRODUCTION)
 - **`assistant_config/MASTER_PROMPT.md`** - Core assistant behavior and constraints
 - **`assistant_config/COVERAGE_CLASSIFICATION.md`** - AI prompt for coverage detection
 - **`assistant_config/COVERAGE_VERIFICATION.md`** - AI prompt for topic verification
 - **`assistant_config/FUN_FALLBACK_GENERATION_*.md`** - AI prompts for fallback generation
-- **`tests/master_test.py`** - Flexible test runner with manual question capability
+- **`tests/rag_v2_test.py`** - Comprehensive test suite with parallel execution
 
 ### Knowledge Base
 - **`knowledge_base/database/*.md`** - Source course information (edit these)
 - **`knowledge_base/database_txt/*.txt`** - Vector store format (auto-sync with MD)
 
 ### Development Tools
-- **`tests/master_test.py`** - Primary testing tool with GPT-4o judge evaluation
+- **`tests/rag_v2_test.py`** - Primary testing tool with GPT-4o judge evaluation
+- **`tests/web_dev_debug.py`** - Web Development focused debugging
 - **`tests/results/`** - Test results with timestamps and detailed feedback
 - **`tools/`** - Utility scripts for development and maintenance
 
@@ -207,8 +202,8 @@ Every test includes GPT-4o evaluation providing:
 - ❌ Never hardcode AI prompts in Python code - use config files
 - ❌ Never commit API keys or sensitive credentials
 - ❌ Never edit TXT files without updating corresponding MD files
-- ❌ Never deploy without testing with `master_test.py`
-- ❌ Never test simulated code - always test actual production LangGraph pipeline
+- ❌ Never deploy without testing with `rag_v2_test.py`
+- ❌ Never test simulated code - always test actual production RAG v2 pipeline
 - ❌ Never perform Git operations unless explicitly requested by user
 
 ## Context for AI Assistance
@@ -216,11 +211,11 @@ Every test includes GPT-4o evaluation providing:
 This is a production system serving Ironhack's sales team with **advanced AI-driven architecture**. Any changes must:
 
 ### Technical Requirements
-- **Maintain LangGraph workflow integrity** - preserve multi-node AI architecture
+- **Maintain RAG v2 workflow integrity** - preserve 14-node AI architecture
 - **Preserve externalized prompts** - no hardcoded AI instructions
-- **Test actual production code** - import and test real LangGraph pipeline
+- **Test actual production code** - import and test real RAG v2 pipeline
 - **Include AI judge evaluation** - use GPT-4o for objective quality assessment
-- **Maintain conversation context** - leverage LangGraph memory capabilities
+- **Maintain conversation context** - leverage built-in memory capabilities
 
 ### Business Requirements  
 - **Zero fabrication policy** - multi-layer AI validation prevents hallucinations
@@ -233,7 +228,7 @@ This is a production system serving Ironhack's sales team with **advanced AI-dri
 - **AI-driven decisions** - use AI for routing, classification, and generation
 - **Externalized configuration** - all AI behavior controlled via config files
 - **Robust error recovery** - multi-layer fallback with graceful degradation
-- **State management** - comprehensive tracking across LangGraph nodes
+- **State management** - comprehensive tracking across RAG v2 nodes
 - **Intelligent routing** - AI determines optimal response type for each query
 
 **Always prioritize the AI-driven architecture and externalized configuration over hardcoded solutions.**

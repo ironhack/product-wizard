@@ -1,28 +1,28 @@
 # 🧙‍♂️ Product Wizard - AI-Driven Sales Enablement Assistant
 
-> An intelligent LangGraph-powered assistant that provides accurate, citation-backed information about Ironhack courses for sales teams during live calls with prospective students.
+> An intelligent RAG v2 assistant that provides accurate, citation-backed information about Ironhack courses for sales teams during live calls with prospective students.
 
 ## 🎯 Overview
 
-Product Wizard is a comprehensive **AI-driven RAG system** built with **LangGraph** that serves three main purposes:
+Product Wizard is a comprehensive **AI-driven RAG system** built with **RAG v2** that serves three main purposes:
 
-1. **🤖 LangGraph RAG Pipeline** - Advanced multi-node workflow with AI-driven routing, verification, and fallback handling
+1. **🤖 RAG v2 Pipeline** - Advanced 14-node workflow with AI-driven routing, verification, and fallback handling
 2. **🔗 Slack Integration Middleware** - Heroku app connecting the assistant to Slack with conversation threading
 3. **🛠️ Development & Testing Tools** - Utilities for pipeline optimization, testing, and deployment
 
 ### Key Features
-- ✅ **AI-Driven Architecture** - LangGraph orchestrates multi-step reasoning and verification
+- ✅ **AI-Driven Architecture** - RAG v2 orchestrates multi-step reasoning and verification
 - ✅ **Smart Coverage Detection** - AI classifies and verifies curriculum coverage questions
 - ✅ **Dynamic Response Routing** - Automatic routing between comprehensive answers, negative coverage, and fun fallbacks
 - ✅ **Zero Fabrication Policy** - Multi-layer AI validation prevents hallucinations
 - ✅ **Professional Fallbacks** - AI-crafted fallback messages with intelligent team routing
 - ✅ **Perfect Citations** - References specific curriculum documents with source attribution
-- ✅ **Conversation Context** - LangGraph memory maintains context across multi-turn conversations
+- ✅ **Conversation Context** - Built-in memory maintains context across multi-turn conversations
 - ✅ **Expansion Recovery** - Automatic chunk expansion when initial retrieval is insufficient
 
 ## 🏗️ Architecture Overview
 
-### LangGraph Workflow
+### RAG v2 Workflow (14 Nodes)
 ```
 Query → Retrieval → Document Filtering → Coverage Classification
                                               ↓
@@ -72,18 +72,18 @@ knowledge_base/
 
 **All prompts externalized**: No hardcoded prompts in code - all AI instructions in config files for easy maintenance.
 
-### 2. 🚀 LangGraph RAG Application
+### 2. 🚀 RAG v2 Application
 
 ```
 src/
-└── app_langgraph_rag.py               # LangGraph RAG Pipeline (PRODUCTION)
+└── app_rag_v2.py                     # RAG v2 Pipeline (PRODUCTION)
 
-Procfile                               # Heroku deployment configuration
-requirements.txt                       # Python dependencies  
-runtime.txt                           # Python version specification
+Procfile                              # Heroku deployment configuration
+requirements.txt                      # Python dependencies  
+runtime.txt                          # Python version specification
 ```
 
-**LangGraph Architecture**: Advanced workflow with:
+**RAG v2 Architecture**: Advanced 14-node workflow with:
 - **State Management** - Comprehensive state tracking across nodes
 - **Conditional Routing** - AI-driven decision points for optimal responses
 - **Error Recovery** - Graceful handling of API failures with retry logic
@@ -94,10 +94,8 @@ runtime.txt                           # Python version specification
 
 ```
 tests/
-├── master_test.py                     # Flexible test runner with manual question mode
-├── conversation_optimization_test.py  # Context management testing
-├── error_handling_test.py             # Error recovery validation
-├── slack_threading_test.py            # Slack conversation threading
+├── rag_v2_test.py                     # Comprehensive RAG v2 test suite
+├── web_dev_debug.py                   # Web Development focused debugging
 └── results/                          # Test output files and reports
 
 tools/
@@ -106,7 +104,7 @@ tools/
 └── clean_vector_store.py              # Vector store cleanup
 ```
 
-**AI-Driven Testing**: Tests use actual production LangGraph pipeline with GPT-4o judge evaluation.
+**AI-Driven Testing**: Tests use actual production RAG v2 pipeline with GPT-4o judge evaluation.
 
 ## 🔄 Development Workflow
 
@@ -124,16 +122,16 @@ tools/
 ### Testing & Optimization
 ```bash
 # Run comprehensive test with manual questions
-python tests/master_test.py --tests manual --manual "Your question here"
+python tests/rag_v2_test.py --manual "Your question here"
 
 # Run specific test types
-python tests/master_test.py --tests source_citation conversation_context
+python tests/rag_v2_test.py --tests source_citation conversation_context
 
-# Test error handling
-python tests/error_handling_test.py
+# Run all tests in parallel for faster execution
+python tests/rag_v2_test.py --parallel --workers 4
 
-# Test Slack threading
-python tests/slack_threading_test.py
+# Web Development focused debugging
+python tests/web_dev_debug.py --parallel --workers 4
 ```
 
 ## 🎯 AI-Driven Features
@@ -193,16 +191,16 @@ pip install -r requirements.txt
 
 ### 3. Run Application
 ```bash
-python src/app_langgraph_rag.py
+python src/app_rag_v2.py
 ```
 
 ### 4. Test with Manual Questions
 ```bash
 # Test specific functionality
-python tests/master_test.py --tests manual --manual "Does Data Science bootcamp contain Python?"
+python tests/rag_v2_test.py --manual "Does Data Science bootcamp contain Python?"
 
 # Run comprehensive tests
-python tests/master_test.py --tests all
+python tests/rag_v2_test.py --tests all
 ```
 
 ## 📊 Performance Improvements
@@ -231,10 +229,8 @@ python tests/master_test.py --tests all
 
 | Test | Purpose | Command |
 |------|---------|---------|
-| **Master Test** | Flexible test runner with manual questions | `python tests/master_test.py --manual "Question"` |
-| **Conversation Context** | Multi-turn conversation testing | `python tests/conversation_optimization_test.py` |
-| **Error Handling** | Error recovery validation | `python tests/error_handling_test.py` |
-| **Slack Threading** | Slack conversation threading | `python tests/slack_threading_test.py` |
+| **RAG v2 Test** | Comprehensive test suite with parallel execution | `python tests/rag_v2_test.py --manual "Question"` |
+| **Web Dev Debug** | Web Development focused debugging | `python tests/web_dev_debug.py --parallel --workers 4` |
 
 ### Judge-Based Evaluation
 Every test includes GPT-4o evaluation with:
@@ -297,10 +293,10 @@ All AI behavior controlled via config files:
 ## 🛠️ Development
 
 ### Adding New AI Nodes
-1. Create new node function in `app_langgraph_rag.py`
+1. Create new node function in `app_rag_v2.py`
 2. Add to workflow with `workflow.add_node()`
 3. Define routing with `workflow.add_conditional_edges()`
-4. Test with `master_test.py`
+4. Test with `rag_v2_test.py`
 
 ### Updating AI Behavior
 1. Edit relevant config file in `assistant_config/`
@@ -337,7 +333,7 @@ class RAGState(TypedDict):
 
 For technical issues:
 1. Check LangGraph state in logs
-2. Run manual tests: `python tests/master_test.py --manual "Question"`
+2. Run manual tests: `python tests/rag_v2_test.py --manual "Question"`
 3. Review AI node execution flow
 4. Test individual components
 
