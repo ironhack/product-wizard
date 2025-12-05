@@ -676,7 +676,7 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
             valid_programs = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
             if valid_programs:
                 program_name = valid_programs[0].replace("_", " ")
-                instructions += f"\n\nIMPORTANT: For certification queries, retrieve chunks from the Certifications document that specifically mention '{program_name}' or 'Web Development' certifications. Look for chunks containing specific certification names like 'Node.js Application Developer Certification' or 'MongoDB Developer Certification'."
+                instructions += f"\n\nIMPORTANT: For certification queries, retrieve chunks from the Certifications document that specifically mention '{program_name}' or 'AI Web Development' certifications. Look for chunks containing specific certification names like 'Certified React Developer™' or 'MongoDB Developer Certification'."
         
         logger.info(f"🔍 Calling OpenAI Responses API with vector store search...")
         resp = openai_client.responses.create(

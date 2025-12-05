@@ -1,0 +1,262 @@
+Course contents  
+**AI Product Management Bootcamp**
+
+**Table of contents**
+
+ - [Course Duration](#course-duration)
+ - [Course Overview](#course-overview)
+ - [Learning Outcomes](#learning-outcomes)
+ - [Course Details](#course-details)
+   - [Unit 1: Intro to Product Management, Agile & Prompting](#unit-1-intro-to-product-management-agile-prompting)
+   - [Unit 2: Core PM Tools + AI Augmentation](#unit-2-core-pm-tools-ai-augmentation)
+   - [Unit 3: Prototyping & MVPs with AI](#unit-3-prototyping-mvps-with-ai)
+   - [Unit 4: AI for Discovery, Ideation & Validation](#unit-4-ai-for-discovery-ideation-validation)
+   - [Unit 5: MVP Development with AI Tools](#unit-5-mvp-development-with-ai-tools)
+   - [Unit 6: Roadmaps & Stakeholder Communication with AI](#unit-6-roadmaps-stakeholder-communication-with-ai)
+   - [Unit 7: Go-to-Market with AI](#unit-7-go-to-market-with-ai)
+   - [Unit 8: Monitoring & Continuous Improvement with AI](#unit-8-monitoring-continuous-improvement-with-ai)
+   - [Unit 9: Capstone – End-to-End AI Product Sprint](#unit-9-capstone-end-to-end-ai-product-sprint)
+ - [Assessment](#assessment)
+ - [Materials Provided](#materials-provided)
+ - [Tools Needed](#tools-needed)
+
+## **Course Duration** {#course-duration}
+
+* **Total:** 360 hours  
+* **Format:** 9 weeks × 40 hours/week (e.g., 8h/day)  
+* **Delivery:** Instructor-led, remote, highly practical and project-based
+
+## **Course Overview** {#course-overview}
+
+This bootcamp prepares students to become **AI-powered Product Managers**, professionals who use Artificial Intelligence to ideate, design, launch, and iterate digital products. Students learn Agile PM fundamentals, prompting techniques, prototyping with AI, and no-code development, while applying ethical and responsible AI practices throughout.
+
+The program combines real-world tools (Jira, Confluence, Figma, Mixpanel, ChatGPT, Lovable) with hands-on projects that simulate the full product lifecycle: from discovery to go-to-market and monitoring.
+
+## **Learning Outcomes** {#learning-outcomes}
+
+By the end of the program, students will be able to:
+
+* Apply Product Management frameworks (Agile, Scrum, Kanban) in real projects.  
+* Use AI tools to accelerate ideation, research, prototyping, and communication.  
+* Create PRDs, roadmaps, and backlogs using AI-assisted documentation.  
+* Design and launch MVPs using Figma and no-code platforms (Lovable, Bubble, Glide).  
+* Integrate custom GPTs or AI APIs into functional product prototypes.  
+* Build analytics dashboards and apply AI to interpret product performance.  
+* Communicate product vision and decisions effectively to stakeholders.  
+* Apply responsible AI principles, balancing innovation with compliance and ethics.
+
+##  **Course Details** {#course-details}
+
+### **Unit 1: Intro to Product Management, Agile & Prompting** {#unit-1-intro-to-product-management-agile-prompting}
+
+**Duration:** Week 1 (40h)  
+**Topics:**
+
+* What is Product Management: roles, lifecycle, and mindset.  
+* Agile basics: Scrum, Kanban, ceremonies, and backlog structure.  
+* Writing user stories (with and without AI).  
+* Prompting fundamentals: how to ask AI effectively.  
+* Ethics and responsibility in prompting: bias, documentation, transparency.
+
+**Example Activities:**   
+Generate and refine user stories using ChatGPT. Map a simple Agile workflow in Jira.
+
+**Outcome:**  
+Students understand the foundations of Product Management and Agile while learning to use AI responsibly for day-to-day PM tasks.
+
+### **Unit 2: Core PM Tools + AI Augmentation** {#unit-2-core-pm-tools-ai-augmentation}
+
+**Duration:** Week 2 (40h)
+
+**Topics:**
+
+* Jira (or similar of the same kind) for backlog management, sprints, and prioritization frameworks (RICE, MoSCoW).  
+* Confluence (or similar of the same kind) for PRDs and documentation.  
+* Prompting for structure: generating PRDs and backlog items with AI.  
+* Transparency when documenting AI-assisted work.
+
+**Example Activities:**  
+Create a backlog and sprint plan. Use AI to draft and refine a PRD in the documentation tool..  
+**Outcome:**  
+Students can operate core PM tools and use AI to optimize documentation, organization, and transparency.
+
+### **Unit 3: Prototyping & MVPs with AI** {#unit-3-prototyping-mvps-with-ai}
+
+**Duration:** Week 3 (40h)
+
+**Topics:**
+
+* Figma basics and AI plug-ins for design assistance.  
+* Low-code/no-code MVP tools (Lovable, Bubble, or similar of the same kind).  
+* How AI accelerates and improves prototyping workflows.  
+* Inclusive design: avoiding bias and manipulative patterns.
+
+**Example Activities:**  
+Build a clickable prototype using AI plug-ins in Figma.  
+Create a no-code MVP concept using Lovable (or similar of the same kind).
+
+**Mini Project 1:**  
+PRD \+ Jira backlog \+ AI-generated wireframe for a product idea.
+
+**Outcome:**  
+Students can design and deliver a simple MVP prototype with AI-assisted tools and an Agile workflow.
+
+### **Unit 4: AI for Discovery, Ideation & Validation** {#unit-4-ai-for-discovery-ideation-validation}
+
+**Duration:** Week 4 (40h)
+
+**Topics:**
+
+* Using AI for brainstorming and problem mapping.  
+* Creating user personas and Jobs-To-Be-Done statements with AI.  
+* Simulating user interviews with large language models.  
+* Analyzing and clustering survey data for validation.  
+* Recognizing AI bias and validating assumptions with real users.
+
+**Example Activities:**  
+Generate 2–3 personas and JTBD statements using AI.  
+Write a short discovery report synthesizing insights.  
+   
+**Outcome:**  
+Students can use AI to accelerate discovery, research, and validation while maintaining critical thinking and ethical awareness.
+
+### **Unit 5: MVP Development with AI Tools** {#unit-5-mvp-development-with-ai-tools}
+
+**Duration:** Week 5 (40h)
+
+**Topics:**
+
+* From prototype to functional MVP using no-code and low-code tools.  
+* Integrating APIs (OpenAI, Hugging Face, or similar of the same kind).  
+* Creating a Custom GPT tailored to a product idea.  
+* UX and trust design for AI-driven interfaces.  
+* Privacy and compliance when embedding AI.
+
+**Example Activities:**  
+Build a lightweight Custom GPT (e.g., support bot or recommender).  
+Test and iterate on an AI-driven MVP prototype.
+
+**Outcome:**  
+Students develop and test AI-enhanced MVPs while addressing privacy, UX, and ethical design challenges.
+
+### **Unit 6: Roadmaps & Stakeholder Communication with AI** {#unit-6-roadmaps-stakeholder-communication-with-ai}
+
+**Duration:** Week 6 (40h)
+
+**Topics:**
+
+* Roadmap creation and backlog prioritization (AI-assisted).  
+* Stakeholder communication with AI: meeting notes, summaries, and presentations.  
+* Responsible use of AI in communication and documentation.
+
+**Example Activities:**  
+Generate an AI-assisted roadmap and stakeholder presentation.
+
+**Mini Project 2:**  
+Deliver an AI-powered MVP, roadmap, and stakeholder presentation.  
+   
+**Outcome:**  
+Students can organize product strategy and communicate decisions clearly with AI-augmented storytelling and documentation.
+
+### **Unit 7: Go-to-Market with AI** {#unit-7-go-to-market-with-ai}
+
+**Duration:** Week 7 (40h)  
+**Topics:**
+
+* AI for market research, competitor tracking, and pricing strategy.  
+* AI-assisted copywriting for marketing campaigns and onboarding.  
+* Designing AI-powered growth experiments (e.g., churn prediction, A/B testing).  
+* Responsible messaging and brand alignment.
+
+**Example Activities:**  
+Create an AI-generated Go-to-Market plan and content draft.
+
+**Outcome:**  
+Students can build data-informed, ethically sound Go-to-Market strategies supported by AI.
+
+### **Unit 8: Monitoring & Continuous Improvement with AI** {#unit-8-monitoring-continuous-improvement-with-ai}
+
+**Duration:** Week 8 (40h)
+
+**Topics:**
+
+* Fundamentals of post-launch monitoring: KPIs, OKRs, product health.  
+* Analytics dashboards (GA4, Mixpanel).  
+* AI-assisted monitoring: anomaly detection, churn analysis, insight generation.  
+* Designing and interpreting A/B tests.  
+* Data ethics and compliance in analytics.
+
+**Example Activities:**  
+Build a monitoring dashboard with AI-generated insights.
+
+**Outcome:**  
+Students can evaluate and optimize product performance using AI analytics tools.
+
+### **Unit 9: Capstone – End-to-End AI Product Sprint** {#unit-9-capstone-end-to-end-ai-product-sprint}
+
+**Duration:** Week 9 (40h)
+
+**Topics:**
+
+* End-to-end product sprint: from discovery to GTM and monitoring.  
+* Applying AI tools across the full PM lifecycle.  
+* Agile rituals: stand-ups, mid-week checkpoint, retrospectives.  
+* Reflection on responsible and effective AI use.
+
+**Example Activities:**  
+Develop a complete new product in one week.  
+Deliver stakeholder presentation and reflection.
+
+**Deliverables:**  
+PRD, backlog, prototype/MVP, monitoring dashboard and AI responsibility statement.
+
+**Outcome:**  
+Students demonstrate full-cycle PM skills and AI fluency through a real-world, time-boxed team project.
+
+##  **Assessment** {#assessment}
+
+* **Formative**:   
+  Daily exercises, peer collaboration, and instructor feedback.  
+* **Mid-Term Project 1 (Week 3): AI-Powered Product Foundation**  
+  **Project:** Develop a PRD, Jira backlog, and AI-generated wireframe for a product idea.  
+  **Outcome:** Demonstrate understanding of Agile PM and AI-assisted documentation.  
+* **Mid-Term Project 2 (Week 6): AI-Enhanced MVP & Roadmap**  
+  **Project:** Build an MVP prototype and AI-powered roadmap, including stakeholder presentation.  
+  **Outcome:** Show ability to combine discovery, prototyping, and communication using AI tools.  
+* **Capstone Sprint Project (Week 9): End-to-End AI Product Cycle**  
+  **Project:** In teams, create a new AI-assisted product from scratch in one week.  
+   Includes discovery, Custom GPT integration (optional), MVP, GTM plan, monitoring strategy, and final stakeholder presentation.  
+  **Outcome:** Demonstrate full-cycle product management capability and professional readiness.
+
+## **Materials Provided** {#materials-provided}
+
+**For students:**
+
+* Slides and session notes  
+* Hands-on exercises and project templates  
+* PRD, backlog, and roadmap templates  
+* Figma and no-code prototype examples  
+* AI prompt library and ethical AI checklist
+
+**For instructors:**
+
+* Lesson plans and teaching guide  
+* Project briefs and evaluation rubrics  
+* Suggested prompts and AI tool setup guide
+
+##  **Tools Needed** {#tools-needed}
+
+* **Jira & Confluence** – backlog, documentation, and roadmaps
+
+* **Figma** – wireframing and prototyping
+
+* **Lovable / Bubble / Glide** – no-code MVP creation
+
+* **ChatGPT / Custom GPTs** – idea generation, documentation, and product  
+   Simulation
+
+* **GA4 / Mixpanel** – analytics and monitoring
+
+* **Notion / Miro** – collaboration and brainstorming
+
+* **Or similar of the same kind**

@@ -1,5 +1,5 @@
 Course contents  
-**Digital Marketing**
+**AI-Driven Marketing**
 
 **Table of contents**
 
@@ -10,28 +10,26 @@ Course contents
  - [Course Details](#course-details)
    - [Unit 0: Prework - Digital Marketing Foundations: KPIs, channels, tools and tactics (1 week)](#unit-0-prework---digital-marketing-foundations-kpis-channels-tools-and-tactics-1-week)
    - [Unit 1: Strategy and Marketing Planning (1 week)](#unit-1-strategy-and-marketing-planning-1-week)
-   - [Unit 2: Inbound & Content Marketing (1 week)](#unit-2-inbound-content-marketing-1-week)
+   - [Unit 2: Inbound & AI Content Marketing (1 week)](#unit-2-inbound-ai-content-marketing-1-week)
    - [Unit 3: Project 1 - Design the strategy for a product launch with inbound marketing (1 week)](#unit-3-project-1---design-the-strategy-for-a-product-launch-with-inbound-marketing-1-week)
    - [Unit 4: Outbound Marketing & Tracking (1 week)](#unit-4-outbound-marketing-tracking-1-week)
-   - [Unit 5: Advanced measurement & analytics (1 week)](#unit-5-advanced-measurement-analytics-1-week)
+   - [Unit 5: AI-Powered Analytics & Measurement (1 week)](#unit-5-ai-powered-analytics-measurement-1-week)
    - [Unit 6: Automation and Personalization with AI (1 week)](#unit-6-automation-and-personalization-with-ai-1-week)
    - [Unit 7: Project 2 - Design the strategy for a product launch with outbound marketing (1 week)](#unit-7-project-2---design-the-strategy-for-a-product-launch-with-outbound-marketing-1-week)
    - [Unit 8 & 9: Project 3 - Build a business & promote it (2 weeks)](#unit-8-9-project-3---build-a-business-promote-it-2-weeks)
 
-## **Course Duration**
+## **Course Duration** {#course-duration}
 
-**Total Course Duration:** 9 weeks (360 hours)
+* **Total:** 360 hours + 40 hours prework  
+* **Format:** 9 weeks × 40 hours/week  
+* **Delivery:** Online, highly practical and project-based
 
-**Prework duration:** one week (40 hours)
-
-**Total Hours (prework \+ course):** 400 hours
-
-## **Course Overview**
+## **Course Overview** {#course-overview}
 
 The Digital Marketing bootcamp provides a comprehensive overview of the most essential aspects of digital advertising. Over the course of nine weeks, students will gain the strategic knowledge needed to independently develop an effective digital marketing plan to drive business growth.  
 Through hands-on projects, students will define marketing goals, develop campaigns across digital channels, and evaluate audience behavior to optimize performance. By interpreting data into actionable insights, they’ll apply skills to make informed decisions that drive engagement and results.
 
-## **General Structure**
+## **General Structure** {#general-structure}
 
 * **Class Format:** Online  
 * **Materials Provided:** Lecture slides, project templates, additional reading materials, and access to various tools.  
@@ -48,7 +46,7 @@ Through hands-on projects, students will define marketing goals, develop campaig
 
 * **Feedback Mechanism:** Continuous feedback during exercise sessions, peer reviews during projects, and formal evaluations via quizzes and assignments.
 
-## **Learning Outcomes**
+## **Learning Outcomes** {#learning-outcomes}
 
 By the end of this course, participants will be able to:
 
@@ -66,9 +64,9 @@ By the end of this course, participants will be able to:
 
 ## 
 
-## **Course Details**
+## **Course Details** {#course-details}
 
-### **Unit 0: Prework - Digital Marketing Foundations: KPIs, channels, tools and tactics (1 week)**
+### **Unit 0: Prework \- Digital Marketing Foundations: KPIs, channels, tools and tactics (1 week)** {#unit-0:-prework---digital-marketing-foundations:-kpis,-channels,-tools-and-tactics-(1-week)}
 
 **Objective**: Through the pre-work, students will build a solid understanding of digital marketing fundamentals. They will learn key concepts, including the most relevant KPIs, the current digital ecosystem, and the various channels and tactics used to achieve different business objectives
 
@@ -101,7 +99,8 @@ By the end of this course, participants will be able to:
 **5\. Introduction to Generative AI and ChatGPT: 2h**
 
 * Overview of generative AI and its applications in marketing. Introduction to ChatGPT and its use in digital marketing tasks such as data analysis, content creation, strategy development, and automation.  
-* Basics of prompt engineering: How to communicate effectively with AI tools for optimal results.
+* Basics of prompt engineering: How to communicate effectively with AI tools for optimal results.  
+* Mapping AI’s role across KPIs, channels, and digital strategies: for data I need X, for content I can do Y..
 
 **Practices: 20h**
 
@@ -118,7 +117,7 @@ By the end of this course, participants will be able to:
 |  |  |  |
 | 5\. Experimenting with ChatGPT and AI | 2h | Exercise: Use ChatGPT to generate marketing content, optimize prompts, and analyze campaign data. |
 
-### **Unit 1: Strategy and Marketing Planning (1 week)**
+### **Unit 1: Strategy and Marketing Planning (1 week)** {#unit-1:-strategy-and-marketing-planning-(1-week)}
 
 **Objective**: After gaining foundational knowledge of digital marketing, this unit focuses on developing and executing digital strategies aligned with key business objectives. Students will learn to understand the business environment and market by identifying objectives, analyzing demand, and pinpointing primary target audiences for digital advertising. They will conduct market and competitive analyses using various tools and build comprehensive strategies for both organic and paid media throughout the conversion funnel.
 
@@ -133,7 +132,8 @@ By the end of this course, participants will be able to:
 
 * Creating detailed buyer personas to better understand and target key audiences.  
 * Techniques for gathering insights on target demographics, psychographics, and behavior.  
-* Leveraging ChatGPT to analyze market research data and customer reviews to generate and refine buyer personas, uncovering patterns and behaviors in user feedback or survey results. Drawing on additional key sources for insights, such as Nielsen, Statista, InfoAdex, and Kantar.
+* Leveraging ChatGPT to analyze market research data and customer reviews to generate and refine buyer personas, uncovering patterns and behaviors in user feedback or survey results. Drawing on additional key sources for insights, such as Nielsen, Statista, InfoAdex, and Kantar.  
+* Create a custom GPT to define buyer personas with AI
 
 **3\. Competitive Analysis: 6h**
 
@@ -160,11 +160,11 @@ By the end of this course, participants will be able to:
 | 4\. Media Planning and Budget Allocation | 6 | Exercise: Develop a complete media plan covering all stages of the funnel. Students will allocate budgets across channels and tactics, and use tools like ChatGPT to generate content ideas for each funnel stage (awareness, consideration, decision). |
 |  |  |  |
 
- 
+### 
 
 ### 
 
-### **Unit 2: Inbound & Content Marketing (1 week)**
+### **Unit 2: Inbound & AI Content Marketing (1 week)** {#unit-2:-inbound-&-ai-content-marketing-(1-week)}
 
 **Objective**: In this second unit, students will explore comprehensive inbound marketing techniques, focusing on creating and sharing targeted content to attract and convert prospects into loyal customers and, ultimately, brand advocates through effective retention strategies. Throughout the week, students will dive into key inbound practices, including SEO, social media, email marketing, and marketing automation. They will also learn to design effective landing pages for lead generation, leveraging best practices in Conversion Rate Optimization (CRO) and user journey analysis, from initial contact to final conversion.
 
@@ -180,20 +180,23 @@ By the end of this course, participants will be able to:
 * Strategies for creating compelling, valuable content that resonates with target audiences.  
 * Types of content: blogs, videos, infographics, eBooks, and their roles in inbound marketing.  
 * Content distribution channels and repurposing strategies.  
-* Leveraging ChatGPT to generate different types of content and repurpose best performing content.
+* Leveraging ChatGPT to generate different types of content and repurpose best performing content.  
+* Leveraging AI for content (all formats): image & video creation for ads, AI-driven design with Canva Magic Design
 
 **3\. Search Engine Optimization (SEO): 4h**
 
 * Key SEO techniques to improve website visibility and rankings.  
 * On-page and off-page SEO strategies.  
 * High-level introduction to Website Performance Optimization (WPO) and its impact on SEO.  
+* Generative engine optimization  (GEO): 4h (getaiso.com))(how to rank with LLMs)   
 * Harnessing ChatGPT to perform keyword research, generate SEO-optimized content, and provide suggestions for on-page SEO elements and ways to improve link building..
 
 **4\. Social Media & Influencer Marketing: 3h**
 
-* Leveraging social media platforms to engage with audiences and build brand presence.  
-* The role of influencers in amplifying content and expanding reach.  
-* Developing strategies for creating shareable content and building social proof, utilizing a content calendar to plan and execute campaigns effectively.
+* How to leverage automated workflows to get competitor insights to build your creative  
+* Select and apply AI tools strategically  
+* Automate and personalize community interactions through advanced chatbots (many chat)  
+* Optimize advertising campaigns and data collection/reading.
 
 **5\. Email Marketing: 3h**
 
@@ -220,9 +223,9 @@ By the end of this course, participants will be able to:
 | 6\. Design and Develop a Landing Page | 3h | Exercise: Students will design and optimize a landing page focused on lead generation. They will implement SEO tactics and use ChatGPT to refine page copy and CTAs. |
 |  |  |  |
 
- 
+### 
 
-### **Unit 3: Project 1 - Design the strategy for a product launch with inbound marketing (1 week)**
+### **Unit 3: Project 1 \- Design the strategy for a product launch with inbound marketing (1 week)** {#unit-3:-project-1---design-the-strategy-for-a-product-launch-with-inbound-marketing-(1-week)}
 
 **Objective**: The first project focuses on developing a comprehensive inbound marketing strategy for the launch of a new product. Students will apply their knowledge of content creation, SEO, social media, email marketing, and other inbound tactics to attract, engage, and convert potential customers. The project will culminate in a detailed strategy document outlining the entire inbound marketing plan, including content calendars, lead generation tactics, and measurement plans.
 
@@ -245,7 +248,7 @@ By the end of this course, participants will be able to:
 
 * Project presentation with all the project definition & planning & strategy implementation included.
 
-### **Unit 4: Outbound Marketing & Tracking (1 week)**
+### **Unit 4: Outbound Marketing & Tracking (1 week)** {#unit-4:-outbound-marketing-&-tracking-(1-week)}
 
 **Objective**: In this unit, students will explore the full media mix of paid advertising channels available today. They will learn to define and execute a digital strategy using a combination of paid channels tailored to specific business objectives, whether for lead generation or e-commerce sales. Additionally, students will understand best practices for efficiently tracking and measuring the performance of paid advertising across various platforms. The unit will also cover key aspects of managing privacy in digital marketing, including creating and implementing privacy policies, cookie policies, and data collection processes.
 
@@ -256,7 +259,7 @@ By the end of this course, participants will be able to:
 * Developing and executing strategies that align with lead generation and e-commerce goals. Understanding how to allocate budget and resources across the funnel stages, from awareness to conversion.  
 * Case studies on successful full-funnel campaigns.
 
-**2\. Conversion / Low Funnel: 6h**
+**2\. Conversion / Low Funnel: 6h (We need to help him access accounts for Google & Meta)**
 
 * Paid Search: 3h  
   * Fundamentals of paid search advertising (e.g., Google Ads, Bing Ads).  
@@ -277,7 +280,9 @@ By the end of this course, participants will be able to:
   * Leveraging social media platforms for paid advertising (e.g., Facebook, Instagram, LinkedIn). Audience targeting, ad formats, and creative strategies.  
   * Measuring the effectiveness of paid social campaigns.  
   * A/B testing in Meta ads, using tools like Dynamic Creative, A/B Test (Experiments), and Split Testing to optimize audience targeting, ad copy, and creative elements for maximum engagement and conversions.  
-  * Generating ad creatives and variations of social media copy with ChatGPT to test different tones and messages.
+  * Generating ad creatives and variations of social media copy with ChatGPT to test different tones and messages.  
+  * Video ad scripting with AI (chatgpt)  
+  * AI video creation with vibepeak.ai
 
 **4\. Awareness / Upper Funnel: 5h**
 
@@ -303,9 +308,9 @@ By the end of this course, participants will be able to:
 | 4\. YouTube Ad Creation and Performance Analysis | 2h | Exercise: Create a simple video ad for YouTube, using ChatGPT to script key messaging. Analyze performance (engagement, views, etc.) using YouTube Analytics and optimize for better results. |
 | 5\. Tracking and Attribution with GTM and GA4 | 4h | Exercise: Set up tracking pixels and UTM parameters using Google Tag Manager (GTM). Analyze campaign performance with Google Analytics 4 (GA4), focusing on key metrics like conversions, CTR, and ROI. |
 
-### **Unit 5: Advanced measurement & analytics (1 week)**
+### **Unit 5: AI-Powered Analytics & Measurement (1 week)** {#unit-5:-ai-powered-analytics-&-measurement-(1-week)}
 
-**Objective**:nIn this fifth week, the focus will be on the critical role of data collection, integration, analysis, and activation in shaping personalized digital marketing strategies. Students will learn to utilize advanced measurement and analytics technologies available in the market to achieve specific business objectives. The unit will also offer a comprehensive understanding of how various organic and paid channels contribute to conversions, along with an overview of different attribution models..
+**Objective**:In this fifth week, the focus will be on the critical role of data collection, integration, analysis, and activation in shaping personalized digital marketing strategies. Students will learn to utilize advanced measurement and analytics technologies available in the market to achieve specific business objectives. The unit will also offer a comprehensive understanding of how various organic and paid channels contribute to conversions, along with an overview of different attribution models..
 
 **Key Topics: 20h**
 
@@ -338,7 +343,9 @@ By the end of this course, participants will be able to:
   * Best practices for data storytelling and reporting.  
 * GA4: 2h  
 * Advanced techniques for visualizing data within GA4. Customizing reports and dashboards to meet specific business needs.  
-* Data-driven decision-making by interpreting data to inform strategic marketing decisions. Use ChatGPT to assist in generating clear summaries of complex data visualizations, helping stakeholders understand key takeaways and making data-driven recommendations for future campaigns
+* Data-driven decision-making by interpreting data to inform strategic marketing decisions. Use ChatGPT to assist in generating clear summaries of complex data visualizations, helping stakeholders understand key takeaways and making data-driven recommendations for future campaigns  
+* Dashboarding & visualization with Looker Data Studio & GA4: 5h  
+* [MCP setup](https://www.linkedin.com/posts/yonatan-barad_vibe-marketing-is-on-the-rise-and-i-started-activity-7349022110029099009-MBaz/?utm_source=share&utm_medium=member_desktop&rcm=ACoAAAFOeV0BanP4LWuCCb465dp7-bSWRBV5ojw) \+ [analysis](https://www.linkedin.com/posts/yonatan-barad_vibe-marketing-is-on-the-rise-and-i-star[%E2%80%A6]m=member_desktop&rcm=ACoAAAFOeV0BanP4LWuCCb465dp7-bSWRBV5ojw)? Vibe Marketing (potentially partner with Data team to mask data and make it available)
 
 **4\. Learning the Adserver with Campaign Manager: 1h**
 
@@ -393,7 +400,8 @@ By the end of this course, participants will be able to:
 * Leveraging Make to integrate ChatGPT with HubSpot, enabling the automation of email marketing, social media management, and content marketing.  
 * Automating performance reporting with Make and Google Analytics (e.g., tracking user sessions and traffic sources) and triggering ChatGPT to generate insights and reports.  
 * Automatically updating workflows based on customer data and engagement metrics from HubSpot and Google Analytics.  
-* Measuring the effectiveness of AI-driven campaigns, using data from integrated tools to optimize performance and engagement.
+* Measuring the effectiveness of AI-driven campaigns, using data from integrated tools to optimize performance and engagement.  
+* Type of automation framework a student could build: https://n8n.io/workflows/6669-generating-ai-videos-with-veo3-and-distributing-with-blotato-across-multiple-platforms/
 
 
 **Practices:**
@@ -404,7 +412,7 @@ By the end of this course, participants will be able to:
 | 3\. Automate Reporting with Make and ChatGPT | 4h | Exercise:  Automate performance reporting using Make and Google Analytics. Use ChatGPT to generate insights and optimization suggestions based on traffic sources and user behavior data. |
 | 4\. AI-driven Personalization for Content | 4h | Exercise: Use ChatGPT to generate personalized messaging based on customer behavior data from HubSpot. Implement dynamic content strategies for personalized emails or web content. |
 
-**Unit 7: Project 2 - Design the strategy for a product launch with outbound marketing (1 week)**
+**Unit 7: Project 2 \- Design the strategy for a product launch with outbound marketing (1 week)**
 
 **Objective**: The second project focuses on developing an outbound marketing strategy for the launch of a new product, building on the work from Project 1\. Students will create and implement a media plan using paid advertising channels, including paid search, display, programmatic, and social media ads. The objective is to drive awareness, consideration, and conversions through targeted campaigns that reach the desired audience across multiple platforms, integrating AI-driven content creation and automated workflow management using Make.
 
@@ -434,7 +442,7 @@ By the end of this course, participants will be able to:
 
 ### 
 
-### **Unit 8 & 9: Project 3 - Build a business & promote it (2 weeks)**
+### **Unit 8 & 9: Project 3 \- Build a business & promote it (2 weeks)** {#unit-8-&-9:-project-3---build-a-business-&-promote-it-(2-weeks)}
 
 **Objective**: In the final project, students will take a holistic approach by building a new business from scratch and developing a comprehensive digital marketing strategy. This project integrates both inbound and outbound strategies, measuring effectiveness and optimizing based on data insights. Students will apply all course learnings to create a functional business with a detailed plan for reaching and converting customers. The project will culminate in a complete marketing plan and final presentation, showcasing strategic thinking and practical application of digital marketing techniques, leveraging AI and automation tools like Make and ChatGPT for efficiency and personalization..
 

@@ -12,12 +12,12 @@
     "filenames": ["Data_Science_&_Machine_Learning_bootcamp_2025_07"]
   },
   "web_development": {
-    "aliases": ["web dev", "web development", "full stack", "javascript bootcamp"],
-    "filenames": ["Web_Dev_Remote_bootcamp_2025_07"]
+    "aliases": ["web dev", "web development", "ai web development", "full stack", "javascript bootcamp", "react bootcamp", "mern stack"],
+    "filenames": ["AI_Web_Development_bootcamp_2025_12"]
   },
   "ux_ui": {
-    "aliases": ["ux", "ui", "ux/ui", "ux design", "ui design"],
-    "filenames": ["UXUI_Remote_bootcamp_2025_07"]
+    "aliases": ["ux", "ui", "ux/ui", "ux design", "ui design", "ai-driven ux/ui", "ai ux/ui design"],
+    "filenames": ["AI_Driven_UXUI_bootcamp_2025_12"]
   },
   "devops": {
     "aliases": ["devops", "cloud devops", "kubernetes", "docker"],
@@ -28,8 +28,24 @@
     "filenames": ["Cybersecurity_bootcamp_2025_07"]
   },
   "marketing": {
-    "aliases": ["digital marketing", "marketing bootcamp"],
-    "filenames": ["Marketing_bootcamp_2025_07"]
+    "aliases": ["digital marketing", "marketing bootcamp", "ai-driven marketing", "ai marketing"],
+    "filenames": ["AI_Driven_Marketing_bootcamp_2025_12"]
+  },
+  "ai_product_management": {
+    "aliases": ["ai product management", "ai pm", "product management", "pm bootcamp", "ai product manager"],
+    "filenames": ["AI_Product_Management_bootcamp_2025_12"]
+  },
+  "ai_consulting_integration": {
+    "aliases": ["ai consulting", "ai consulting integration", "ai consulting bootcamp", "ai integration", "ac bootcamp"],
+    "filenames": ["AI_Consulting_&_Integration_bootcamp_2025_12"]
+  },
+  "cloud_engineering": {
+    "aliases": ["cloud engineering", "cloud engineer", "cloud bootcamp", "ce bootcamp", "aws bootcamp", "terraform bootcamp"],
+    "filenames": ["Cloud_Engineering_bootcamp_2025_12"]
+  },
+  "data_engineering": {
+    "aliases": ["data engineering", "data engineer", "de bootcamp", "etl bootcamp", "pipeline engineer", "data pipeline"],
+    "filenames": ["Data_Engineering_bootcamp_2025_12"]
   },
   "data_science_ai_1_year": {
     "aliases": ["1 year", "1-year", "germany program", "dsai 1 year"],

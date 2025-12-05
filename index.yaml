@@ -15,12 +15,12 @@ course:
 
     - name: "Bootcamps"
       sequential:
-        - name: "UX/UI Bootcamp"
+        - name: "AI-driven UX/UI Design Bootcamp"
           vertical:
             - name: "Detailed Syllabus - Remote"
               component:
                 - type: html
-                  file: "database/UXUI_Remote_bootcamp_2025_07.md"
+                  file: "database/AI_Driven_UXUI_bootcamp_2025_12.md"
                   mode: read
         - name: "Data Analytics Bootcamp"
           vertical:
@@ -36,19 +36,19 @@ course:
                 - type: html
                   file: "database/Data_Science_&_Machine_Learning_bootcamp_2025_07.md"
                   mode: read
-        - name: "Web Development Bootcamp"
+        - name: "AI Web Development Bootcamp"
           vertical:
             - name: "Detailed Syllabus - Remote"
               component:
                 - type: html
-                  file: "database/Web_Dev_Remote_bootcamp_2025_07.md"
+                  file: "database/AI_Web_Development_bootcamp_2025_12.md"
                   mode: read
-        - name: "Marketing Bootcamp"
+        - name: "AI-Driven Marketing Bootcamp"
           vertical:
             - name: "Detailed Syllabus"
               component:
                 - type: html
-                  file: "database/Marketing_bootcamp_2025_07.md"
+                  file: "database/AI_Driven_Marketing_bootcamp_2025_12.md"
                   mode: read
         - name: "DevOps Bootcamp"
           vertical:
@@ -70,6 +70,34 @@ course:
               component:
                 - type: html
                   file: "database/AI_Engineering_bootcamp_2025_07.md"
+                  mode: read
+        - name: "AI Product Management Bootcamp"
+          vertical:
+            - name: "Detailed Syllabus"
+              component:
+                - type: html
+                  file: "database/AI_Product_Management_bootcamp_2025_12.md"
+                  mode: read
+        - name: "AI Consulting & Integration Bootcamp"
+          vertical:
+            - name: "Detailed Syllabus"
+              component:
+                - type: html
+                  file: "database/AI_Consulting_&_Integration_bootcamp_2025_12.md"
+                  mode: read
+        - name: "Cloud Engineering Bootcamp"
+          vertical:
+            - name: "Detailed Syllabus"
+              component:
+                - type: html
+                  file: "database/Cloud_Engineering_bootcamp_2025_12.md"
+                  mode: read
+        - name: "Data Engineering Bootcamp"
+          vertical:
+            - name: "Detailed Syllabus"
+              component:
+                - type: html
+                  file: "database/Data_Engineering_bootcamp_2025_12.md"
                   mode: read
 
     - name: "1 Year Programs"

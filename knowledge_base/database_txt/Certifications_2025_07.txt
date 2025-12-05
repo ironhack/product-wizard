@@ -8,7 +8,7 @@ Ironhack offers industry-recognized certifications for all bootcamp graduates an
 ### General Rules
 - **All bootcamp graduates** are entitled to choose **one paid certification** from the available options for their vertical
 - This applies to all verticals across all markets
-- **Digital Marketing and DevOps** graduates previously received 2 paid certifications, but this is being aligned to the standard rule
+- **AI-Driven Marketing and DevOps** graduates previously received 2 paid certifications, but this is being aligned to the standard rule
 - The change for MK and DV will be enforced from October/November 2025
 - Students starting in September 2025 or graduating in the next couple months were sold the 2 paid certifications and will be honored
 
@@ -54,11 +54,11 @@ Ironhack offers industry-recognized certifications for all bootcamp graduates an
   - *Covers virtual machines, storage, networking, and security management*
   - *Essential certification for professionals working in Microsoft-centric environments*
 
-#### Web Development
-- **Node.js Application Developer Certification (OpenJS Foundation)** - [Link](https://training.linuxfoundation.org/openjs-feb-25-promo/?utm_source=google&utm_medium=paid-search&utm_campaign=25q1_feb_flash_2_node&utm_term=tnc-global-nodejs-promo-search-lf&utm_content=tnc-global-nodejs-promo-search-lf-february-flash-2-v2&gad_source=1&gclid=CjwKCAiA5eC9BhAuEiwA3CKwQjAwInW8r9NKG13YNYIT4dO4ILXQ4s8YItQWVUPDFLmi6XgUWKoH4xoC-_8QAvD_BwE#certifications)
-  - *Validates expertise in Node.js development and JavaScript backend programming*
-  - *Covers server-side development, APIs, and Node.js ecosystem*
-  - *Industry-recognized certification for backend JavaScript developers*
+#### AI Web Development
+- **Certified React Developer™ (Global Tech Council)** - [Link](https://www.globaltechcouncil.org/artificial-intelligence/certified-react-developer/)
+  - *Comprehensive certification validating expertise in React development and modern frontend web applications*
+  - *Covers React fundamentals, component-based architecture, state management, routing, and best practices*
+  - *Industry-recognized certification for React developers building dynamic and interactive user interfaces*
 - **MongoDB Developer Certification (MongoDB University)** - [Link](https://learn.mongodb.com/pages/mongodb-associate-developer-exam)
   - *Demonstrates proficiency in MongoDB database development and operations*
   - *Covers document databases, querying, indexing, and application integration*
@@ -76,7 +76,7 @@ Ironhack offers industry-recognized certifications for all bootcamp graduates an
 
 > Note: The Cybersecurity bootcamp curriculum may include preparation or alignment content for additional industry certifications (e.g., CompTIA Security+, CISSP, CNSS ICSI) within course materials. However, the paid certification options provided by Ironhack for Cybersecurity graduates are those listed above.
 
-#### UX/UI Design
+#### AI-driven UX/UI Design
 - **UXQB Certified Professional for Usability and UX (CPUX-F)** - [Link](https://www.uxqb.org/ux-training-and-certification/cpux-f/)
   - *Foundation-level certification in usability and user experience design*
   - *Covers UX processes, usability principles, and human-centered design methods*
@@ -86,7 +86,7 @@ Ironhack offers industry-recognized certifications for all bootcamp graduates an
   - *Covers user research methods, usability evaluation, and interface design*
   - *Validates expertise in user-centered design and usability assessment*
 
-#### Digital Marketing
+#### AI-Driven Marketing
 - **Meta Digital Marketing Associate** - [Link](https://www.facebookblueprint.com/student/collection/238354)
   - *Professional certification in Facebook and Instagram advertising and marketing*
   - *Covers social media strategy, campaign optimization, and performance analysis*
@@ -96,7 +96,47 @@ Ironhack offers industry-recognized certifications for all bootcamp graduates an
   - *Includes SEO, SEM, social media marketing, email marketing, and analytics*
   - *Google-backed credential with strong industry recognition*
 
-**Note for Digital Marketing:** The 2 free credentials (HubSpot and Make) will remain as "recommended" but graduates must choose between Meta and Google paid certifications.
+**Note for AI-Driven Marketing:** The 2 free credentials (HubSpot and Make) will remain as "recommended" but graduates must choose between Meta and Google paid certifications.
+
+#### AI Product Management
+- **Scrum.org - Professional Scrum Master I (PSM I)** - [Link](https://www.scrum.org/professional-scrum-master-i-certification)
+  - *Recognized entry-level certification for mastering Scrum roles, ceremonies, and Agile collaboration*
+  - *Validates understanding of Scrum framework, roles, events, and artifacts*
+  - *Industry-standard certification for Product Managers working in Agile environments*
+- **Microsoft Certified: Azure AI Fundamentals (AI-900)** - [Link](https://learn.microsoft.com/en-us/certifications/azure-ai-fundamentals/)
+  - *Great entry-level cert showing understanding of AI concepts, use cases, and responsible AI*
+  - *Covers fundamental AI concepts, machine learning, and Azure AI services*
+  - *Validates knowledge of AI workloads and responsible AI principles*
+
+#### AI Consulting & Integration
+- **Certified Agile Project Manager (IAPM)** - [Link](https://www.iapm.net/en/certification/levels-of-certification/certified-agile-project-manager-iapm/)
+  - *Certification for agile project management with Scrum framework, Kanban, and Extreme Programming*
+  - *Validates skills for Product Owner, Scrum Master, and Scrum Team member roles*
+  - *Covers dynamic and flexible project management techniques essential for AI consulting engagements*
+- **Microsoft Certified: Azure AI Fundamentals (AI-900)** - [Link](https://learn.microsoft.com/en-us/credentials/certifications/azure-ai-fundamentals/?practice-assessment-type=certification)
+  - *Entry-level certification demonstrating foundational knowledge of machine learning, AI concepts, and Microsoft Azure AI services*
+  - *Designed for both technical and non-technical backgrounds*
+  - *Validates understanding of Azure AI products and AI fundamentals*
+
+#### Cloud Engineering
+- **AWS Certified Cloud Practitioner (CLF-C02)** - [Link](https://aws.amazon.com/certification/certified-cloud-practitioner/)
+  - *Validates foundational cloud and AWS knowledge, including architecture, security, pricing, and support*
+  - *Suitable for newcomers entering cloud careers*
+  - *Entry-level certification covering AWS cloud concepts and services*
+- **HashiCorp Certified: Terraform Associate (003)** - [Link](https://developer.hashicorp.com/certifications/terraform-associate)
+  - *Validates knowledge of Infrastructure as Code, Terraform workflows, state management, and modules*
+  - *Perfect for cloud engineers starting automation*
+  - *Industry-recognized certification for Infrastructure as Code practices*
+
+#### Data Engineering
+- **Azure Data Engineer Associate (DP-203)** - [Link](https://learn.microsoft.com/en-us/training/courses/dp-203t00)
+  - *Associate level certification in Data Engineering on Cloud*
+  - *Validates skills in designing and implementing data solutions using Azure services*
+  - *Industry-recognized certification for cloud data engineering professionals*
+- **dbt Fundamentals Certification (by dbt Labs)** - [Link](https://www.getdbt.com/certifications/analytics-engineer-certification-exam?utm_source=chatgpt.com)
+  - *Popular in data analytics and ELT-driven engineering teams*
+  - *Validates knowledge of dbt for in-warehouse transformations and data modeling*
+  - *Essential certification for modern data engineering workflows*
 
 ## 1-Year Program Certifications
 

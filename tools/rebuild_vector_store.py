@@ -62,7 +62,7 @@ def list_all_files(client, vector_store_id):
         print(f"⚠️  Error listing files: {e}")
         return []
 
-def empty_vector_store(client, vector_store_id, dry_run=False):
+def empty_vector_store(client, vector_store_id, dry_run=False, skip_confirmation=False):
     """Remove all files from the vector store"""
     print("🗑️  Emptying vector store...")
     print("=" * 60)
@@ -85,12 +85,13 @@ def empty_vector_store(client, vector_store_id, dry_run=False):
                 print(f"   - {file_obj.id}")
         return True
     
-    # Confirm deletion
-    print("\n⚠️  WARNING: This will delete ALL files from the vector store!")
-    confirmation = input("Type 'yes' to confirm: ")
-    if confirmation.lower() != 'yes':
-        print("❌ Operation cancelled")
-        return False
+    # Confirm deletion (unless skipped)
+    if not skip_confirmation:
+        print("\n⚠️  WARNING: This will delete ALL files from the vector store!")
+        confirmation = input("Type 'yes' to confirm: ")
+        if confirmation.lower() != 'yes':
+            print("❌ Operation cancelled")
+            return False
     
     removed_count = 0
     failed_count = 0
@@ -383,6 +384,12 @@ Examples:
         help='Show what would be done without actually doing it'
     )
     
+    parser.add_argument(
+        '--yes',
+        action='store_true',
+        help='Skip confirmation prompt (use with caution!)'
+    )
+    
     args = parser.parse_args()
     
     print("🚀 Vector Store Rebuild Tool")
@@ -403,7 +410,7 @@ Examples:
     print(f"🔗 Vector Store ID: {vector_store_id}\n")
     
     # Step 1: Empty vector store
-    if not empty_vector_store(client, vector_store_id, dry_run=args.dry_run):
+    if not empty_vector_store(client, vector_store_id, dry_run=args.dry_run, skip_confirmation=args.yes):
         print("\n❌ Failed to empty vector store")
         sys.exit(1)
     

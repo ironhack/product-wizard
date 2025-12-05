@@ -1,6 +1,6 @@
 # Computer specs
 
-## DATA ANALYTICS -  DA/ DATA SCIENCE AND MACHINE LEARNING - ML/AI ENGINEERING - AI/WEB DEVELOPMENT - WD/DEVOPS - DV/CYBER - CY 
+## DATA ANALYTICS -  DA/ DATA SCIENCE AND MACHINE LEARNING - ML/AI ENGINEERING - AI/AI CONSULTING & INTEGRATION - AC/CLOUD ENGINEERING - CE/DATA ENGINEERING - DE/WEB DEVELOPMENT - WD/DEVOPS - DV/CYBER - CY 
 
 **Mac, Windows or Linux (no preference)**
 
@@ -13,7 +13,7 @@
 
 ‼ **Note:** Full admin permissions (in case you use a company-provided device, you need to make sure they are granted admin rights)
 
-## UX/UI DESIGN - UX/ MARKETING - MK👩🏻‍🎨
+## UX/UI DESIGN - UX/ MARKETING - MK/ AI PRODUCT MANAGEMENT - PM👩🏻‍🎨
 
 **Mac or Windows (Linux possible but not recommended)**
 

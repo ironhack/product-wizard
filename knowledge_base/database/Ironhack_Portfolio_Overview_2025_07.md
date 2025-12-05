@@ -15,17 +15,17 @@ Ironhack offers a comprehensive portfolio of technology education programs desig
 
 **Available Programs:**
 
-#### **Web Development** (WDFT/WDPT)
-- **Duration**: 600 hours + 50 hours prework
-- **Technologies**: JavaScript, React, Node.js, Express, MongoDB, TypeScript, Next.js, PostgreSQL
-- **Capstone**: Full-stack web application
-- **Format**: Remote delivery with comprehensive full-stack curriculum
+#### **AI Web Development** (WDFT/WDPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: JavaScript, React, Node.js, Express, MongoDB, Vite, Codeium, ChatGPT Free, Claude Free, Replit AI
+- **Capstone**: AI-enhanced full-stack web application with MERN stack
+- **Format**: Remote delivery with AI-integrated full-stack curriculum
 
-#### **UX/UI Design** (UXFT/UXPT)
-- **Duration**: 600 hours + 50 hours prework
-- **Technologies**: Figma, Adobe Creative Suite, Sketch, Principle, AR/VR, gamification
-- **Capstone**: Complete design system and user research project
-- **Format**: Remote delivery with comprehensive design curriculum including AR/VR
+#### **AI-driven UX/UI Design** (UXFT/UXPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: Figma, ChatGPT, FigJam AI, Midjourney, Stark, WAVE, Framer, HTML, CSS, AI plugins/tools
+- **Capstone**: Real client final project with AI-enhanced workflows
+- **Format**: Remote delivery with AI-integrated design curriculum
 
 #### **Data Analytics** (DAFT/DAPT)
 - **Duration**: 600 hours + 50 hours prework
@@ -43,15 +43,35 @@ Ironhack offers a comprehensive portfolio of technology education programs desig
 - **Technologies**: Python, TensorFlow, PyTorch, MLOps, cloud platforms
 - **Capstone**: Production-ready AI system
 
+#### **AI Product Management** (PMFT/PMPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: Jira, Confluence, Figma, ChatGPT, Lovable, Mixpanel, no-code platforms
+- **Capstone**: End-to-end AI product sprint from discovery to go-to-market
+
+#### **AI Consulting & Integration** (ACFT/ACPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: Python, OpenAI API, Anthropic API, Gemini API, n8n, LangChain, Power BI, RAG, MCP
+- **Capstone**: End-to-end AI consulting engagement with compliance documentation and client presentation
+
+#### **Cloud Engineering** (CEFT/CEPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: AWS, Terraform, GitHub Actions, Ansible, Prometheus, Grafana, Vault, Keycloak
+- **Capstone**: Secure, observable, cost-optimized multi-cloud platform with Terraform repos and compliance report
+
+#### **Data Engineering** (DEFT/DEPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: Python, SQL, Apache Airflow, dbt, Apache Spark, Apache Kafka, Snowflake, BigQuery, Redshift, Terraform
+- **Capstone**: Real-time financial transaction pipeline or telecom CDR streaming system with governance
+
 #### **DevOps** (DVFT/DVPT)
 - **Duration**: 360-600 hours + 40-50 hours prework
 - **Technologies**: Docker, Kubernetes, AWS, Azure, CI/CD, monitoring
 - **Capstone**: Infrastructure automation project
 
-#### **Marketing** (MKFT/MKPT)
-- **Duration**: 360-600 hours + 40-50 hours prework
-- **Technologies**: Google Analytics, HubSpot, Facebook Ads, content creation
-- **Capstone**: Complete marketing campaign
+#### **AI-Driven Marketing** (MKFT/MKPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: Google Analytics, HubSpot, Meta Ads, Google Ads, ChatGPT, Claude, Midjourney, Canva, Make, AI marketing tools
+- **Capstone**: Complete AI-enhanced marketing campaign
 
 #### **Cybersecurity** (CSFT/CSPT)
 - **Duration**: 360-600 hours + 40-50 hours prework

@@ -10,13 +10,17 @@
 - In Spain, Part-Time bootcamps are called "Masters"
 
 **Product Codes:**
-- Web Development: WDFT (Full-Time), WDPT (Part-Time)
-- UX/UI Design: UXFT (Full-Time), UXPT (Part-Time)
+- AI Web Development: WDFT (Full-Time), WDPT (Part-Time)
+- AI-driven UX/UI Design: UXFT (Full-Time), UXPT (Part-Time)
 - Data Analytics: DAFT (Full-Time), DAPT (Part-Time)
 - AI Engineering: AIFT (Full-Time), AIPT (Part-Time)
+- AI Product Management: PMFT (Full-Time), PMPT (Part-Time)
+- AI Consulting & Integration: ACFT (Full-Time), ACPT (Part-Time)
+- Cloud Engineering: CEFT (Full-Time), CEPT (Part-Time)
+- Data Engineering: DEFT (Full-Time), DEPT (Part-Time)
 - DevOps: DVFT (Full-Time), DVPT (Part-Time)
 - Data Science & ML: MLFT (Full-Time), MLPT (Part-Time)
-- Marketing: MKFT (Full-Time), MKPT (Part-Time)
+- AI-Driven Marketing: MKFT (Full-Time), MKPT (Part-Time)
 
 **Key Format Differences:**
 
@@ -39,13 +43,13 @@
 
 ### Course Design Document Examples (Remote):
 
-**UX/UI Design:**
-- Remote: 600 hrs + 50 hrs prework. Real client final project, comprehensive design systems, AR/VR, career prep
-- Technologies: See official UX/UI syllabus for detailed curriculum and tools
+**AI-driven UX/UI Design:**
+- Remote: 360 hrs + 40 hrs prework. Real client final project, comprehensive design systems, AI-powered workflows, voice-first and multimodal interfaces, career prep
+- Technologies: See official AI-driven UX/UI Design syllabus for detailed curriculum and tools
 
-**Web Development:**
-- Remote: 600 hrs + 50 hrs prework. Full-stack development with TypeScript, Next.js, PostgreSQL and capstone project
-- Technologies: See official Web Development syllabus for detailed curriculum and programming languages
+**AI Web Development:**
+- Remote: 360 hrs + 40 hrs prework. AI-enhanced full-stack development with JavaScript, React, Node.js, Express, MongoDB and AI development tools
+- Technologies: See official AI Web Development syllabus for detailed curriculum and programming languages
 
 **Data Science & Machine Learning:**
 - Duration: 360 hrs + 40 hrs prework
@@ -58,6 +62,22 @@
 **DevOps:**
 - Duration: 360 hrs + 40 hrs prework
 - Technologies: See official DevOps syllabus for detailed curriculum and tools
+
+**AI Product Management:**
+- Duration: 360 hrs + 40 hrs prework
+- Technologies: See official AI Product Management syllabus for detailed curriculum and tools
+
+**AI Consulting & Integration:**
+- Duration: 360 hrs + 40 hrs prework
+- Technologies: See official AI Consulting & Integration syllabus for detailed curriculum and tools
+
+**Cloud Engineering:**
+- Duration: 360 hrs + 40 hrs prework
+- Technologies: See official Cloud Engineering syllabus for detailed curriculum and tools
+
+**Data Engineering:**
+- Duration: 360 hrs + 40 hrs prework
+- Technologies: See official Data Engineering syllabus for detailed curriculum and tools
 
 ### 2. 1-Year Program
 
@@ -90,7 +110,7 @@
 
 ## File Naming Convention
 
-Course files are named by product line, location, and last update date (e.g., "UXUI_Remote_bootcamp_2025_07", "Data_Science_and_AI_1_Year_Program_Germany_2025_07").
+Course files are named by product line, location, and last update date (e.g., "AI_Driven_UXUI_bootcamp_2025_12", "Data_Science_and_AI_1_Year_Program_Germany_2025_07").
 
 ## Support Information
 
