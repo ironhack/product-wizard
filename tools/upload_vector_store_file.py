@@ -26,12 +26,14 @@ sys.path.append(str(Path(__file__).parent.parent))
 # Load environment variables
 load_dotenv()
 
-def upload_file_to_vector_store(file_path: str = None):
+def upload_file_to_vector_store(file_path: str = None, chunk_size: int = None, chunk_overlap: int = None):
     """
     Upload a file to the OpenAI vector store.
     
     Args:
         file_path: Path to the file to upload. If None, uses default Course Design Overview.
+        chunk_size: Maximum tokens per chunk (for static chunking). If None, uses default/auto.
+        chunk_overlap: Overlapping tokens between chunks (for static chunking). If None, uses default/auto.
     
     Returns:
         bool: True if successful, False otherwise
@@ -89,17 +91,38 @@ def upload_file_to_vector_store(file_path: str = None):
         import urllib.parse
         import json
         
-        # Prepare the API request using the API key from environment
-        url = f"https://api.openai.com/v1/vector_stores/{vector_store_id}/file_batches"
+        # Prepare chunking strategy if specified
+        chunking_strategy = None
+        if chunk_size is not None:
+            overlap = chunk_overlap if chunk_overlap is not None else int(chunk_size * 0.15)  # 15% default overlap
+            chunking_strategy = {
+                "type": "static",
+                "static": {
+                    "max_chunk_size_tokens": chunk_size,
+                    "chunk_overlap_tokens": overlap
+                }
+            }
+            print(f"   📏 Chunking: {chunk_size} tokens, {overlap} overlap")
+        
+        # Use individual file endpoint if chunking is specified, otherwise use batch endpoint
+        if chunking_strategy:
+            # Add file individually with chunking strategy
+            url = f"https://api.openai.com/v1/vector_stores/{vector_store_id}/files"
+            data = {
+                'file_id': file_id,
+                'chunking_strategy': chunking_strategy
+            }
+        else:
+            # Use batch endpoint (default behavior)
+            url = f"https://api.openai.com/v1/vector_stores/{vector_store_id}/file_batches"
+            data = {
+                'file_ids': [file_id]
+            }
         
         headers = {
             'Authorization': f'Bearer {api_key}',
             'Content-Type': 'application/json',
             'OpenAI-Beta': 'assistants=v2'
-        }
-        
-        data = {
-            'file_ids': [file_id]
         }
         
         # Make the request
@@ -112,16 +135,29 @@ def upload_file_to_vector_store(file_path: str = None):
         
         try:
             with urllib.request.urlopen(req) as response:
-                batch_response = json.loads(response.read().decode('utf-8'))
-                batch_id = batch_response['id']
-                print(f"   ✅ File batch created")
-                print(f"   📋 Batch ID: {batch_id}")
-                print()
+                response_data = json.loads(response.read().decode('utf-8'))
+                
+                if chunking_strategy:
+                    # Individual file endpoint returns file object directly
+                    print(f"   ✅ File added to vector store with chunking")
+                    print(f"   📋 File ID in vector store: {response_data.get('id', 'N/A')}")
+                    print()
+                    # For individual files, processing happens automatically
+                    # Wait a moment for processing
+                    time.sleep(2)
+                    return True
+                else:
+                    # Batch endpoint returns batch object
+                    batch_id = response_data['id']
+                    print(f"   ✅ File batch created")
+                    print(f"   📋 Batch ID: {batch_id}")
+                    print()
         except Exception as e:
-            print(f"   ❌ Failed to create batch: {e}")
+            print(f"   ❌ Failed to add file: {e}")
             return False
         
-        # Step 3: Monitor batch status
+        # Step 3: Monitor batch status (only for batch endpoint)
+        if not chunking_strategy:
         print("3️⃣ Monitoring upload progress...")
         max_attempts = 30  # Maximum wait time: 30 seconds
         attempt = 0

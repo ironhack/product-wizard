@@ -16,6 +16,7 @@ import time
 from typing import Dict, List, TypedDict, Annotated, Any, Optional
 from operator import add
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from slack_bolt import App
 from slack_bolt.adapter.flask import SlackRequestHandler
@@ -31,10 +32,10 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ---------------- Slack Event De-duplication ----------------
-SEEN_EVENT_IDS: deque[str] = deque(maxlen=512)
-SEEN_ENVELOPE_IDS: deque[str] = deque(maxlen=1024)
+SEEN_EVENT_IDS: deque = deque(maxlen=512)
+SEEN_ENVELOPE_IDS: deque = deque(maxlen=1024)
 
-def _build_event_dedupe_key(event: Dict) -> str | None:
+def _build_event_dedupe_key(event: Dict) -> Optional[str]:
     """Build a stable dedupe key for Slack events."""
     try:
         if not isinstance(event, dict):
@@ -56,10 +57,18 @@ def _build_event_dedupe_key(event: Dict) -> str | None:
     except Exception:
         return None
 
-def get_conversation_history(channel: str, thread_ts: str, limit: int = 10) -> List[BaseMessage]:
+def get_conversation_history(
+    channel: str,
+    thread_ts: str,
+    limit: int = 10,
+    latest_ts: Optional[str] = None
+) -> List[BaseMessage]:
     """
     Retrieve conversation history from Slack thread.
     Returns a list of BaseMessage objects for use in RAG pipeline.
+    
+    If ``latest_ts`` is provided, the corresponding message is excluded so the
+    active Slack event can be handled separately.
     
     Note: This requires the following Slack app scopes:
     - channels:history (for public channels)
@@ -82,6 +91,12 @@ def get_conversation_history(channel: str, thread_ts: str, limit: int = 10) -> L
         
         messages = []
         for msg in response.get("messages", []):
+            msg_ts = msg.get("ts")
+            
+            # Skip the most recent Slack event to avoid duplicating the active query
+            if latest_ts and msg_ts == latest_ts:
+                continue
+            
             text = msg.get("text", "")
             user_id = msg.get("user", "")
             bot_id = msg.get("bot_id", "")
@@ -153,6 +168,7 @@ def load_config_file(filename):
 # Load all configuration files
 MASTER_PROMPT = load_config_file('MASTER_PROMPT.md') or "You are a helpful assistant for Ironhack course information."
 GENERATION_INSTRUCTIONS = load_config_file('GENERATION_INSTRUCTIONS.md')
+COMPARISON_INSTRUCTIONS = load_config_file('COMPARISON_INSTRUCTIONS.md')
 VALIDATION_INSTRUCTIONS = load_config_file('VALIDATION_INSTRUCTIONS.md')
 RETRIEVAL_INSTRUCTIONS = load_config_file('RETRIEVAL_INSTRUCTIONS.md')
 DOCUMENT_FILTERING_INSTRUCTIONS = load_config_file('DOCUMENT_FILTERING_INSTRUCTIONS.md')
@@ -185,6 +201,10 @@ class RAGState(TypedDict, total=False):
     # Input
     query: str
     conversation_history: List[BaseMessage]
+    
+    # Conversation context metadata
+    is_follow_up: bool
+    conversation_stage: str
     
     # Query Enhancement
     enhanced_query: str
@@ -385,11 +405,19 @@ def query_enhancement_node(state: RAGState) -> RAGState:
     
     query = state.get("query", "")
     conversation_history = state.get("conversation_history", [])
+    conversation_stage = state.get("conversation_stage", "initial")
+    
+    if conversation_stage == "follow_up":
+        stage_description = "follow-up message within an existing Slack thread"
+    else:
+        stage_description = "new question kicking off a Slack thread"
     
     # Format conversation context
     conv_context = format_conversation_history(conversation_history, limit=5)
     
     user_prompt = f"""
+Conversation Stage: {stage_description}
+
 Original Query: "{query}"
 
 Conversation Context:
@@ -461,55 +489,6 @@ Detect which programs this query is about and build appropriate namespace filter
 
 # ---------------- Helper Functions ----------------
 
-def _simulate_vector_search(query: str, top_k: int, namespace_filter: Dict = None) -> List[Dict]:
-    """
-    Simulate vector search by using Chat Completions API to search knowledge base.
-    This is a temporary solution until we implement proper vector store integration.
-    """
-    try:
-        # Create a search prompt that simulates what we'd get from vector search
-        search_prompt = f"""Search through the Ironhack curriculum knowledge base for information related to: {query}
-
-Please provide specific curriculum details from the documents. Focus on:
-- Program details (duration, topics, technologies)
-- Specific course content and learning objectives
-- Prerequisites and requirements
-- Certifications and outcomes
-
-Return the information as direct quotes from the curriculum documents when possible."""
-        
-        response = openai_client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You have access to Ironhack's curriculum knowledge base. Search through it and provide specific information from the documents."},
-                {"role": "user", "content": search_prompt}
-            ],
-            max_tokens=2000,
-            temperature=0.1
-        )
-        
-        if response.choices and response.choices[0].message.content:
-            content = response.choices[0].message.content
-            
-            # Split the response into meaningful chunks
-            chunks = []
-            paragraphs = [p.strip() for p in content.split("\n\n") if len(p.strip()) > 100]
-            
-            for i, paragraph in enumerate(paragraphs[:top_k]):
-                chunks.append({
-                    "content": paragraph,
-                    "source": f"curriculum_doc_{i+1}",
-                    "quote": paragraph[:200] + "..." if len(paragraph) > 200 else paragraph
-                })
-            
-            return chunks
-        
-        return []
-        
-    except Exception as e:
-        logger.error(f"Simulated vector search failed: {e}")
-        return []
-
 # ---------------- Node 3: Hybrid Retrieval ----------------
 
 def hybrid_retrieval_node(state: RAGState) -> RAGState:
@@ -552,17 +531,42 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
     
     # Build enhanced retrieval query
     keywords = " ".join(keyword_additions)
+    
+    # For certification queries, explicitly include program name in query
+    if query_intent == "certification" and detected_programs:
+        valid_programs = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
+        if valid_programs:
+            # Add program name variations to keywords
+            for prog_id in valid_programs:
+                prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
+                aliases = prog_info.get("aliases", [])
+                if aliases:
+                    keywords += " " + " ".join(aliases[:2])  # Add first 2 aliases
+    
     retrieval_query = f"{enhanced_query} | KEYWORDS: {keywords}".strip()
     
     # Determine top_k based on query type and iteration
     top_k = 10
     if query_intent == "comparison":
         top_k = 15
+    elif query_intent == "certification":
+        top_k = 15  # Certification queries need both universal doc + program doc
     if "EXPAND_CHUNKS" in refinement_strategy:
         top_k = 15 if iteration_count == 1 else 20
     
     logger.info(f"Retrieval Query: {retrieval_query[:100]}...")
     logger.info(f"Top-K: {top_k} | Namespace Filter: {namespace_filter}")
+    logger.info(f"Vector Store ID: {VECTOR_STORE_ID}")
+    
+    # Validate vector store ID
+    if not VECTOR_STORE_ID or VECTOR_STORE_ID == "vs_xxx":
+        logger.error(f"❌ Invalid vector store ID: {VECTOR_STORE_ID}")
+        return {
+            **state,
+            "retrieval_query": retrieval_query,
+            "retrieved_docs": [],
+            "retrieval_stats": {"error": "Invalid vector store ID"}
+        }
     
     # Perform vector search using OpenAI's Responses API (same as working system)
     try:
@@ -576,8 +580,29 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
         
         # Apply namespace filtering through instructions if needed
         if detected_programs:
-            instructions = f"PROGRAM_HINT: {', '.join(detected_programs)}\n\n" + instructions
+            # Filter out non-program IDs like "certifications" 
+            valid_program_hints = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
+            if valid_program_hints:
+                program_names = []
+                for prog_id in valid_program_hints:
+                    prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
+                    # Get the main program name
+                    filenames = prog_info.get("filenames", [])
+                    if filenames:
+                        program_names.append(filenames[0].replace("_", " ").replace(".txt", "").replace(".md", ""))
+                    else:
+                        program_names.append(prog_id.replace("_", " "))
+                
+                instructions = f"PROGRAM_HINT: {', '.join(program_names)}\n\n" + instructions
         
+        # For certification queries, emphasize finding specific certification names
+        if query_intent == "certification":
+            valid_programs = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
+            if valid_programs:
+                program_name = valid_programs[0].replace("_", " ")
+                instructions += f"\n\nIMPORTANT: For certification queries, retrieve chunks from the Certifications document that specifically mention '{program_name}' or 'Web Development' certifications. Look for chunks containing specific certification names like 'Node.js Application Developer Certification' or 'MongoDB Developer Certification'."
+        
+        logger.info(f"🔍 Calling OpenAI Responses API with vector store search...")
         resp = openai_client.responses.create(
             model="gpt-4o-mini",
             input=[{"role": "user", "content": retrieval_query}],
@@ -591,25 +616,48 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
             include=["file_search_call.results"]
         )
         
+        logger.info(f"✅ Received response from OpenAI Responses API")
+        logger.debug(f"Response type: {type(resp)}")
+        logger.debug(f"Response attributes: {dir(resp)}")
+        
         # Extract hits from response (same logic as working system)
         hits = []
-        for out in getattr(resp, "output", []):
+        response_output = getattr(resp, "output", [])
+        logger.info(f"Response output structure: {type(response_output)}, length: {len(response_output) if response_output else 0}")
+        
+        for out in response_output:
             res = getattr(out, "results", None)
             if res:
                 hits = res
+                logger.info(f"Found hits in output.results: {len(hits)}")
                 break
             fsc = getattr(out, "file_search_call", None)
             if fsc:
                 if getattr(fsc, "results", None):
                     hits = fsc.results
+                    logger.info(f"Found hits in file_search_call.results: {len(hits)}")
                     break
                 if getattr(fsc, "search_results", None):
                     hits = fsc.search_results
+                    logger.info(f"Found hits in file_search_call.search_results: {len(hits)}")
                     break
+        
+        # Also check response-level attributes
+        if not hits:
+            if hasattr(resp, "results"):
+                hits = resp.results
+                logger.info(f"Found hits in response.results: {len(hits)}")
+            elif hasattr(resp, "file_search_call"):
+                fsc = resp.file_search_call
+                if hasattr(fsc, "results"):
+                    hits = fsc.results
+                    logger.info(f"Found hits in response.file_search_call.results: {len(hits)}")
+        
+        logger.info(f"Total hits extracted from vector store: {len(hits)}")
         
         # Process hits into retrieved_docs format
         retrieved_docs = []
-        for r in hits:
+        for idx, r in enumerate(hits):
             fname = getattr(r, "filename", None) or getattr(getattr(r, "document", None), "filename", None)
             fid = getattr(r, "file_id", None) or getattr(getattr(r, "document", None), "id", None)
             score = float(getattr(r, "score", 0.0) or 0.0)
@@ -629,24 +677,50 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
                     "quote": text[:200] + "..." if len(text) > 200 else text,
                     "score": score
                 })
+                logger.debug(f"Processed hit {idx+1}: source={fname or fid}, score={score:.3f}, length={len(text)}")
+            else:
+                logger.warning(f"Skipped hit {idx+1}: insufficient content (length={len(text) if text else 0})")
         
-        # Fallback if no hits found
+        logger.info(f"Successfully processed {len(retrieved_docs)} documents from vector store")
+        
+        # Log warning if no hits found - system will handle empty results gracefully
         if not retrieved_docs:
-            retrieved_docs = _simulate_vector_search(retrieval_query, top_k, namespace_filter)
+            logger.warning(f"⚠️  Vector store returned no results for query: {retrieval_query[:100]}")
+            logger.warning(f"⚠️  Vector Store ID: {VECTOR_STORE_ID}")
+            logger.warning(f"⚠️  System will handle empty results gracefully (no fake documents generated)")
         
         retrieval_stats = {
             "total_retrieved": len(retrieved_docs),
             "top_k": top_k,
             "namespace_filter_applied": namespace_filter is not None,
-            "programs_targeted": detected_programs
+            "programs_targeted": detected_programs,
+            "vector_store_used": True,
+            "fallback_used": False
         }
         
-        logger.info(f"Retrieved {len(retrieved_docs)} documents")
+        if retrieved_docs:
+            logger.info(f"✅ Retrieved {len(retrieved_docs)} documents from vector store")
+            # Log sample sources
+            sources = [doc.get("source", "unknown") for doc in retrieved_docs[:3]]
+            logger.info(f"   Sample sources: {', '.join(sources)}")
+        else:
+            logger.warning(f"⚠️  No documents retrieved from vector store")
         
     except Exception as e:
-        logger.error(f"Retrieval failed: {e}")
+        logger.error(f"❌ Vector store retrieval failed: {e}")
+        logger.error(f"❌ Query: {retrieval_query[:100]}")
+        logger.error(f"❌ Vector Store ID: {VECTOR_STORE_ID}")
+        import traceback
+        logger.error(f"❌ Traceback: {traceback.format_exc()}")
+        
+        # Return empty results - system will handle gracefully (no fake documents)
         retrieved_docs = []
-        retrieval_stats = {"error": str(e)}
+        retrieval_stats = {
+            "error": str(e),
+            "fallback_used": False,
+            "total_retrieved": 0
+        }
+        logger.warning(f"⚠️  Returning empty results - system will handle gracefully")
     
     return {
         **state,
@@ -681,20 +755,10 @@ def relevance_assessment_node(state: RAGState) -> RAGState:
             "rejection_reasons": ["No documents retrieved"]
         }
     
-    # Assess relevance for each chunk
-    assessed_docs = []
-    relevance_scores = []
-    rejection_reasons = []
-    
-    if not retrieved_docs:
-        return {
-            **state,
-            "filtered_docs": [],
-            "relevance_scores": [],
-            "rejection_reasons": ["No documents to assess"]
-        }
-    
-    for idx, doc in enumerate(retrieved_docs[:15]):  # Limit assessment to top 15
+    # Assess relevance for each chunk in parallel
+    def assess_single_doc(idx_doc_pair):
+        """Assess a single document's relevance."""
+        idx, doc = idx_doc_pair
         doc_content = doc.get("content", "")[:500]  # Preview
         doc_source = doc.get("source", "unknown")
         
@@ -717,20 +781,87 @@ Assess this chunk's relevance to the query.
             should_include = assessment.get("should_include", False)
             red_flags = assessment.get("red_flags", [])
             
-            if should_include and relevance_score >= 0.3:
-                assessed_docs.append(doc)
-                relevance_scores.append(relevance_score)
-            else:
-                reasoning = assessment.get("reasoning", "Low relevance")
-                rejection_reasons.append(f"Doc {idx+1}: {reasoning}")
-                if red_flags:
-                    logger.warning(f"Red flags for doc {idx+1}: {red_flags}")
-        
+            return {
+                "idx": idx,
+                "doc": doc,
+                "relevance_score": relevance_score,
+                "should_include": should_include and relevance_score >= 0.3,
+                "red_flags": red_flags,
+                "reasoning": assessment.get("reasoning", "Low relevance"),
+                "error": None
+            }
         except Exception as e:
             logger.error(f"Assessment failed for doc {idx+1}: {e}")
             # On error, include the doc with medium score
-            assessed_docs.append(doc)
-            relevance_scores.append(0.6)
+            return {
+                "idx": idx,
+                "doc": doc,
+                "relevance_score": 0.6,
+                "should_include": True,
+                "red_flags": [],
+                "reasoning": f"Error: {str(e)}",
+                "error": str(e)
+            }
+    
+    # Parallelize assessments using ThreadPoolExecutor
+    assessed_docs = []
+    relevance_scores = []
+    rejection_reasons = []
+    
+    docs_to_assess = list(enumerate(retrieved_docs[:15]))  # Limit assessment to top 15
+    
+    # Use ThreadPoolExecutor with max_workers (OpenAI API can handle concurrent requests)
+    # Limit to 5 concurrent requests to avoid rate limits
+    max_workers = min(5, len(docs_to_assess))
+    
+    if len(docs_to_assess) > 1:
+        logger.info(f"Parallelizing relevance assessment: {len(docs_to_assess)} docs with {max_workers} workers")
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all assessment tasks
+        future_to_idx = {executor.submit(assess_single_doc, idx_doc): idx_doc[0] 
+                        for idx_doc in docs_to_assess}
+        
+        # Collect results as they complete
+        results = []
+        for future in as_completed(future_to_idx):
+            try:
+                result = future.result()
+                results.append(result)
+            except Exception as e:
+                idx = future_to_idx[future]
+                logger.error(f"Future failed for doc {idx+1}: {e}")
+                # Include doc with medium score on future failure
+                if idx < len(retrieved_docs):
+                    results.append({
+                        "idx": idx,
+                        "doc": retrieved_docs[idx],
+                        "relevance_score": 0.6,
+                        "should_include": True,
+                        "red_flags": [],
+                        "reasoning": f"Future error: {str(e)}",
+                        "error": str(e)
+                    })
+        
+        # Sort results by original index to maintain order
+        results.sort(key=lambda x: x["idx"])
+        
+        # Process results
+        for result in results:
+            idx = result["idx"]
+            doc = result["doc"]
+            relevance_score = result["relevance_score"]
+            should_include = result["should_include"]
+            red_flags = result["red_flags"]
+            reasoning = result["reasoning"]
+            
+            if should_include:
+                assessed_docs.append(doc)
+                relevance_scores.append(relevance_score)
+            else:
+                rejection_reasons.append(f"Doc {idx+1}: {reasoning}")
+                if red_flags:
+                    logger.warning(f"Red flags for doc {idx+1}: {red_flags}")
     
     # If no docs passed assessment, include top 3 docs anyway as fallback
     if not assessed_docs and retrieved_docs:
@@ -753,9 +884,8 @@ Assess this chunk's relevance to the query.
 def document_filtering_node(state: RAGState) -> RAGState:
     """
     Enhanced document filtering with cross-contamination detection.
-    - Verify program boundaries
-    - Check technology stack alignment
-    - Filter out contaminated chunks
+    - First pass: Filter by document source (keep only chunks from relevant program documents)
+    - Second pass: AI-based filtering for fine-grained relevance
     """
     logger.info("=== Document Filtering Node ===")
     send_slack_update(state, "Filtering best matches")
@@ -768,52 +898,143 @@ def document_filtering_node(state: RAGState) -> RAGState:
     if not filtered_docs:
         return state
     
-    # Prepare document context for filtering
-    docs_summary = []
-    for idx, doc in enumerate(filtered_docs[:15]):
-        docs_summary.append({
-            "chunk_id": idx + 1,
-            "source": doc.get("source", "unknown"),
-            "content_preview": doc.get("content", "")[:200]
-        })
+    # STEP 1: Source-based filtering - keep only chunks from relevant program documents
+    # Universal documents that apply to all programs (always include these)
+    UNIVERSAL_DOCUMENTS = [
+        "certifications_2025_07",
+        "course_design_overview_2025_07",
+        "computer_specs_min_requirements",
+        "ironhack_portfolio_overview_2025_07"
+    ]
     
-    user_prompt = f"""
+    # Filter detected_programs to only include actual programs (not document names like "certifications")
+    valid_programs = [prog_id for prog_id in detected_programs if prog_id in PROGRAM_SYNONYMS]
+    
+    # Always keep universal documents regardless of detected programs
+    source_filtered_docs = []
+    universal_docs = []
+    program_docs = []
+    
+    for doc in filtered_docs:
+        source = doc.get("source", "").lower()
+        
+        # Check if this is a universal document
+        is_universal = False
+        for universal_doc in UNIVERSAL_DOCUMENTS:
+            if universal_doc in source:
+                is_universal = True
+                universal_docs.append(doc)
+                source_filtered_docs.append(doc)
+                logger.debug(f"Keeping universal document: {doc.get('source', 'unknown')}")
+                break
+        
+        if is_universal:
+            continue
+        
+        # For program-specific documents, only keep if they match detected programs
+        if valid_programs:
+            # Build list of expected document filename patterns for detected programs
+            expected_sources = set()
+            for prog_id in valid_programs:
+                prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
+                filenames = prog_info.get("filenames", [])
+                for filename in filenames:
+                    # Add both .txt and .md variants, and handle case variations
+                    expected_sources.add(filename.lower())
+                    expected_sources.add(filename.replace(".txt", "").lower())
+                    expected_sources.add(filename.replace(".md", "").lower())
+            
+            # Check if source matches any expected program document
+            matches = False
+            for expected in expected_sources:
+                if expected in source:
+                    matches = True
+                    break
+            
+            # Also check if source contains program name keywords
+            if not matches:
+                for prog_id in valid_programs:
+                    prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
+                    # Check program name variations
+                    if prog_id.replace("_", " ") in source or prog_id.replace("_", "_") in source:
+                        matches = True
+                        break
+            
+            if matches:
+                program_docs.append(doc)
+                source_filtered_docs.append(doc)
+            else:
+                logger.debug(f"Filtered out chunk from wrong document: {doc.get('source', 'unknown')}")
+        else:
+            # No valid programs detected, but keep universal docs (already added above)
+            # Also keep any docs if no program filtering needed
+            if not detected_programs:
+                source_filtered_docs.append(doc)
+    
+    # Log filtering results (outside the loop)
+    logger.info(f"Source-based filtering: {len(filtered_docs)} → {len(source_filtered_docs)} docs "
+               f"({len(program_docs)} program-specific, {len(universal_docs)} universal)")
+    
+    # If source filtering removed too many, be more permissive
+    if len(source_filtered_docs) < 2 and len(filtered_docs) >= 2:
+        logger.warning(f"Source filtering too strict ({len(source_filtered_docs)} docs), keeping top 3 by relevance")
+        source_filtered_docs = filtered_docs[:3]
+    elif len(source_filtered_docs) == 0:
+        logger.warning(f"Source filtering removed all docs, keeping top 3 as fallback")
+        source_filtered_docs = filtered_docs[:3]
+    
+    filtered_docs = source_filtered_docs
+    
+    # STEP 2: AI-based fine-grained filtering (only if we have enough docs after source filtering)
+    if len(filtered_docs) > 3:
+        # Prepare document context for AI filtering
+        docs_summary = []
+        for idx, doc in enumerate(filtered_docs[:15]):
+            docs_summary.append({
+                "chunk_id": idx + 1,
+                "source": doc.get("source", "unknown"),
+                "content_preview": doc.get("content", "")[:200]
+            })
+        
+        user_prompt = f"""
 Query: "{enhanced_query}"
 Query Intent: {query_intent}
 Detected Programs: {detected_programs}
 
-Retrieved Document Chunks:
+Retrieved Document Chunks (already filtered by source):
 {json.dumps(docs_summary, indent=2)}
 
-Apply cross-contamination detection and program boundary filtering.
+Apply fine-grained relevance filtering. These chunks are already from the correct program documents.
 Return the IDs of chunks that should be KEPT (others will be rejected).
 Return as JSON: {{"kept_chunk_ids": [1, 2, 5, ...], "reasoning": "explanation"}}
 """
+        
+        try:
+            result = call_openai_json(DOCUMENT_FILTERING_INSTRUCTIONS, user_prompt)
+            kept_ids = result.get("kept_chunk_ids", [])
+            
+            # Filter docs based on kept IDs - but be more permissive if too few docs
+            final_docs = [doc for idx, doc in enumerate(filtered_docs) if (idx + 1) in kept_ids]
+            
+            # If AI filtering removed too many docs, be more permissive
+            if len(final_docs) < 2 and len(filtered_docs) >= 2:
+                # Keep top 3 docs even if filtering was strict
+                final_docs = filtered_docs[:3]
+                logger.info(f"AI filtering too strict, keeping top 3 docs instead")
+            
+            filtered_docs = final_docs
+            logger.info(f"AI filtering: {len(filtered_docs)} docs after fine-grained filtering")
+        
+        except Exception as e:
+            logger.error(f"AI document filtering failed: {e}, keeping source-filtered docs")
+            # On error, keep source-filtered docs
     
-    try:
-        result = call_openai_json(DOCUMENT_FILTERING_INSTRUCTIONS, user_prompt)
-        kept_ids = result.get("kept_chunk_ids", [])
-        
-        # Filter docs based on kept IDs - but be more permissive if too few docs
-        final_docs = [doc for idx, doc in enumerate(filtered_docs) if (idx + 1) in kept_ids]
-        
-        # If filtering removed too many docs, be more permissive
-        if len(final_docs) < 2 and len(filtered_docs) > 2:
-            # Keep top 3 docs even if filtering was strict
-            final_docs = filtered_docs[:3]
-            logger.info(f"Document filtering too strict, keeping top 3 docs instead")
-        
-        logger.info(f"Filtering: {len(filtered_docs)} → {len(final_docs)} docs")
-        
-        return {
-            **state,
-            "filtered_docs": final_docs
-        }
+    logger.info(f"Final filtering result: {len(state.get('filtered_docs', []))} → {len(filtered_docs)} docs")
     
-    except Exception as e:
-        logger.error(f"Document filtering failed: {e}")
-        # On error, keep all docs
-        return state
+    return {
+        **state,
+        "filtered_docs": filtered_docs
+    }
 
 # ---------------- Node 6: Coverage Classification ----------------
 
@@ -937,9 +1158,17 @@ def generate_response_node(state: RAGState) -> RAGState:
     context = "\n\n---\n\n".join(context_chunks)
     conv_context = format_conversation_history(conversation_history, limit=3)
     
+    # Use comparison instructions for comparison queries
+    if query_intent == "comparison" and COMPARISON_INSTRUCTIONS:
+        additional_instructions = COMPARISON_INSTRUCTIONS
+    else:
+        additional_instructions = ""
+    
     system_prompt = f"""{MASTER_PROMPT}
 
 {GENERATION_INSTRUCTIONS}
+
+{additional_instructions}
 
 CRITICAL: Generate answers ONLY from the provided document context. Never use external knowledge.
 """
@@ -990,6 +1219,7 @@ def faithfulness_verification_node(state: RAGState) -> RAGState:
     generated_response = state.get("generated_response", "")
     filtered_docs = state.get("filtered_docs", [])
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
+    query_intent = state.get("query_intent", "general_info")
     
     if not generated_response or not filtered_docs:
         return {
@@ -1000,10 +1230,14 @@ def faithfulness_verification_node(state: RAGState) -> RAGState:
         }
     
     # Compile retrieved documents for verification
+    # Include full content for certification queries to ensure proper verification
+    content_limit = 1000 if query_intent == "certification" else 600
     docs_text = "\n\n".join([
-        f"[{doc.get('source', 'unknown')}]\n{doc.get('content', '')[:600]}"
+        f"[{doc.get('source', 'unknown')}]\n{doc.get('content', '')[:content_limit]}"
         for doc in filtered_docs[:8]
     ])
+    
+    logger.debug(f"Faithfulness verification: checking {len(filtered_docs)} docs, content limit {content_limit} chars")
     
     user_prompt = f"""
 User Query: "{enhanced_query}"
@@ -1085,8 +1319,11 @@ def iterative_refinement_node(state: RAGState) -> RAGState:
     filtered_docs = state.get("filtered_docs", [])
     relevance_scores = state.get("relevance_scores", [])
     
-    # Prevent infinite loops
-    if iteration_count >= 3:
+    # Prevent infinite loops - check query intent for max iterations
+    query_intent = state.get("query_intent", "general_info")
+    max_allowed_iterations = 3 if query_intent == "comparison" else 2
+    
+    if iteration_count >= max_allowed_iterations:
         logger.warning(f"Max iterations reached ({iteration_count}), forcing fun fallback")
         return {
             **state,
@@ -1216,6 +1453,10 @@ def route_after_query_enhancement(state: RAGState) -> str:
 
 def route_after_coverage_classification(state: RAGState) -> str:
     """Route to coverage verification or generation."""
+    # Skip coverage verification for comparison queries - they need full generation
+    query_intent = state.get("query_intent", "general_info")
+    if query_intent == "comparison":
+        return "generate_response"
     if state.get("is_coverage_question", False):
         return "coverage_verification"
     return "generate_response"
@@ -1236,14 +1477,32 @@ def route_after_faithfulness_verification(state: RAGState) -> str:
     is_grounded = state.get("is_grounded", False)
     faithfulness_score = state.get("faithfulness_score", 0.0)
     iteration_count = state.get("iteration_count", 0)
+    query_intent = state.get("query_intent", "general_info")
     
-    # Production gate: require faithfulness >= 0.7 to finalize
-    if is_grounded and faithfulness_score >= 0.7:
+    # Adjust threshold based on query type
+    # Comparison queries synthesize multiple documents, so lower threshold
+    if query_intent == "comparison":
+        threshold = 0.5
+        max_iterations = 2
+    elif query_intent in ["duration", "technical_detail", "certification"]:
+        threshold = 0.6  # Lower for queries requiring synthesis of details
+        max_iterations = 1
+    else:
+        threshold = 0.7
+        max_iterations = 1
+    
+    # Production gate: require faithfulness >= threshold to finalize
+    # For comparison queries, also accept if score >= threshold even if not fully grounded
+    if query_intent == "comparison" and faithfulness_score >= threshold:
         return "finalize_response"
-    # Allow only one refinement attempt to avoid long loops
-    elif iteration_count < 1:
+    elif is_grounded and faithfulness_score >= threshold:
+        return "finalize_response"
+    # Allow refinement attempts based on query type
+    elif iteration_count < max_iterations:
         return "iterative_refinement"
     else:
+        # Max iterations reached - force fun fallback
+        logger.warning(f"Max iterations ({max_iterations}) reached for {query_intent} query, routing to fun fallback")
         return "generate_fun_fallback"
 
 def route_after_refinement(state: RAGState) -> str:
@@ -1271,14 +1530,58 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
     topic = coverage_verification.get("topic", "the requested topic")
     detected_programs = state.get("detected_programs", [])
     program_name = detected_programs[0] if detected_programs else "the program"
+    filtered_docs = state.get("filtered_docs", [])
+    retrieved_docs = state.get("retrieved_docs", [])
     
-    # Clean, simple negative response
-    response = f"No, {program_name} does not include {topic}. Based on the curriculum documents, this topic is not part of the program."
+    # For negative coverage, we MUST cite the correct program's document
+    # Even if it wasn't retrieved (because the topic isn't in it)
+    citations = []
+    primary_program = detected_programs[0] if detected_programs else None
+    
+    # First, try to find the correct program document in retrieved_docs
+    if primary_program and primary_program in PROGRAM_SYNONYMS:
+        prog_info = PROGRAM_SYNONYMS[primary_program]
+        filenames = prog_info.get("filenames", [])
+        
+        # Check all retrieved documents (not just filtered) for correct program document
+        for doc in retrieved_docs:
+            source = doc.get("source", "")
+            for filename in filenames:
+                # Match filename (with or without extension, case-insensitive)
+                base_filename = filename.replace(".txt", "").replace(".md", "")
+                if base_filename.lower() in source.lower() or filename.lower() in source.lower():
+                    if source not in citations:
+                        citations.append(source)
+                        logger.debug(f"Found correct program citation in retrieved docs: {source}")
+                        break
+    
+    # If not found in retrieved docs, use expected filename from PROGRAM_SYNONYMS
+    # This ensures we cite the correct document even if it wasn't retrieved
+    if not citations and primary_program and primary_program in PROGRAM_SYNONYMS:
+        prog_info = PROGRAM_SYNONYMS[primary_program]
+        filenames = prog_info.get("filenames", [])
+        if filenames:
+            # Use the expected filename as citation (prefer .md format for consistency)
+            expected_filename = filenames[0].replace(".txt", ".md").replace(".md.md", ".md")
+            citations.append(expected_filename)
+            logger.info(f"Using expected program document citation: {expected_filename}")
+    
+    # Build response with correct citation
+    # For negative coverage, we just need to state clearly that the topic is not included
+    # and cite the correct program document - no need for extra context
+    if citations:
+        primary_source = citations[0]
+        response = f"No, {program_name} does not include {topic}. Based on the curriculum documents, this topic is not part of the program. [Source: {primary_source}]"
+    else:
+        response = f"No, {program_name} does not include {topic}. Based on the curriculum documents, this topic is not part of the program."
+    
+    logger.info(f"Generated negative coverage response: {len(response)} chars | Citations: {len(citations)}")
     
     return {
         **state,
         "generated_response": response,
-        "final_response": response
+        "final_response": response,
+        "source_citations": citations
     }
 
 # ---------------- Build Workflow ----------------
@@ -1386,28 +1689,50 @@ def handle_mention(event, say):
     text = event.get("text", "")
     user_id = event.get("user", "unknown")
     channel = event.get("channel", "")
-    thread_ts = event.get("thread_ts", event.get("ts", ""))
+    event_ts = event.get("ts") or event.get("event_ts", "")
+    thread_ts = event.get("thread_ts", event_ts)
+    channel_type = event.get("channel_type")
     
     # Remove bot mention from text
     query = re.sub(r'<@[A-Z0-9]+>', '', text).strip()
     
-    logger.info(f"Processing mention from {user_id}: {query}")
+    logger.info(f"Processing mention from {user_id} in {channel} ({channel_type}): {query}")
 
     try:
         # Set the current say function for progress updates
         set_slack_say_function(say)
         
         # Retrieve conversation history from the thread
-        conversation_history = get_conversation_history(channel, thread_ts, limit=10)
-        logger.info(f"Retrieved {len(conversation_history)} messages from conversation history")
+        conversation_history = get_conversation_history(
+            channel,
+            thread_ts,
+            limit=10,
+            latest_ts=event_ts
+        )
+        prior_message_count = len(conversation_history)
+        is_follow_up = prior_message_count > 0
+        conversation_stage = "follow_up" if is_follow_up else "initial"
+        logger.info(
+            "Retrieved %s prior messages (conversation_stage=%s)",
+            prior_message_count,
+            conversation_stage
+        )
         
         # Run the RAG workflow
         config = {"configurable": {"thread_id": thread_ts}}
         initial_state = {
             "query": query,
             "conversation_history": conversation_history,
+            "is_follow_up": is_follow_up,
+            "conversation_stage": conversation_stage,
             "iteration_count": 0,
-            "metadata": {},
+            "metadata": {
+                "slack_user_id": user_id,
+                "slack_channel_type": channel_type,
+                "is_follow_up": is_follow_up,
+                "conversation_stage": conversation_stage,
+                "prior_message_count": prior_message_count
+            },
             # Slack context for progress updates (no say function to avoid serialization)
             "slack_channel": channel,
             "slack_thread_ts": thread_ts
@@ -1448,29 +1773,56 @@ def handle_message(event, say):
     if event.get("subtype") or event.get("bot_id"):
         return
     
+    channel_type = event.get("channel_type")
+    if channel_type not in {"im", "mpim"}:
+        logger.debug("Ignoring message in channel_type=%s without mention", channel_type)
+        return
+    
     if _already_processed(event):
         return
     
     query = event.get("text", "")
     channel = event.get("channel", "")
-    thread_ts = event.get("ts", "")
+    event_ts = event.get("ts") or event.get("event_ts", "")
+    thread_ts = event.get("thread_ts", event_ts)
+    user_id = event.get("user", "unknown")
     
-    logger.info(f"Processing DM: {query}")
+    logger.info(f"Processing DM from {user_id} ({channel_type}): {query}")
     
     try:
         # Set the current say function for progress updates
         set_slack_say_function(say)
         
         # Retrieve conversation history from the thread
-        conversation_history = get_conversation_history(channel, thread_ts, limit=10)
-        logger.info(f"Retrieved {len(conversation_history)} messages from conversation history")
+        conversation_history = get_conversation_history(
+            channel,
+            thread_ts,
+            limit=10,
+            latest_ts=event_ts
+        )
+        prior_message_count = len(conversation_history)
+        is_follow_up = prior_message_count > 0
+        conversation_stage = "follow_up" if is_follow_up else "initial"
+        logger.info(
+            "Retrieved %s prior messages in DM (conversation_stage=%s)",
+            prior_message_count,
+            conversation_stage
+        )
         
         config = {"configurable": {"thread_id": thread_ts}}
         initial_state = {
             "query": query,
             "conversation_history": conversation_history,
+            "is_follow_up": is_follow_up,
+            "conversation_stage": conversation_stage,
             "iteration_count": 0,
-            "metadata": {},
+            "metadata": {
+                "slack_user_id": user_id,
+                "slack_channel_type": channel_type,
+                "is_follow_up": is_follow_up,
+                "conversation_stage": conversation_stage,
+                "prior_message_count": prior_message_count
+            },
             # Slack context for progress updates (no say function to avoid serialization)
             "slack_channel": channel,
             "slack_thread_ts": thread_ts

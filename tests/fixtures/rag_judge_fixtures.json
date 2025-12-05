@@ -1,0 +1,126 @@
+[
+  {
+    "id": "coverage_da_python",
+    "query": "Does the Data Analytics bootcamp teach Python?",
+    "expected_answer": "Yes. The Data Analytics bootcamp dedicates Unit 1 to Python fundamentals so students can write efficient code for analytics, covering data structures, control flow, functions, lambda expressions, error handling, and object-oriented programming.",
+    "expected_citations": [
+      {
+        "document": "Data_Analytics_Remote_bootcamp_2025_07.md",
+        "reference": "Unit 1: Introduction to Python (40 hours)",
+        "evidence": "Unit 1: Introduction to Python (40 hours) ... Data structures in Python (lists, dictionaries, set comprehensions) ... Control flow mechanisms ... Functions in Python ... Lambda functions ... Object-Oriented Programming (OOP) principles with Python to design and implement complex data structures."
+      }
+    ],
+    "judge_criteria": [
+      "Affirm that Python is explicitly taught in the Data Analytics bootcamp.",
+      "Mention at least one concrete Python topic from Unit 1.",
+      "Include a citation pointing to the Data Analytics syllabus."
+    ]
+  },
+  {
+    "id": "coverage_da_react",
+    "query": "Does the Data Analytics bootcamp include React?",
+    "expected_answer": "No. React is not part of the Data Analytics curriculum.",
+    "expected_citations": [
+      {
+        "document": "Data_Analytics_Remote_bootcamp_2025_07.md",
+        "reference": "Curriculum document",
+        "evidence": "The Data Analytics curriculum document does not mention React as part of the program."
+      }
+    ],
+    "judge_criteria": [
+      "State clearly that Data Analytics does not teach React.",
+      "Back the explanation with citations from the Data Analytics syllabus."
+    ]
+  },
+  {
+    "id": "duration_ds_ml_bootcamp",
+    "query": "How long is the Data Science & Machine Learning bootcamp?",
+    "expected_answer": "The Data Science & Machine Learning bootcamp runs 400 hours in total: 40 hours of prework plus 360 hours of on-campus coursework.",
+    "expected_citations": [
+      {
+        "document": "Data_Science_&_Machine_Learning_bootcamp_2025_07.md",
+        "reference": "Course Duration",
+        "evidence": "Duration: 400 hours. - Prework: 40 hours - Course: 360 hours."
+      }
+    ],
+    "judge_criteria": [
+      "Report the full 400-hour duration.",
+      "Break out the 40-hour prework and 360-hour course split.",
+      "Cite the Data Science & Machine Learning syllabus."
+    ]
+  },
+  {
+    "id": "stack_web_dev",
+    "query": "Which programming stack do students learn in the Web Development bootcamp?",
+    "expected_answer": "Students learn a full JavaScript stack: HTML/CSS for the front end, modern JavaScript and React for client-side apps, plus Node.js, Express, and MongoDB for backend and databases.",
+    "expected_citations": [
+      {
+        "document": "Web_Dev_Remote_bootcamp_2025_07.md",
+        "reference": "Course Overview and Tools Used",
+        "evidence": "Participants cover HTML, CSS and JavaScript, then master React to build dynamic user interfaces. The curriculum also covers server-side development using Node.js and Express, alongside database management with MongoDB."
+      }
+    ],
+    "judge_criteria": [
+      "List both the frontend stack (HTML/CSS, JavaScript, React) and backend stack (Node.js, Express, MongoDB).",
+      "Frame the answer as a Web Development bootcamp summary.",
+      "Cite the Web Development syllabus."
+    ]
+  },
+  {
+    "id": "certs_web_dev",
+    "query": "Which certifications can Web Development graduates choose?",
+    "expected_answer": "Web Development graduates can choose between the Node.js Application Developer Certification from the OpenJS Foundation and the MongoDB Developer Certification from MongoDB University.",
+    "expected_citations": [
+      {
+        "document": "Certifications_2025_07.md",
+        "reference": "Web Development",
+        "evidence": "Web Development - Node.js Application Developer Certification (OpenJS Foundation) ... MongoDB Developer Certification (MongoDB University)."
+      }
+    ],
+    "judge_criteria": [
+      "Name both certification options available to Web Development graduates.",
+      "Keep the answer scoped to post-bootcamp certifications.",
+      "Cite the certifications guide."
+    ]
+  },
+  {
+    "id": "comparison_da_ds_ml",
+    "query": "Compare the machine learning coverage in the Data Analytics bootcamp vs the Data Science & Machine Learning bootcamp.",
+    "expected_answer": "Data Analytics offers a single ML-focused unit covering machine learning fundamentals, while the Data Science & Machine Learning bootcamp covers ML across several advanced units including deep learning and NLP.",
+    "expected_citations": [
+      {
+        "document": "Data_Analytics_Remote_bootcamp_2025_07.md",
+        "reference": "Machine Learning unit",
+        "evidence": "The Data Analytics bootcamp includes a dedicated machine learning unit."
+      },
+      {
+        "document": "Data_Science_&_Machine_Learning_bootcamp_2025_07.md",
+        "reference": "Multiple ML units",
+        "evidence": "The Data Science & Machine Learning bootcamp covers machine learning across multiple units including deep learning and NLP."
+      }
+    ],
+    "judge_criteria": [
+      "Highlight how Data Analytics offers a single ML-focused unit.",
+      "Explain that Data Science & Machine Learning covers ML across several advanced units including deep learning and NLP.",
+      "Provide citations for both programs."
+    ]
+  },
+  {
+    "id": "ai_engineering_mlops",
+    "query": "How does the AI Engineering bootcamp handle MLOps and deployment?",
+    "expected_answer": "The AI Engineering bootcamp dedicates Unit 6 to MLOps, teaching deployment strategies, experiment tracking, and cloud infrastructure on AWS, pairing those concepts with an NLP automation project that uses tools like MLflow alongside Git-based workflows.",
+    "expected_citations": [
+      {
+        "document": "AI_Engineering_bootcamp_2025_07.md",
+        "reference": "Unit 6: MLOps Intro & Project 3",
+        "evidence": "This unit introduces students to MLOps, covering deployment strategies, experiment tracking, and cloud infrastructure. Tools: MLflow for Experiment Tracking, AWS (Cloud Deployment & Model Management), Git & GitHub."
+      }
+    ],
+    "judge_criteria": [
+      "Describe the focus on deployment, experiment tracking, and cloud infrastructure.",
+      "Mention the NLP automation project context.",
+      "Cite the AI Engineering syllabus."
+    ]
+  }
+]
+
