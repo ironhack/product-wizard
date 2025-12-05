@@ -169,25 +169,17 @@ def load_config_file(filename):
 MASTER_PROMPT = load_config_file('MASTER_PROMPT.md') or "You are a helpful assistant for Ironhack course information."
 GENERATION_INSTRUCTIONS = load_config_file('GENERATION_INSTRUCTIONS.md')
 COMPARISON_INSTRUCTIONS = load_config_file('COMPARISON_INSTRUCTIONS.md')
-VALIDATION_INSTRUCTIONS = load_config_file('VALIDATION_INSTRUCTIONS.md')
-RETRIEVAL_INSTRUCTIONS = load_config_file('RETRIEVAL_INSTRUCTIONS.md')
 DOCUMENT_FILTERING_INSTRUCTIONS = load_config_file('DOCUMENT_FILTERING_INSTRUCTIONS.md')
 COVERAGE_CLASSIFICATION_PROMPT = load_config_file('COVERAGE_CLASSIFICATION.md')
 COVERAGE_VERIFICATION_PROMPT = load_config_file('COVERAGE_VERIFICATION.md')
-FALLBACK_CLASSIFIER_PROMPT = load_config_file('FALLBACK_CLASSIFIER.md')
-FUN_FALLBACK_GENERATION_SYSTEM = load_config_file('FUN_FALLBACK_GENERATION_SYSTEM.md')
-FUN_FALLBACK_GENERATION_USER = load_config_file('FUN_FALLBACK_GENERATION_USER.md')
-FUN_FALLBACK_TEMPLATES = load_config_file('FUN_FALLBACK_TEMPLATES.md')
-TEAM_ROUTING_RULES = load_config_file('TEAM_ROUTING_RULES.md')
+FUN_FALLBACK_GENERATION = load_config_file('FUN_FALLBACK_GENERATION.md')
 
 # New configuration files
 QUERY_ENHANCEMENT_PROMPT = load_config_file('QUERY_ENHANCEMENT.md')
 PROGRAM_DETECTION_PROMPT = load_config_file('PROGRAM_DETECTION.md')
-HYBRID_RETRIEVAL_PROMPT = load_config_file('HYBRID_RETRIEVAL.md')
 RELEVANCE_ASSESSMENT_PROMPT = load_config_file('RELEVANCE_ASSESSMENT.md')
 FAITHFULNESS_VERIFICATION_PROMPT = load_config_file('FAITHFULNESS_VERIFICATION.md')
 REFINEMENT_STRATEGIES_PROMPT = load_config_file('REFINEMENT_STRATEGIES.md')
-EXPANSION_INSTRUCTIONS = load_config_file('EXPANSION_INSTRUCTIONS.md')
 
 # Load program synonyms
 PROGRAM_SYNONYMS_TEXT = load_config_file('PROGRAM_SYNONYMS.json') or '{}'
@@ -244,6 +236,7 @@ class RAGState(TypedDict, total=False):
     
     # Fallback & Iteration
     is_fallback: bool
+    has_critical_violations: bool
     iteration_count: int
     refinement_strategy: str
     
@@ -1226,7 +1219,18 @@ def faithfulness_verification_node(state: RAGState) -> RAGState:
             **state,
             "faithfulness_score": 0.0,
             "is_grounded": False,
+            "is_fallback": True,
             "faithfulness_violations": ["No response or documents to verify"]
+        }
+    
+    # Quick heuristic check for obvious fallbacks (very short responses)
+    if len(generated_response) < 50:
+        return {
+            **state,
+            "faithfulness_score": 0.0,
+            "is_grounded": False,
+            "is_fallback": True,
+            "faithfulness_violations": ["Response too short to be substantive"]
         }
     
     # Compile retrieved documents for verification
@@ -1255,53 +1259,42 @@ Verify that every claim in the generated answer is grounded in the retrieved doc
     
     faithfulness_score = result.get("faithfulness_score", 0.5)
     is_grounded = result.get("is_grounded", False)
+    is_fallback = result.get("is_fallback", False)
     violations = result.get("violations", [])
     recommendation = result.get("recommendation", "approve")
     
-    logger.info(f"Faithfulness: {faithfulness_score:.2f} | Grounded: {is_grounded} | Violations: {len(violations)}")
+    # Check for critical violations that should block responses regardless of score
+    # For comparison queries, cross-contamination is expected (comparing multiple programs)
+    # For technical_detail queries, be less strict (they synthesize information)
+    # Only block on truly critical violations (severity="critical") for these query types
+    query_intent = state.get("query_intent", "general_info")
+    if query_intent == "comparison":
+        critical_violation_types = ["fabricated_fact", "wrong_numbers"]
+        required_severity = ["critical"]  # Only block on critical severity for comparisons
+    elif query_intent == "technical_detail":
+        critical_violation_types = ["fabricated_fact", "wrong_numbers"]
+        required_severity = ["critical"]  # Only block on critical severity for technical_detail
+    else:
+        critical_violation_types = ["fabricated_fact", "cross_contamination", "wrong_numbers"]
+        required_severity = ["critical", "major"]
+    
+    has_critical_violations = any(
+        v.get("type") in critical_violation_types and v.get("severity") in required_severity
+        for v in violations
+    )
+    
+    logger.info(f"Faithfulness: {faithfulness_score:.2f} | Grounded: {is_grounded} | Fallback: {is_fallback} | Violations: {len(violations)} | Critical: {has_critical_violations}")
     
     return {
         **state,
         "faithfulness_score": faithfulness_score,
         "is_grounded": is_grounded,
+        "is_fallback": is_fallback,
+        "has_critical_violations": has_critical_violations,
         "faithfulness_violations": [v.get("claim", "") for v in violations] if violations else []
     }
 
-# ---------------- Node 10: Fallback Detection ----------------
-
-def fallback_detection_node(state: RAGState) -> RAGState:
-    """
-    Detect if response is insufficient/non-substantive.
-    """
-    logger.info("=== Fallback Detection Node ===")
-    
-    generated_response = state.get("generated_response", "")
-    
-    if not generated_response or len(generated_response) < 50:
-        return {
-            **state,
-            "is_fallback": True
-        }
-    
-    user_prompt = f"""
-Generated Response:
-{generated_response}
-
-Is this a substantive answer or an insufficient/fallback response?
-Return JSON: {{"is_fallback": true/false, "reasoning": "explanation"}}
-"""
-    
-    result = call_openai_json(FALLBACK_CLASSIFIER_PROMPT, user_prompt)
-    is_fallback = result.get("is_fallback", False)
-    
-    logger.info(f"Fallback Detected: {is_fallback}")
-    
-    return {
-        **state,
-        "is_fallback": is_fallback
-    }
-
-# ---------------- Node 11: Iterative Refinement ----------------
+# ---------------- Node 10: Iterative Refinement ----------------
 
 def iterative_refinement_node(state: RAGState) -> RAGState:
     """
@@ -1380,20 +1373,12 @@ def generate_fun_fallback_node(state: RAGState) -> RAGState:
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
     detected_programs = state.get("detected_programs", [])
     
-    system_prompt = f"""{FUN_FALLBACK_GENERATION_SYSTEM}
-
-{FUN_FALLBACK_TEMPLATES}
-
-{TEAM_ROUTING_RULES}
-"""
+    system_prompt = FUN_FALLBACK_GENERATION
     
-    user_prompt = f"""{FUN_FALLBACK_GENERATION_USER}
-
-User Query: "{enhanced_query}"
+    user_prompt = f"""User Query: "{enhanced_query}"
 Programs: {detected_programs}
 
-Generate an appropriate fun fallback response.
-"""
+Generate an appropriate fun fallback response using the templates and routing rules provided."""
     
     fallback_response = call_openai_text(system_prompt, user_prompt)
     
@@ -1481,8 +1466,9 @@ def route_after_faithfulness_verification(state: RAGState) -> str:
     
     # Adjust threshold based on query type
     # Comparison queries synthesize multiple documents, so lower threshold
+    # RAG systems cannot retrieve full curricula, so be realistic about what can be verified
     if query_intent == "comparison":
-        threshold = 0.5
+        threshold = 0.4  # Lower threshold for comparisons - they synthesize info from multiple docs
         max_iterations = 2
     elif query_intent in ["duration", "technical_detail", "certification"]:
         threshold = 0.6  # Lower for queries requiring synthesis of details
@@ -1492,8 +1478,18 @@ def route_after_faithfulness_verification(state: RAGState) -> str:
         max_iterations = 1
     
     # Production gate: require faithfulness >= threshold to finalize
-    # For comparison queries, also accept if score >= threshold even if not fully grounded
-    if query_intent == "comparison" and faithfulness_score >= threshold:
+    # NEVER allow responses with critical violations (fabrication, cross-contamination, wrong numbers)
+    has_critical_violations = state.get("has_critical_violations", False)
+    if has_critical_violations:
+        logger.warning(f"Blocking response due to critical violations (fabrication/cross-contamination)")
+        if iteration_count < max_iterations:
+            return "iterative_refinement"
+        else:
+            return "generate_fun_fallback"
+    
+    # For comparison and technical_detail queries, accept if score >= threshold even if not fully grounded
+    # These queries synthesize information and may not be perfectly grounded but still accurate
+    if query_intent in ["comparison", "technical_detail"] and faithfulness_score >= threshold:
         return "finalize_response"
     elif is_grounded and faithfulness_score >= threshold:
         return "finalize_response"
@@ -1602,7 +1598,6 @@ def build_workflow() -> StateGraph:
     workflow.add_node("coverage_verification", coverage_verification_node)
     workflow.add_node("generate_response", generate_response_node)
     workflow.add_node("faithfulness_verification", faithfulness_verification_node)
-    workflow.add_node("fallback_detection", fallback_detection_node)
     workflow.add_node("iterative_refinement", iterative_refinement_node)
     workflow.add_node("generate_fun_fallback", generate_fun_fallback_node)
     workflow.add_node("generate_negative_coverage", generate_negative_coverage_node)

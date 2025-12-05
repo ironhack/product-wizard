@@ -129,8 +129,8 @@ def test_specific_scenario():
    - `RELEVANCE_ASSESSMENT.md` - Document relevance scoring
    - `COVERAGE_CLASSIFICATION.md` - Coverage question detection
    - `COVERAGE_VERIFICATION.md` - Topic presence verification
-   - `FALLBACK_CLASSIFIER.md` - Fallback detection
-   - `FUN_FALLBACK_GENERATION_*.md` - AI fallback generation
+   - `FAITHFULNESS_VERIFICATION.md` - Answer grounding verification and fallback detection
+   - `FUN_FALLBACK_GENERATION.md` - AI fallback generation (templates, routing, guardrails)
 3. Test with comprehensive test suite
 4. **Commit to GitHub + Deploy Heroku app**
 

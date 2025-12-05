@@ -63,6 +63,19 @@ For each factual claim in the answer:
    - Verify no wrong program information
    - Ensure no invented details
 
+## Fallback Detection
+
+**Also detect if the response is a fallback/non-answer:**
+- Defers answering (e.g., suggests contacting a team or says it cannot find info)
+- Provides no substantive, document-grounded details relevant to the user's query
+- Generic safety or process messages without answering the specific question
+- Very short responses without concrete facts
+
+**Signals of fallback responses:**
+- Phrases: "I don't have", "reach out to", "contact the team", "can't find"
+- Absence of concrete facts from the retrieved context
+- Overall response length extremely short without specifics
+
 ## Output Format
 
 Return JSON:
@@ -70,6 +83,7 @@ Return JSON:
 {
   "faithfulness_score": 0.0-1.0,
   "is_grounded": true/false,
+  "is_fallback": true/false,
   "violations": [
     {
       "severity": "critical|major|minor",

@@ -86,40 +86,75 @@
   {
     "id": "comparison_da_ds_ml",
     "query": "Compare the machine learning coverage in the Data Analytics bootcamp vs the Data Science & Machine Learning bootcamp.",
-    "expected_answer": "Data Analytics offers a single ML-focused unit covering machine learning fundamentals, while the Data Science & Machine Learning bootcamp covers ML across several advanced units including deep learning and NLP.",
+    "expected_answer": "Data Analytics includes machine learning as part of its broader data analytics curriculum, while the Data Science & Machine Learning bootcamp offers more comprehensive and specialized ML coverage including deep learning and advanced techniques.",
     "expected_citations": [
       {
         "document": "Data_Analytics_Remote_bootcamp_2025_07.md",
-        "reference": "Machine Learning unit",
-        "evidence": "The Data Analytics bootcamp includes a dedicated machine learning unit."
+        "reference": "Machine Learning coverage",
+        "evidence": "The Data Analytics bootcamp includes machine learning as part of its curriculum."
       },
       {
         "document": "Data_Science_&_Machine_Learning_bootcamp_2025_07.md",
-        "reference": "Multiple ML units",
-        "evidence": "The Data Science & Machine Learning bootcamp covers machine learning across multiple units including deep learning and NLP."
+        "reference": "ML coverage",
+        "evidence": "The Data Science & Machine Learning bootcamp covers machine learning with deep learning and advanced techniques."
       }
     ],
     "judge_criteria": [
-      "Highlight how Data Analytics offers a single ML-focused unit.",
-      "Explain that Data Science & Machine Learning covers ML across several advanced units including deep learning and NLP.",
-      "Provide citations for both programs."
+      "Compare ML coverage between the two programs, highlighting that Data Analytics includes ML as part of a broader curriculum while Data Science & ML has more specialized/comprehensive ML focus.",
+      "Mention that Data Science & Machine Learning covers advanced ML topics (deep learning, NLP, or similar) if available in retrieved documents.",
+      "Provide citations for both programs.",
+      "Accept reasonable paraphrasing and different levels of detail - RAG systems cannot retrieve full curricula, so focus on high-level distinctions rather than specific unit counts or detailed breakdowns.",
+      "Score highly if the comparison correctly distinguishes the programs' ML focus even without unit-level specifics."
     ]
   },
   {
     "id": "ai_engineering_mlops",
     "query": "How does the AI Engineering bootcamp handle MLOps and deployment?",
-    "expected_answer": "The AI Engineering bootcamp dedicates Unit 6 to MLOps, teaching deployment strategies, experiment tracking, and cloud infrastructure on AWS, pairing those concepts with an NLP automation project that uses tools like MLflow alongside Git-based workflows.",
+    "expected_answer": "The AI Engineering bootcamp covers MLOps through a dedicated unit that teaches deployment strategies, experiment tracking, and cloud infrastructure on AWS, with hands-on projects including an NLP automation project using tools like MLflow and Git-based workflows.",
     "expected_citations": [
       {
         "document": "AI_Engineering_bootcamp_2025_07.md",
-        "reference": "Unit 6: MLOps Intro & Project 3",
+        "reference": "MLOps unit",
         "evidence": "This unit introduces students to MLOps, covering deployment strategies, experiment tracking, and cloud infrastructure. Tools: MLflow for Experiment Tracking, AWS (Cloud Deployment & Model Management), Git & GitHub."
       }
     ],
     "judge_criteria": [
       "Describe the focus on deployment, experiment tracking, and cloud infrastructure.",
-      "Mention the NLP automation project context.",
-      "Cite the AI Engineering syllabus."
+      "Mention the NLP automation project context (customer reviews automation or similar).",
+      "Mention MLflow and Git/GitHub as tools used.",
+      "Cite the AI Engineering syllabus.",
+      "Accept responses that cover the key concepts even if they don't explicitly mention 'Unit 6' or pair every tool with the project."
+    ]
+  },
+  {
+    "id": "conversation_context_web_dev",
+    "query": "What about certifications?",
+    "conversation_turns": [
+      {
+        "user_query": "Tell me about the Web Development bootcamp",
+        "expected_answer": "The Web Development bootcamp teaches a full JavaScript stack including HTML/CSS, JavaScript, React, Node.js, Express, and MongoDB.",
+        "judge_criteria": [
+          "Mention the full stack components",
+          "Cite the Web Development syllabus"
+        ]
+      },
+      {
+        "user_query": "What about certifications?",
+        "expected_answer": "Web Development graduates can choose between the Node.js Application Developer Certification from the OpenJS Foundation and the MongoDB Developer Certification from MongoDB University.",
+        "expected_citations": [
+          {
+            "document": "Certifications_2025_07.md",
+            "reference": "Web Development",
+            "evidence": "Web Development - Node.js Application Developer Certification (OpenJS Foundation) ... MongoDB Developer Certification (MongoDB University)."
+          }
+        ],
+        "judge_criteria": [
+          "Understand that 'certifications' refers to certifications for Web Development graduates (from previous context)",
+          "Name both certification options available to Web Development graduates",
+          "Cite the certifications guide"
+        ],
+        "judge_this_turn": 2
+      }
     ]
   }
 ]

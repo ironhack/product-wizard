@@ -48,11 +48,8 @@ Route: Negative Coverage | Standard Generation
 - **`assistant_config/RETRIEVAL_INSTRUCTIONS.md`** - Document retrieval guidelines
 - **`assistant_config/COVERAGE_CLASSIFICATION.md`** - Coverage question detection (AI prompt)
 - **`assistant_config/COVERAGE_VERIFICATION.md`** - Topic presence verification (AI prompt)
-- **`assistant_config/FALLBACK_CLASSIFIER.md`** - AI fallback detection (AI prompt)
-- **`assistant_config/FUN_FALLBACK_GENERATION_SYSTEM.md`** - System prompt for AI fallbacks
-- **`assistant_config/FUN_FALLBACK_GENERATION_USER.md`** - User prompt for AI fallbacks
-- **`assistant_config/FUN_FALLBACK_TEMPLATES.md`** - Fallback message templates and guardrails
-- **`assistant_config/TEAM_ROUTING_RULES.md`** - Team routing keywords
+- **`assistant_config/FAITHFULNESS_VERIFICATION.md`** - Answer grounding verification and fallback detection (AI prompt)
+- **`assistant_config/FUN_FALLBACK_GENERATION.md`** - Fun fallback generation (templates, routing, guardrails)
 - **`assistant_config/EXPANSION_INSTRUCTIONS.md`** - Query expansion behavior
 - **`assistant_config/DOCUMENT_FILTERING_INSTRUCTIONS.md`** - AI document filtering
 

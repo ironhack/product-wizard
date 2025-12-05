@@ -56,11 +56,7 @@ assistant_config/
 ├── RETRIEVAL_INSTRUCTIONS.md           # Document retrieval guidelines
 ├── COVERAGE_CLASSIFICATION.md          # Coverage question detection
 ├── COVERAGE_VERIFICATION.md            # Topic presence verification
-├── FALLBACK_CLASSIFIER.md              # AI fallback detection
-├── FUN_FALLBACK_GENERATION_SYSTEM.md   # System prompt for fun fallbacks
-├── FUN_FALLBACK_GENERATION_USER.md     # User prompt for fun fallbacks
-├── FUN_FALLBACK_TEMPLATES.md           # Fallback message templates
-├── TEAM_ROUTING_RULES.md               # Team routing keywords
+├── FUN_FALLBACK_GENERATION.md          # Fun fallback generation (templates, routing, guardrails)
 ├── EXPANSION_INSTRUCTIONS.md           # Query expansion behavior
 └── DOCUMENT_FILTERING_INSTRUCTIONS.md  # AI document filtering
 
@@ -280,8 +276,8 @@ All AI behavior controlled via config files:
 
 - **`COVERAGE_CLASSIFICATION.md`**: Detects curriculum coverage questions
 - **`COVERAGE_VERIFICATION.md`**: Verifies topic presence in documents
-- **`FALLBACK_CLASSIFIER.md`**: Identifies non-substantive responses
-- **`FUN_FALLBACK_GENERATION_*.md`**: Controls AI fallback generation
+- **`FAITHFULNESS_VERIFICATION.md`**: Verifies answer grounding and detects fallbacks
+- **`FUN_FALLBACK_GENERATION.md`**: Controls AI fallback generation (templates, routing, guardrails)
 - **`DOCUMENT_FILTERING_INSTRUCTIONS.md`**: Guides AI document selection
 
 ### Benefits
