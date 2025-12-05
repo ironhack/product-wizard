@@ -351,8 +351,15 @@ def format_conversation_history(messages: List[BaseMessage], limit: int = 5) -> 
     
     return "\n".join(formatted) if formatted else "No previous conversation."
 
-def call_openai_json(system_prompt: str, user_prompt: str, model: str = "gpt-4o") -> Dict:
-    """Call OpenAI API and parse JSON response."""
+def call_openai_json(system_prompt: str, user_prompt: str, model: str = "gpt-4o-mini", timeout: int = 30) -> Dict:
+    """Call OpenAI API and parse JSON response.
+    
+    Args:
+        system_prompt: System prompt for the API call
+        user_prompt: User prompt for the API call
+        model: Model to use (default: gpt-4o-mini for speed, use gpt-4o for complex tasks)
+        timeout: Request timeout in seconds
+    """
     try:
         response = openai_client.chat.completions.create(
             model=model,
@@ -361,15 +368,23 @@ def call_openai_json(system_prompt: str, user_prompt: str, model: str = "gpt-4o"
                 {"role": "user", "content": user_prompt}
             ],
             response_format={"type": "json_object"},
-            temperature=0.1
+            temperature=0.1,
+            timeout=timeout
         )
         return json.loads(response.choices[0].message.content)
     except Exception as e:
         logger.error(f"OpenAI JSON call failed: {e}")
         return {}
 
-def call_openai_text(system_prompt: str, user_prompt: str, model: str = "gpt-4o") -> str:
-    """Call OpenAI API and get text response."""
+def call_openai_text(system_prompt: str, user_prompt: str, model: str = "gpt-4o", timeout: int = 60) -> str:
+    """Call OpenAI API and get text response.
+    
+    Args:
+        system_prompt: System prompt for the API call
+        user_prompt: User prompt for the API call
+        model: Model to use (default: gpt-4o for quality, use gpt-4o-mini for speed)
+        timeout: Request timeout in seconds
+    """
     try:
         response = openai_client.chat.completions.create(
             model=model,
@@ -377,7 +392,8 @@ def call_openai_text(system_prompt: str, user_prompt: str, model: str = "gpt-4o"
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.3
+            temperature=0.3,
+            timeout=timeout
         )
         return response.choices[0].message.content
     except Exception as e:
@@ -419,7 +435,8 @@ Conversation Context:
 Analyze and enhance this query following the guidelines.
 """
     
-    result = call_openai_json(QUERY_ENHANCEMENT_PROMPT, user_prompt)
+    # Use faster model for query enhancement (can use mini for speed)
+    result = call_openai_json(QUERY_ENHANCEMENT_PROMPT, user_prompt, model="gpt-4o-mini", timeout=15)
     
     enhanced_query = result.get("enhanced_query", query)
     query_intent = result.get("query_intent", "general_info")
@@ -465,7 +482,8 @@ Program Synonyms Available:
 Detect which programs this query is about and build appropriate namespace filter.
 """
     
-    result = call_openai_json(PROGRAM_DETECTION_PROMPT, user_prompt)
+    # Use faster model for program detection (classification task)
+    result = call_openai_json(PROGRAM_DETECTION_PROMPT, user_prompt, model="gpt-4o-mini", timeout=15)
     
     detected_programs = result.get("detected_programs", [])
     namespace_filter = result.get("namespace_filter")
@@ -768,7 +786,8 @@ Assess this chunk's relevance to the query.
 """
         
         try:
-            assessment = call_openai_json(RELEVANCE_ASSESSMENT_PROMPT, user_prompt)
+            # Use faster model for relevance assessment (classification task)
+            assessment = call_openai_json(RELEVANCE_ASSESSMENT_PROMPT, user_prompt, model="gpt-4o-mini", timeout=15)
             
             relevance_score = assessment.get("relevance_score", 0.5)
             should_include = assessment.get("should_include", False)
@@ -804,8 +823,8 @@ Assess this chunk's relevance to the query.
     docs_to_assess = list(enumerate(retrieved_docs[:15]))  # Limit assessment to top 15
     
     # Use ThreadPoolExecutor with max_workers (OpenAI API can handle concurrent requests)
-    # Limit to 5 concurrent requests to avoid rate limits
-    max_workers = min(5, len(docs_to_assess))
+    # Increased to 8 concurrent requests for better performance (OpenAI allows higher concurrency)
+    max_workers = min(8, len(docs_to_assess))
     
     if len(docs_to_assess) > 1:
         logger.info(f"Parallelizing relevance assessment: {len(docs_to_assess)} docs with {max_workers} workers")
@@ -979,14 +998,15 @@ def document_filtering_node(state: RAGState) -> RAGState:
     filtered_docs = source_filtered_docs
     
     # STEP 2: AI-based fine-grained filtering (only if we have enough docs after source filtering)
-    if len(filtered_docs) > 3:
-        # Prepare document context for AI filtering
+    # Optimized: Only run AI filtering if we have more than 5 docs (reduces unnecessary calls)
+    if len(filtered_docs) > 5:
+        # Prepare document context for AI filtering - limit to top 12 for faster processing
         docs_summary = []
-        for idx, doc in enumerate(filtered_docs[:15]):
+        for idx, doc in enumerate(filtered_docs[:12]):
             docs_summary.append({
                 "chunk_id": idx + 1,
                 "source": doc.get("source", "unknown"),
-                "content_preview": doc.get("content", "")[:200]
+                "content_preview": doc.get("content", "")[:150]  # Reduced preview length
             })
         
         user_prompt = f"""
@@ -1003,7 +1023,8 @@ Return as JSON: {{"kept_chunk_ids": [1, 2, 5, ...], "reasoning": "explanation"}}
 """
         
         try:
-            result = call_openai_json(DOCUMENT_FILTERING_INSTRUCTIONS, user_prompt)
+            # Use faster model for document filtering (classification task)
+            result = call_openai_json(DOCUMENT_FILTERING_INSTRUCTIONS, user_prompt, model="gpt-4o-mini", timeout=20)
             kept_ids = result.get("kept_chunk_ids", [])
             
             # Filter docs based on kept IDs - but be more permissive if too few docs
@@ -1051,7 +1072,7 @@ def coverage_classification_node(state: RAGState) -> RAGState:
             "is_coverage_question": False
         }
     
-    # AI classification
+    # AI classification - use faster model for classification tasks
     user_prompt = f"""
 Query: "{enhanced_query}"
 Query Intent: {query_intent}
@@ -1060,7 +1081,7 @@ Is this a curriculum coverage question (asking if a program includes/teaches spe
 Return JSON: {{"is_coverage_question": true/false, "reasoning": "explanation"}}
 """
     
-    result = call_openai_json(COVERAGE_CLASSIFICATION_PROMPT, user_prompt)
+    result = call_openai_json(COVERAGE_CLASSIFICATION_PROMPT, user_prompt, model="gpt-4o-mini", timeout=15)
     is_coverage = result.get("is_coverage_question", False)
     
     logger.info(f"Coverage Question: {is_coverage}")
@@ -1100,7 +1121,8 @@ Verify if the queried topic is explicitly mentioned in these documents.
 Return JSON: {{"is_present": true/false, "topic": "extracted topic", "evidence": "quote from docs if present"}}
 """
     
-    result = call_openai_json(COVERAGE_VERIFICATION_PROMPT, user_prompt)
+    # Use faster model for verification (classification task)
+    result = call_openai_json(COVERAGE_VERIFICATION_PROMPT, user_prompt, model="gpt-4o-mini", timeout=20)
     
     coverage_verification = {
         "is_present": result.get("is_present", False),
@@ -1184,10 +1206,17 @@ Generate a comprehensive, accurate answer with proper source citations.
     
     # Extract citations from response
     citations = []
+    # First, try to extract citations from response text (preferred - LLM included them)
     for doc in filtered_docs:
         source = doc.get("source", "")
         if source and source in generated_response:
             citations.append(source)
+    
+    # Fallback: If no citations found in text, include all filtered doc sources
+    # This ensures citations are always available even if LLM doesn't include them in response
+    if not citations:
+        citations = [doc.get("source", "") for doc in filtered_docs if doc.get("source")]
+        logger.info(f"No citations found in response text, using fallback: {len(citations)} citations from filtered_docs")
     
     logger.info(f"Generated response: {len(generated_response)} chars | Citations: {len(citations)}")
     
@@ -1235,10 +1264,12 @@ def faithfulness_verification_node(state: RAGState) -> RAGState:
     
     # Compile retrieved documents for verification
     # Include full content for certification queries to ensure proper verification
-    content_limit = 1000 if query_intent == "certification" else 600
+    # Optimized: Reduced content limit and doc count for faster processing
+    content_limit = 800 if query_intent == "certification" else 500
+    max_docs_for_verification = 6 if query_intent == "certification" else 6
     docs_text = "\n\n".join([
         f"[{doc.get('source', 'unknown')}]\n{doc.get('content', '')[:content_limit]}"
-        for doc in filtered_docs[:8]
+        for doc in filtered_docs[:max_docs_for_verification]
     ])
     
     logger.debug(f"Faithfulness verification: checking {len(filtered_docs)} docs, content limit {content_limit} chars")
@@ -1255,7 +1286,8 @@ Generated Answer:
 Verify that every claim in the generated answer is grounded in the retrieved documents.
 """
     
-    result = call_openai_json(FAITHFULNESS_VERIFICATION_PROMPT, user_prompt)
+    # Use faster model for faithfulness verification (can use mini for speed)
+    result = call_openai_json(FAITHFULNESS_VERIFICATION_PROMPT, user_prompt, model="gpt-4o-mini", timeout=25)
     
     faithfulness_score = result.get("faithfulness_score", 0.5)
     is_grounded = result.get("is_grounded", False)
@@ -1343,7 +1375,8 @@ Failure Analysis:
 Determine the best refinement strategy to improve results.
 """
     
-    result = call_openai_json(REFINEMENT_STRATEGIES_PROMPT, user_prompt)
+    # Use faster model for refinement strategy selection (classification task)
+    result = call_openai_json(REFINEMENT_STRATEGIES_PROMPT, user_prompt, model="gpt-4o-mini", timeout=15)
     
     selected_strategy = result.get("selected_strategy", "FUN_FALLBACK")
     refinement_params = result.get("parameters", {})
@@ -1380,7 +1413,8 @@ Programs: {detected_programs}
 
 Generate an appropriate fun fallback response using the templates and routing rules provided."""
     
-    fallback_response = call_openai_text(system_prompt, user_prompt)
+    # Use faster model for fallback generation (simpler task)
+    fallback_response = call_openai_text(system_prompt, user_prompt, model="gpt-4o-mini", timeout=20)
     
     logger.info("Generated fun fallback response")
     
@@ -1524,17 +1558,78 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
     
     coverage_verification = state.get("coverage_verification", {})
     topic = coverage_verification.get("topic", "the requested topic")
+    enhanced_query = state.get("enhanced_query", state.get("query", ""))
     detected_programs = state.get("detected_programs", [])
-    program_name = detected_programs[0] if detected_programs else "the program"
     filtered_docs = state.get("filtered_docs", [])
     retrieved_docs = state.get("retrieved_docs", [])
     
+    # Validate topic - if it looks like instruction text or is invalid, extract from query
+    invalid_topic_indicators = [
+        "single explicit topic",
+        "multiple_topics",
+        "if the query asks",
+        "else",
+        "broad queries"
+    ]
+    if any(indicator in topic.lower() for indicator in invalid_topic_indicators) or len(topic) > 100:
+        # Extract topic from query - look for common patterns
+        # Pattern 1: "Does X include/teach/cover Y?" -> extract Y
+        match = re.search(r'(?:include|teach|cover|have|contain)\s+([^?]+)', enhanced_query, re.IGNORECASE)
+        if match:
+            topic = match.group(1).strip()
+            # Clean up common trailing words
+            topic = re.sub(r'\s+(in|for|at|with|from).*$', '', topic, flags=re.IGNORECASE)
+            logger.info(f"Extracted topic from query: {topic}")
+        else:
+            # Pattern 2: "Is Y in X?" -> extract Y
+            match = re.search(r'^is\s+([^?]+?)\s+(?:in|part of|taught in)', enhanced_query, re.IGNORECASE)
+            if match:
+                topic = match.group(1).strip()
+                logger.info(f"Extracted topic from query (pattern 2): {topic}")
+            else:
+                # Fallback: use a generic phrase
+                topic = "the requested topic"
+                logger.warning(f"Could not extract topic from query, using fallback")
+    
     # For negative coverage, we MUST cite the correct program's document
     # Even if it wasn't retrieved (because the topic isn't in it)
+    # Extract the program name directly from the query to ensure we cite the right program
     citations = []
-    primary_program = detected_programs[0] if detected_programs else None
+    
+    # Extract program name from query - look for patterns like "Does [Program] include..."
+    program_from_query = None
+    query_lower = enhanced_query.lower()
+    for prog_id, prog_info in PROGRAM_SYNONYMS.items():
+        aliases = prog_info.get("aliases", [])
+        filenames = prog_info.get("filenames", [])
+        # Check if any alias or filename appears in query
+        for alias in aliases:
+            if alias.lower() in query_lower:
+                program_from_query = prog_id
+                logger.info(f"Extracted program from query: {prog_id} (matched alias: {alias})")
+                break
+        if program_from_query:
+            break
+        # Also check filenames
+        for filename in filenames:
+            base_name = filename.replace("_", " ").replace(".txt", "").replace(".md", "").lower()
+            if base_name in query_lower:
+                program_from_query = prog_id
+                logger.info(f"Extracted program from query: {prog_id} (matched filename: {filename})")
+                break
+        if program_from_query:
+            break
+    
+    # Use program from query if found, otherwise use first detected program
+    primary_program = program_from_query or (detected_programs[0] if detected_programs else None)
+    
+    if not primary_program:
+        logger.warning("Could not determine primary program for negative coverage citation")
+    else:
+        logger.info(f"Using primary program for citation: {primary_program}")
     
     # First, try to find the correct program document in retrieved_docs
+    # IMPORTANT: Only look for documents matching the primary program, ignore others
     if primary_program and primary_program in PROGRAM_SYNONYMS:
         prog_info = PROGRAM_SYNONYMS[primary_program]
         filenames = prog_info.get("filenames", [])
@@ -1565,6 +1660,14 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
     # Build response with correct citation
     # For negative coverage, we just need to state clearly that the topic is not included
     # and cite the correct program document - no need for extra context
+    # Format program name for display
+    if primary_program and primary_program in PROGRAM_SYNONYMS:
+        prog_info = PROGRAM_SYNONYMS[primary_program]
+        aliases = prog_info.get("aliases", [])
+        program_name = aliases[0] if aliases else primary_program.replace("_", " ")
+    else:
+        program_name = primary_program.replace("_", " ") if primary_program else "the program"
+    
     if citations:
         primary_source = citations[0]
         response = f"No, {program_name} does not include {topic}. Based on the curriculum documents, this topic is not part of the program. [Source: {primary_source}]"

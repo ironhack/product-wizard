@@ -39,7 +39,7 @@ DECISION RULES (STRICT, NO KNOWLEDGE BIAS)
 OUTPUT FORMAT (JSON)
 {
   "is_present": true|false,
-  "topic": "single explicit topic if the query asks about one; else 'multiple_topics' for broad queries",
+  "topic": "EXTRACT THE ACTUAL TOPIC NAME FROM THE QUERY - e.g., if query is 'Does X teach Python?', topic should be 'Python'. If query is 'Does Y include React?', topic should be 'React'. For broad queries asking 'what do you learn', use 'multiple_topics'.",
   "evidence": [
     { "quote": "short exact quote", "source": "filename_or_id" },
     { "quote": "short exact quote", "source": "filename_or_id" }
@@ -47,7 +47,15 @@ OUTPUT FORMAT (JSON)
   "matched_topics": ["topic1", "topic2", ...]  // include when query is broad - list only topics explicitly found in retrieved excerpts
 }
 
+CRITICAL: The "topic" field MUST contain the actual topic name extracted from the query, NOT the instruction text.
+Examples:
+- Query: "Does Data Analytics teach Python?" → topic: "Python"
+- Query: "Does Web Development include React?" → topic: "React"
+- Query: "Does Data Science cover machine learning?" → topic: "machine learning"
+- Query: "What do you learn in Web Development?" → topic: "multiple_topics"
+
 NOTES
 - Keep evidence concise (1–2 short quotes). Use multiple quotes if needed to show 2+ topics.
 - Do not paraphrase as evidence; use verbatim phrases for quotes.
 - All topics in "matched_topics" must be explicitly found in the retrieved excerpts - never assume or infer.
+- CRITICAL: The "topic" field must be the actual topic name from the query (e.g., "Python", "React", "machine learning"), NOT the instruction text. Extract the specific topic being asked about.
