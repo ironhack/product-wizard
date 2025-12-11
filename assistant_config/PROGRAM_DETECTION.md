@@ -47,13 +47,18 @@ Use the provided PROGRAM_SYNONYMS mapping to match variations:
 
 ## Detection Strategy
 
-### 1. Explicit Program Mentions
+### 1. Explicit Program Mentions (HIGHEST PRIORITY)
 Look for direct program names or clear synonyms:
 - "Data Analytics bootcamp" → `["data_analytics"]`
 - "Web Dev and UX/UI" → `["web_development", "ux_ui"]`
 - "AI Engineering course" → `["ai_engineering"]`
 
+**CRITICAL RULE**: If a program is explicitly mentioned in the query, ONLY detect that program. Do NOT use technology-based detection to add additional programs. For example:
+- "Does the Data Analytics bootcamp include React?" → `["data_analytics"]` ONLY (not `["data_analytics", "web_development"]`)
+- "What does the Web Development bootcamp teach?" → `["web_development"]` ONLY (even if other technologies are mentioned)
+
 ### 2. Technology-Based Detection
+**ONLY use this when NO program is explicitly mentioned in the query.**
 Infer programs from specific technologies mentioned:
 
 **Data Analytics indicators**:
@@ -212,7 +217,7 @@ Return a JSON object:
 
 ## Examples
 
-**Example 1: Explicit Program**
+**Example 1: Explicit Program (Single Program Only)**
 ```
 Query: "Does the Data Analytics bootcamp teach Python?"
 Conversation: []
@@ -223,7 +228,22 @@ Response:
   "namespace_filter": {"program_id": {"$in": ["data_analytics"]}},
   "confidence": 1.0,
   "detection_method": "explicit",
-  "reasoning": "Program name 'Data Analytics' explicitly mentioned in query"
+  "reasoning": "Program name 'Data Analytics' explicitly mentioned in query. Do NOT add other programs even if Python is mentioned."
+}
+```
+
+**Example 1b: Explicit Program with Technology Mention (Critical Rule)**
+```
+Query: "Does the Data Analytics bootcamp include React?"
+Conversation: []
+
+Response:
+{
+  "detected_programs": ["data_analytics"],
+  "namespace_filter": {"program_id": {"$in": ["data_analytics"]}},
+  "confidence": 1.0,
+  "detection_method": "explicit",
+  "reasoning": "Program name 'Data Analytics' explicitly mentioned. Even though React is mentioned (which is typically associated with Web Development), ONLY detect Data Analytics because the program is explicitly stated. Do NOT add web_development."
 }
 ```
 

@@ -48,6 +48,11 @@ OUTPUT FORMAT (JSON)
   "matched_topics": ["topic1", "topic2", ...]  // include when query is broad - list only topics explicitly found in retrieved excerpts
 }
 
+IMPORTANT: When verifying coverage for a topic found in a unit or section:
+- Include evidence quotes for BOTH the unit/section title AND specific subtopics covered in that unit/section
+- If the retrieved excerpts contain a unit title (e.g., "Unit 1: Introduction to X") AND a list of subtopics/key topics for that unit, include multiple evidence quotes showing both
+- This provides comprehensive evidence that enables detailed answers about what is covered
+
 CRITICAL: The "topic" field MUST contain the actual topic name extracted from the query, NOT the instruction text.
 Examples:
 - Query: "Does Data Analytics teach Python?" → topic: "Python"
@@ -59,4 +64,5 @@ NOTES
 - Keep evidence concise (1–2 short quotes). Use multiple quotes if needed to show 2+ topics.
 - Do not paraphrase as evidence; use verbatim phrases for quotes.
 - All topics in "matched_topics" must be explicitly found in the retrieved excerpts - never assume or infer.
-- CRITICAL: The "topic" field must be the actual topic name from the query (e.g., "Python", "React", "machine learning"), NOT the instruction text. Extract the specific topic being asked about.
+- CRITICAL: The "topic" field must be the actual topic name from the query, NOT the instruction text. Extract the specific topic being asked about.
+- IMPORTANT: When a topic is found in a unit or section, include evidence quotes that show both the unit/section title AND specific subtopics covered in that unit/section if they are mentioned in the retrieved excerpts. This provides comprehensive evidence for generation.

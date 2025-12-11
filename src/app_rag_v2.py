@@ -675,8 +675,10 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
         if query_intent == "certification":
             valid_programs = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
             if valid_programs:
-                program_name = valid_programs[0].replace("_", " ")
-                instructions += f"\n\nIMPORTANT: For certification queries, retrieve chunks from the Certifications document that specifically mention '{program_name}' or 'AI Web Development' certifications. Look for chunks containing specific certification names like 'Certified React Developer™' or 'MongoDB Developer Certification'."
+                prog_info = PROGRAM_SYNONYMS.get(valid_programs[0], {})
+                aliases = prog_info.get("aliases", [])
+                program_name = aliases[0] if aliases else valid_programs[0].replace("_", " ")
+                instructions += f"\n\nIMPORTANT: For certification queries, retrieve chunks from the Certifications document that specifically mention '{program_name}' or related program name variations. Look for chunks containing specific certification names and their issuing organizations."
         
         logger.info(f"🔍 Calling OpenAI Responses API with vector store search...")
         resp = openai_client.responses.create(
@@ -858,13 +860,20 @@ Assess this chunk's relevance to the query.
             should_include = assessment.get("should_include", False)
             red_flags = assessment.get("red_flags", [])
             
-            # For comparison queries, use lower threshold and be more permissive
-            # Comparison queries need chunks from multiple programs, so allow more through
+            # For comparison and certification queries, use lower threshold and be more permissive
+            # Comparison queries need chunks from multiple programs
+            # Certification queries need chunks from universal documents (Certifications doc) which may score lower
             if query_intent == "comparison":
                 threshold = 0.2
                 # For comparison queries, override should_include if score is high enough
                 # This ensures we get chunks from all programs even if AI is conservative
                 if relevance_score >= 0.5:
+                    should_include = True
+            elif query_intent == "certification":
+                threshold = 0.2
+                # For certification queries, be more permissive with universal documents
+                # Certification chunks from Certifications doc are highly relevant even if score is moderate
+                if relevance_score >= 0.4:
                     should_include = True
             else:
                 threshold = 0.3
@@ -896,9 +905,10 @@ Assess this chunk's relevance to the query.
     relevance_scores = []
     rejection_reasons = []
     
-    # For comparison queries, assess all retrieved docs to ensure we get chunks from all programs
-    # For other queries, limit to top 15 for efficiency
-    max_docs_to_assess = len(retrieved_docs) if query_intent == "comparison" else 15
+    # For comparison and certification queries, assess all retrieved docs
+    # Comparison queries need chunks from all programs
+    # Certification queries need chunks from universal documents which may be lower in retrieval order
+    max_docs_to_assess = len(retrieved_docs) if query_intent in ["comparison", "certification"] else 15
     docs_to_assess = list(enumerate(retrieved_docs[:max_docs_to_assess]))
     
     # Use ThreadPoolExecutor with max_workers (OpenAI API can handle concurrent requests)
@@ -906,7 +916,8 @@ Assess this chunk's relevance to the query.
     max_workers = min(8, len(docs_to_assess))
     
     if len(docs_to_assess) > 1:
-        logger.info(f"Parallelizing relevance assessment: {len(docs_to_assess)} docs with {max_workers} workers (assessing all docs for comparison queries)")
+        query_type_note = "comparison/certification queries" if query_intent in ["comparison", "certification"] else "standard queries"
+        logger.info(f"Parallelizing relevance assessment: {len(docs_to_assess)} docs with {max_workers} workers (assessing all docs for {query_type_note})")
     
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all assessment tasks
@@ -1077,11 +1088,12 @@ def document_filtering_node(state: RAGState) -> RAGState:
     filtered_docs = source_filtered_docs
     
     # STEP 2: AI-based fine-grained filtering (only if we have enough docs after source filtering)
-    # For comparison queries, use higher threshold and ensure all programs are represented
+    # For comparison and certification queries, use higher threshold and ensure proper representation
     # Optimized: Only run AI filtering if we have more than 5 docs (reduces unnecessary calls)
     if len(filtered_docs) > 5:
         # For comparison queries, process more docs and ensure balanced representation
-        max_docs_for_filtering = 20 if query_intent == "comparison" else 12
+        # For certification queries, process more docs to ensure we get certification chunks
+        max_docs_for_filtering = 20 if query_intent == "comparison" else (15 if query_intent == "certification" else 12)
         docs_summary = []
         for idx, doc in enumerate(filtered_docs[:max_docs_for_filtering]):
             docs_summary.append({
@@ -1090,8 +1102,8 @@ def document_filtering_node(state: RAGState) -> RAGState:
                 "content_preview": doc.get("content", "")[:150]  # Reduced preview length
             })
         
-        # Build comparison-specific context
-        comparison_context = ""
+        # Build comparison-specific or certification-specific context
+        special_context = ""
         if query_intent == "comparison" and valid_programs:
             program_names = []
             for prog_id in valid_programs:
@@ -1099,19 +1111,34 @@ def document_filtering_node(state: RAGState) -> RAGState:
                 aliases = prog_info.get("aliases", [])
                 program_names.append(aliases[0] if aliases else prog_id.replace("_", " "))
             
-            comparison_context = f"""
+            special_context = f"""
 CRITICAL: This is a COMPARISON query comparing: {', '.join(program_names)}
 - You MUST select chunks from ALL programs being compared
 - Ensure balanced representation - roughly equal chunks from each program
 - Select chunks that provide comparable information (e.g., curriculum structure, technologies, hours)
 - The goal is to enable side-by-side comparison, so parallel information is crucial
 """
+        elif query_intent == "certification" and valid_programs:
+            program_names = []
+            for prog_id in valid_programs:
+                prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
+                aliases = prog_info.get("aliases", [])
+                program_names.append(aliases[0] if aliases else prog_id.replace("_", " "))
+            
+            program_name = program_names[0] if program_names else "the program"
+            special_context = f"""
+CRITICAL: This is a CERTIFICATION query for {program_name}
+- You MUST select chunks from the Certifications document that mention {program_name} or related program names
+- Certification chunks may have the program name in section headers - still include them if they list certifications
+- Look for chunks containing specific certification names (e.g., "Certified React Developer", "MongoDB Developer Certification")
+- Even if a chunk doesn't explicitly repeat the program name, include it if it's from the Certifications document and lists certifications
+"""
         
         user_prompt = f"""
 Query: "{enhanced_query}"
 Query Intent: {query_intent}
 Detected Programs: {detected_programs}
-{comparison_context}
+{special_context}
 Retrieved Document Chunks (already filtered by source):
 {json.dumps(docs_summary, indent=2)}
 
@@ -1127,6 +1154,22 @@ Return as JSON: {{"kept_chunk_ids": [1, 2, 5, ...], "reasoning": "explanation"}}
             
             # Filter docs based on kept IDs - but be more permissive if too few docs
             final_docs = [doc for idx, doc in enumerate(filtered_docs) if (idx + 1) in kept_ids]
+            
+            # For certification queries, ensure we have chunks from Certifications document
+            if query_intent == "certification":
+                # Check if we have chunks from Certifications document
+                has_certifications_doc = any("certifications" in doc.get("source", "").lower() for doc in final_docs)
+                if not has_certifications_doc:
+                    # Find and add top certification chunks
+                    logger.warning(f"Certification query missing Certifications document chunks, adding top certification chunks")
+                    for doc in filtered_docs:
+                        source = doc.get("source", "").lower()
+                        if "certifications" in source and doc not in final_docs:
+                            final_docs.append(doc)
+                            logger.info(f"Added certification chunk: {doc.get('source', 'unknown')}")
+                            # Add up to 3 certification chunks
+                            if len([d for d in final_docs if "certifications" in d.get("source", "").lower()]) >= 3:
+                                break
             
             # For comparison queries, ensure we have docs from all programs
             if query_intent == "comparison" and valid_programs:
@@ -1237,10 +1280,12 @@ def coverage_verification_node(state: RAGState) -> RAGState:
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
     filtered_docs = state.get("filtered_docs", [])
     detected_programs = state.get("detected_programs", [])
+    query_intent = state.get("query_intent", "general_info")
     
     # Compile document content
+    # Include full chunk content - low usage volume makes cost negligible, completeness is more important
     docs_content = "\n\n---\n\n".join([
-        f"Source: {doc.get('source', 'unknown')}\n{doc.get('content', '')[:800]}"
+        f"Source: {doc.get('source', 'unknown')}\n{doc.get('content', '')}"
         for doc in filtered_docs[:10]
     ])
     
@@ -1287,6 +1332,7 @@ def generate_response_node(state: RAGState) -> RAGState:
     conversation_history = state.get("conversation_history", [])
     detected_programs = state.get("detected_programs", [])
     query_intent = state.get("query_intent", "general_info")
+    coverage_verification = state.get("coverage_verification", {})
     
     if not filtered_docs:
         logger.warning("No documents available for generation")
@@ -1298,6 +1344,7 @@ def generate_response_node(state: RAGState) -> RAGState:
         }
     
     # Compile context from filtered documents
+    # Include full chunk content - low usage volume makes cost negligible, completeness is more important
     context_chunks = []
     for idx, doc in enumerate(filtered_docs[:10]):
         source = doc.get("source", "unknown")
@@ -1305,6 +1352,19 @@ def generate_response_node(state: RAGState) -> RAGState:
         context_chunks.append(f"[Chunk {idx+1} - Source: {source}]\n{content}")
     
     context = "\n\n---\n\n".join(context_chunks)
+    
+    # For coverage questions with positive verification, include the verification evidence
+    # This ensures detailed topics are available even if they're in a different chunk
+    if query_intent == "coverage" and coverage_verification.get("is_present", False):
+        evidence = coverage_verification.get("evidence", [])
+        if evidence:
+            # Add evidence to context if not already included
+            evidence_text = "\n\n".join([
+                f"Evidence: {e.get('quote', '')} [Source: {e.get('source', 'unknown')}]"
+                for e in evidence if isinstance(e, dict)
+            ])
+            if evidence_text and evidence_text not in context:
+                context = f"{context}\n\n---\n\nCoverage Verification Evidence:\n{evidence_text}"
     conv_context = format_conversation_history(conversation_history, limit=3)
     
     # Use comparison instructions for comparison queries
@@ -1313,11 +1373,17 @@ def generate_response_node(state: RAGState) -> RAGState:
     else:
         additional_instructions = ""
     
+    # Add specific emphasis for duration queries
+    duration_emphasis = ""
+    if query_intent == "duration":
+        duration_emphasis = "\n\nCRITICAL FOR DURATION QUERIES: If the retrieved documents contain a breakdown of hours (e.g., prework hours + course hours), you MUST include BOTH the total hours AND the breakdown in your response. Format: 'X hours total: Y hours prework + Z hours course' or similar format that clearly shows both total and breakdown."
+    
     system_prompt = f"""{MASTER_PROMPT}
 
 {GENERATION_INSTRUCTIONS}
 
 {additional_instructions}
+{duration_emphasis}
 
 CRITICAL: Generate answers ONLY from the provided document context. Never use external knowledge.
 """
@@ -1399,14 +1465,14 @@ def faithfulness_verification_node(state: RAGState) -> RAGState:
     # Compile retrieved documents for verification
     # Include full content for certification queries to ensure proper verification
     # Optimized: Reduced content limit and doc count for faster processing
-    content_limit = 800 if query_intent == "certification" else 500
     max_docs_for_verification = 6 if query_intent == "certification" else 6
+    # Include full chunk content - low usage volume makes cost negligible, completeness is more important
     docs_text = "\n\n".join([
-        f"[{doc.get('source', 'unknown')}]\n{doc.get('content', '')[:content_limit]}"
+        f"[{doc.get('source', 'unknown')}]\n{doc.get('content', '')}"
         for doc in filtered_docs[:max_docs_for_verification]
     ])
     
-    logger.debug(f"Faithfulness verification: checking {len(filtered_docs)} docs, content limit {content_limit} chars")
+    logger.debug(f"Faithfulness verification: checking {len(filtered_docs)} docs, full content included")
     
     user_prompt = f"""
 User Query: "{enhanced_query}"

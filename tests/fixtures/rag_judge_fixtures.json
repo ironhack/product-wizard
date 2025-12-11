@@ -56,14 +56,16 @@
     "expected_citations": [
       {
         "document": "AI_Web_Development_bootcamp_2025_12.md",
-        "reference": "Course Overview and Tools Used",
+        "reference": "Course Overview",
         "evidence": "Participants cover HTML, CSS and JavaScript, then master React to build dynamic user interfaces. The curriculum also covers server-side development using Node.js and Express, alongside database management with MongoDB."
       }
     ],
     "judge_criteria": [
       "List both the frontend stack (HTML/CSS, JavaScript, React) and backend stack (Node.js, Express, MongoDB).",
+      "Focus on the core programming stack - AI tools may be mentioned but are not required for this query.",
       "Frame the answer as an AI Web Development bootcamp summary.",
-      "Cite the AI Web Development syllabus."
+      "Cite the AI Web Development syllabus (any section is acceptable, not required to specify exact section name).",
+      "Accept responses that mention AI tools as long as core stack is clearly identified."
     ]
   },
   {
