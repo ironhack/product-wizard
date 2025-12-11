@@ -21,11 +21,9 @@ Course contents
 
 ## **Course Duration** {#course-duration}
 
-Duration: 
-
-* **Total: 400 hours**  
-  * Prework: 40 hours  
-  * Course: 360 hours
+* **Total:** 360 hours + 40 hours prework  
+* **Format:** 9 weeks × 40 hours/week (e.g., 8h/day)  
+* **Delivery:** Instructor-led, remote, highly practical and project-based
 
 ## **Course Overview** {#course-overview}
 
@@ -48,22 +46,22 @@ In addition to technical depth, students will develop strong collaboration skill
 
 Our curriculum uses 100% free AI tools to ensure all students have equal access to AI-enhanced development capabilities:
 
-Primary Development:
+**Primary Development:**
 
 * Codeium - Free AI coding assistant (alternative to GitHub Copilot)  
 * VS Code + Codeium Extension - AI-enhanced development environment
 
-Learning & Problem Solving:
+**Learning & Problem Solving:**
 
 * ChatGPT Free - AI assistant for concept explanation and debugging help  
 * Claude Free - Alternative AI assistant for code review and learning
 
-Practice & Exercises:
+**Practice & Exercises:**
 
 * Replit AI - Browser-based AI-assisted coding practice  
 * AI Documentation Tools - Free AI-powered documentation and comment generation
 
-Setup Requirements:
+**Setup Requirements:**
 
 * All tools require only free account creation  
 * No student verification or payment required  
@@ -172,7 +170,7 @@ The idea is to apply the advanced JavaScript concepts **while learning professio
 
 Students can choose from a variety of frontend-focused project types to solidify their programming fundamentals and explore interface logic creatively. While a browser-based game is one option, others may prefer tools or mock AI interfaces that connect more directly with business or user productivity scenarios.
 
-Agile **& Project Skills Covered:**
+**Agile & Project Skills Covered:**
 
 * Defining user stories and MVP scope  
 * Organizing tasks using GitHub Projects or Issues  

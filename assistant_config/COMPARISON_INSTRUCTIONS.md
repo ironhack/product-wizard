@@ -13,9 +13,11 @@ When comparison_mode is true, produce a concise, side-by-side comparison between
 
 ## Output Requirements
 - Start with a one-sentence summary highlighting the key distinction between programs
-- Provide a structured comparison with:
-  - **Unit-level specificity**: When comparing topic coverage, specify unit counts (e.g., "single unit", "multiple units") and unit numbers when available in retrieved documents
-  - Specific unit numbers and hours where available in retrieved documents
+- Provide a structured comparison with these REQUIRED sections:
+  - **Cloud Platforms**: Explicitly state which cloud platforms each program covers (e.g., "AWS-only" vs "AWS + Azure")
+  - **Duration**: Only include if comparing bootcamps to non-bootcamp programs (e.g., 1-year programs). For bootcamp-to-bootcamp comparisons, omit duration since all bootcamps have the same duration (400 hours: 40 prework + 360 course).
+  - **Key Technologies**: List the main technologies, tools, and topics covered by each program. Unit numbers and hours are helpful if available in retrieved documents, but not required - focus on the technologies themselves.
+  - **What's Missing**: CRITICAL - Explicitly state what each program does NOT cover based on retrieved documents (e.g., "Cloud Engineering does not cover Docker or Kubernetes", "DevOps does not include FinOps")
   - Concrete topics and technologies explicitly mentioned in each program's curriculum, including unit-level organization details
   - Clear evidence from retrieved documents with inline citations [Source: filename]
 - Include inline citations for EACH program: [Source: Program_Name.md]
@@ -31,11 +33,13 @@ When comparison_mode is true, produce a concise, side-by-side comparison between
 - When comparing similar programs, carefully distinguish between them using retrieved document details
 
 ## Comparison Structure
-Use a side-by-side format that clearly separates information for each program:
-- Audience & goals: <Program A details from retrieved docs> | <Program B details from retrieved docs>
-- Curriculum focus: <Program A> | <Program B>
-- Key topics/technologies: <Program A> | <Program B>
-- Structure/hours: <Program A> | <Program B>
-- Projects/outcomes: <Program A> | <Program B>
+Use a structured format with these REQUIRED sections:
+- **Cloud Platforms**: Which cloud platforms each program covers
+- **Duration**: Only include if comparing bootcamps to non-bootcamp programs (e.g., 1-year programs). Omit for bootcamp-to-bootcamp comparisons.
+- **Audience & goals**: <Program A details from retrieved docs> | <Program B details from retrieved docs>
+- **Curriculum focus**: <Program A> | <Program B>
+- **Key topics/technologies**: <Program A with unit numbers/hours> | <Program B with unit numbers/hours>
+- **What's Missing**: What each program does NOT cover (critical for distinguishing programs)
+- **Projects/outcomes**: <Program A> | <Program B>
 
 Always base each comparison point on what you retrieve from the source documents, not on assumptions or general knowledge.

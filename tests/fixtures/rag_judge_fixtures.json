@@ -108,6 +108,70 @@
     ]
   },
   {
+    "id": "comparison_cloud_engineering_devops",
+    "query": "What are the key differences between Cloud Engineering and DevOps bootcamps?",
+    "expected_answer": "Cloud Engineering focuses on AWS cloud infrastructure, cost optimization (FinOps), and security/compliance, while DevOps emphasizes containerization (Docker), orchestration (Kubernetes), and CI/CD pipelines across AWS and Azure. [Source: Cloud_Engineering_bootcamp_2025_12.md] [Source: DevOps_bootcamp_2025_07.md]\n\nCloud Platforms: Cloud Engineering focuses primarily on AWS, while DevOps covers both AWS and Azure.\n\nKey Technologies:\n• Cloud Engineering covers Infrastructure as Code (Terraform), observability (Prometheus, Grafana), FinOps for cost control, and security/compliance (covering CIS, NIST, ISO 27001, GDPR, SOC 2, HIPAA, EU AI Act).\n• DevOps covers Docker containerization, Kubernetes orchestration (including Amazon EKS and Azure AKS), CI/CD pipelines (GitHub Actions, SonarQube), and Infrastructure as Code (Terraform, Ansible).\n\nWhat's Missing: Cloud Engineering does not cover Docker or Kubernetes. DevOps does not include FinOps or detailed compliance standards like GDPR, SOC 2, HIPAA, or EU AI Act.",
+    "expected_citations": [
+      {
+        "document": "Cloud_Engineering_bootcamp_2025_12.md",
+        "reference": "Course Duration and Overview",
+        "evidence": "Total: 360 hours + 40 hours prework. This program takes absolute beginners from foundations to job-ready cloud engineering... Infrastructure as Code with Terraform and automation via CI/CD and GitOps; observability and FinOps for reliability and cost control; and security & compliance for regulated environments."
+      },
+      {
+        "document": "Cloud_Engineering_bootcamp_2025_12.md",
+        "reference": "Unit 7: FinOps",
+        "evidence": "Duration: Week 7 (40h). Cloud pricing models: on-demand, reserved, spot. Budgeting, tagging and cost allocation strategies. Cost analysis dashboards: AWS Cost Explorer. Rightsizing and optimization planning."
+      },
+      {
+        "document": "Cloud_Engineering_bootcamp_2025_12.md",
+        "reference": "Unit 8: Security, Compliance",
+        "evidence": "Duration: Week 8 (40h). Security frameworks: CIS, NIST, ISO 27001. Cloud-native security tools: AWS Config. Secrets and identity management with Vault and Keycloak. Compliance standards: GDPR, SOC 2, HIPAA, EU AI Act."
+      },
+      {
+        "document": "DevOps_bootcamp_2025_07.md",
+        "reference": "Course Duration and Overview",
+        "evidence": "This 400-hour course (comprising 40 hours of prework and 360 hours of instruction) provides a comprehensive introduction to DevOps... covering topics from Linux fundamentals to monitoring and observability, students will work with industry-standard tools across infrastructure provisioning, containerization, orchestration, and continuous integration and deployment."
+      },
+      {
+        "document": "DevOps_bootcamp_2025_07.md",
+        "reference": "Unit 4: Containerization with Docker",
+        "evidence": "Objective: Containerize and manage applications using Docker to build scalable, portable, and isolated environments suitable for modern deployment workflows. Introduction to containers and Docker, Docker CLI and core commands, Dockerfiles, images, and multi-stage builds."
+      },
+      {
+        "document": "DevOps_bootcamp_2025_07.md",
+        "reference": "Unit 5: Kubernetes Orchestration",
+        "evidence": "Objective: Deploy and manage containerized applications using Kubernetes, understanding its architecture and core components for scalable orchestration. Introduction to Kubernetes, Kubernetes architecture and cluster concepts."
+      },
+      {
+        "document": "DevOps_bootcamp_2025_07.md",
+        "reference": "Unit 6: CI/CD and Managed Kubernetes with Amazon EKS",
+        "evidence": "Objective: By the end of this unit, students will be able to manage Kubernetes clusters on Amazon Web Services using EKS... and implement CI/CD pipelines using GitHub Actions and SonarQube for quality control."
+      },
+      {
+        "document": "DevOps_bootcamp_2025_07.md",
+        "reference": "Unit 7: Advanced Azure Cloud Operations",
+        "evidence": "This unit expands students' understanding of cloud infrastructure management with a deep dive into Microsoft Azure."
+      },
+      {
+        "document": "DevOps_bootcamp_2025_07.md",
+        "reference": "Unit 8: Azure Governance, Kubernetes on Azure (AKS)",
+        "evidence": "Objective: By the end of this unit, students will be able to manage Kubernetes clusters in Microsoft Azure using AKS... and implement comprehensive observability using Prometheus, Grafana, and Loki."
+      }
+    ],
+    "judge_criteria": [
+      "Start with a one-sentence summary highlighting the key distinction between the programs.",
+      "Mention cloud platform differences: Cloud Engineering is AWS-focused, DevOps covers AWS + Azure.",
+      "Include key technologies: Cloud Engineering covers FinOps, security/compliance (GDPR, SOC 2, HIPAA, EU AI Act), Terraform, Prometheus, Grafana. DevOps covers Docker, Kubernetes (EKS, AKS), CI/CD (GitHub Actions, SonarQube), Terraform, Ansible.",
+      "Clearly state what each program does NOT cover: Cloud Engineering does not cover Docker/Kubernetes, DevOps does not cover FinOps or detailed compliance standards.",
+      "Include inline citations for both programs using [Source: filename] format.",
+      "Use structured format with categories (Cloud Platforms, Key Technologies, What's Missing).",
+      "Keep comparisons balanced - equal detail for both programs.",
+      "Note: Duration and unit numbers/hours are NOT required - focus on technologies and differences. Unit-level details are unlikely to be retrieved reliably with current chunking strategy.",
+      "Accept reasonable paraphrasing and different wording - focus on whether key technologies and differences are correctly identified.",
+      "Score highly if the comparison correctly distinguishes the programs' focus areas, identifies key technologies, states what's missing, and follows the structured comparison format."
+    ]
+  },
+  {
     "id": "ai_engineering_mlops",
     "query": "How does the AI Engineering bootcamp handle MLOps and deployment?",
     "expected_answer": "The AI Engineering bootcamp covers MLOps through a dedicated unit that teaches deployment strategies, experiment tracking, and cloud infrastructure on AWS, with hands-on projects including an NLP automation project using tools like MLflow and Git-based workflows.",

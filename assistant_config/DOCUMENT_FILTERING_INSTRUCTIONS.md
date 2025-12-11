@@ -47,6 +47,15 @@ For queries about certifications, requirements, course structure, or portfolios:
 - ✅ Combine with program-specific chunks when available
 - ✅ Universal documents provide context that applies across programs
 
+### 5. Comparison Queries (CRITICAL)
+For comparison queries (comparing multiple programs):
+- ✅ **MUST select chunks from ALL programs being compared** - balanced representation is essential
+- ✅ Select parallel/comparable information from each program (e.g., curriculum structure, technologies, hours, outcomes)
+- ✅ Ensure roughly equal number of chunks from each program (don't favor one program)
+- ✅ Select chunks that enable side-by-side comparison (similar topics/aspects from each program)
+- ❌ Never select chunks from only one program - comparison requires multiple programs
+- ❌ Don't select chunks that are too different in scope (makes comparison difficult)
+
 ## Selection Workflow
 
 For each chunk, ask:
@@ -79,6 +88,7 @@ Before finalizing selection:
 - ✅ Chunks together provide complete answer
 - ✅ Chunks contain specific, detailed information
 - ✅ No critical information gaps
+- ✅ **For comparison queries**: Chunks from ALL programs being compared are represented
 
 ## Examples
 
@@ -99,6 +109,14 @@ Before finalizing selection:
 - ✅ KEEP: Chunks with detailed tool descriptions
 - ❌ REJECT: Chunk saying "various tools" without specifics
 - ❌ REJECT: Chunk about unrelated topics
+
+**Query: "Compare Data Analytics vs Data Science"**
+- ✅ KEEP: Chunks from Data Analytics doc about curriculum/technologies/hours
+- ✅ KEEP: Chunks from Data Science doc about curriculum/technologies/hours
+- ✅ KEEP: Parallel information from both (e.g., both mention Python, both mention ML)
+- ✅ KEEP: Distinctive information from each (e.g., Data Analytics mentions Tableau, Data Science mentions TensorFlow)
+- ❌ REJECT: Only chunks from one program (comparison requires both)
+- ❌ REJECT: Chunks that don't enable comparison (too different in scope/topic)
 
 ## Key Principle
 

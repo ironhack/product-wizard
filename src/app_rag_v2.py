@@ -624,7 +624,7 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
     # Determine top_k based on query type and iteration
     top_k = 10
     if query_intent == "comparison":
-        top_k = 15
+        top_k = 25  # Comparison queries need more docs to cover all programs being compared
     elif query_intent == "certification":
         top_k = 15  # Certification queries need both universal doc + program doc
     if "EXPAND_CHUNKS" in refinement_strategy:
@@ -858,11 +858,22 @@ Assess this chunk's relevance to the query.
             should_include = assessment.get("should_include", False)
             red_flags = assessment.get("red_flags", [])
             
+            # For comparison queries, use lower threshold and be more permissive
+            # Comparison queries need chunks from multiple programs, so allow more through
+            if query_intent == "comparison":
+                threshold = 0.2
+                # For comparison queries, override should_include if score is high enough
+                # This ensures we get chunks from all programs even if AI is conservative
+                if relevance_score >= 0.5:
+                    should_include = True
+            else:
+                threshold = 0.3
+            
             return {
                 "idx": idx,
                 "doc": doc,
                 "relevance_score": relevance_score,
-                "should_include": should_include and relevance_score >= 0.3,
+                "should_include": should_include and relevance_score >= threshold,
                 "red_flags": red_flags,
                 "reasoning": assessment.get("reasoning", "Low relevance"),
                 "error": None
@@ -885,14 +896,17 @@ Assess this chunk's relevance to the query.
     relevance_scores = []
     rejection_reasons = []
     
-    docs_to_assess = list(enumerate(retrieved_docs[:15]))  # Limit assessment to top 15
+    # For comparison queries, assess all retrieved docs to ensure we get chunks from all programs
+    # For other queries, limit to top 15 for efficiency
+    max_docs_to_assess = len(retrieved_docs) if query_intent == "comparison" else 15
+    docs_to_assess = list(enumerate(retrieved_docs[:max_docs_to_assess]))
     
     # Use ThreadPoolExecutor with max_workers (OpenAI API can handle concurrent requests)
     # Increased to 8 concurrent requests for better performance (OpenAI allows higher concurrency)
     max_workers = min(8, len(docs_to_assess))
     
     if len(docs_to_assess) > 1:
-        logger.info(f"Parallelizing relevance assessment: {len(docs_to_assess)} docs with {max_workers} workers")
+        logger.info(f"Parallelizing relevance assessment: {len(docs_to_assess)} docs with {max_workers} workers (assessing all docs for comparison queries)")
     
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all assessment tasks
@@ -1063,22 +1077,41 @@ def document_filtering_node(state: RAGState) -> RAGState:
     filtered_docs = source_filtered_docs
     
     # STEP 2: AI-based fine-grained filtering (only if we have enough docs after source filtering)
+    # For comparison queries, use higher threshold and ensure all programs are represented
     # Optimized: Only run AI filtering if we have more than 5 docs (reduces unnecessary calls)
     if len(filtered_docs) > 5:
-        # Prepare document context for AI filtering - limit to top 12 for faster processing
+        # For comparison queries, process more docs and ensure balanced representation
+        max_docs_for_filtering = 20 if query_intent == "comparison" else 12
         docs_summary = []
-        for idx, doc in enumerate(filtered_docs[:12]):
+        for idx, doc in enumerate(filtered_docs[:max_docs_for_filtering]):
             docs_summary.append({
                 "chunk_id": idx + 1,
                 "source": doc.get("source", "unknown"),
                 "content_preview": doc.get("content", "")[:150]  # Reduced preview length
             })
         
+        # Build comparison-specific context
+        comparison_context = ""
+        if query_intent == "comparison" and valid_programs:
+            program_names = []
+            for prog_id in valid_programs:
+                prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
+                aliases = prog_info.get("aliases", [])
+                program_names.append(aliases[0] if aliases else prog_id.replace("_", " "))
+            
+            comparison_context = f"""
+CRITICAL: This is a COMPARISON query comparing: {', '.join(program_names)}
+- You MUST select chunks from ALL programs being compared
+- Ensure balanced representation - roughly equal chunks from each program
+- Select chunks that provide comparable information (e.g., curriculum structure, technologies, hours)
+- The goal is to enable side-by-side comparison, so parallel information is crucial
+"""
+        
         user_prompt = f"""
 Query: "{enhanced_query}"
 Query Intent: {query_intent}
 Detected Programs: {detected_programs}
-
+{comparison_context}
 Retrieved Document Chunks (already filtered by source):
 {json.dumps(docs_summary, indent=2)}
 
@@ -1094,6 +1127,42 @@ Return as JSON: {{"kept_chunk_ids": [1, 2, 5, ...], "reasoning": "explanation"}}
             
             # Filter docs based on kept IDs - but be more permissive if too few docs
             final_docs = [doc for idx, doc in enumerate(filtered_docs) if (idx + 1) in kept_ids]
+            
+            # For comparison queries, ensure we have docs from all programs
+            if query_intent == "comparison" and valid_programs:
+                # Check if we have docs from all programs
+                programs_represented = set()
+                for doc in final_docs:
+                    source = doc.get("source", "").lower()
+                    for prog_id in valid_programs:
+                        prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
+                        filenames = prog_info.get("filenames", [])
+                        for filename in filenames:
+                            base_filename = filename.replace(".txt", "").replace(".md", "").lower()
+                            if base_filename in source or filename.lower() in source:
+                                programs_represented.add(prog_id)
+                                break
+                
+                # If missing programs, add top docs from missing programs
+                missing_programs = set(valid_programs) - programs_represented
+                if missing_programs:
+                    logger.warning(f"Comparison query missing docs from programs: {missing_programs}")
+                    for prog_id in missing_programs:
+                        prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
+                        filenames = prog_info.get("filenames", [])
+                        # Find top doc from this program
+                        for doc in filtered_docs:
+                            source = doc.get("source", "").lower()
+                            for filename in filenames:
+                                base_filename = filename.replace(".txt", "").replace(".md", "").lower()
+                                if base_filename in source or filename.lower() in source:
+                                    if doc not in final_docs:
+                                        final_docs.append(doc)
+                                        programs_represented.add(prog_id)
+                                        logger.info(f"Added doc from missing program: {prog_id}")
+                                        break
+                            if prog_id in programs_represented:
+                                break
             
             # If AI filtering removed too many docs, be more permissive
             if len(final_docs) < 2 and len(filtered_docs) >= 2:

@@ -260,3 +260,5 @@ Students demonstrate full-cycle PM skills and AI fluency through a real-world, t
 * **Notion / Miro** – collaboration and brainstorming
 
 * **Or similar of the same kind**
+
+

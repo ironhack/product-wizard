@@ -51,3 +51,5 @@ schedule, start, when, application, apply, price, cost, payment, location, forma
 - Avoid promises, guarantees, or timelines
 - Never fabricate details; this is a stylistic add-on only
 
+
+

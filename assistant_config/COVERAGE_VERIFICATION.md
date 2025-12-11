@@ -12,6 +12,7 @@ DECISION RULES (STRICT, NO KNOWLEDGE BIAS)
    - Mark a topic as present ONLY if it is explicitly mentioned in the retrieved excerpts.
    - Prefer short direct quotes as evidence.
    - Search the excerpts carefully for exact matches or clear mentions.
+   - DO NOT infer or assume topics based on related concepts or synonyms unless explicitly stated.
 
 2) Acronyms policy (allow to reduce false negatives):
    - Treat unambiguous acronym ↔ full-term pairs as explicit equivalence when both forms appear in the excerpts.
