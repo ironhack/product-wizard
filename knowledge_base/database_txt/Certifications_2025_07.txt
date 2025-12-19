@@ -8,9 +8,6 @@ Ironhack offers industry-recognized certifications for all bootcamp graduates an
 ### General Rules
 - **All bootcamp graduates** are entitled to choose **one paid certification** from the available options for their vertical
 - This applies to all verticals across all markets
-- **AI-Driven Marketing and DevOps** graduates previously received 2 paid certifications, but this is being aligned to the standard rule
-- The change for MK and DV will be enforced from October/November 2025
-- Students starting in September 2025 or graduating in the next couple months were sold the 2 paid certifications and will be honored
 
 ### Certification Options by Vertical
 
