@@ -630,6 +630,12 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
     if "EXPAND_CHUNKS" in refinement_strategy:
         top_k = 15 if iteration_count == 1 else 20
     
+    # Double limits if this is a re-fetch after filtering removed too many docs
+    refetch_count = state.get("metadata", {}).get("refetch_count", 0)
+    if refetch_count > 0:
+        top_k = top_k * 2 * refetch_count  # Double for each refetch attempt
+        logger.info(f"Re-fetch attempt {refetch_count}: doubling top_k to {top_k}")
+    
     logger.info(f"Retrieval Query: {retrieval_query[:100]}...")
     logger.info(f"Top-K: {top_k} | Namespace Filter: {namespace_filter}")
     logger.info(f"Vector Store ID: {VECTOR_STORE_ID}")
@@ -985,9 +991,8 @@ Assess this chunk's relevance to the query.
 
 def document_filtering_node(state: RAGState) -> RAGState:
     """
-    Enhanced document filtering with cross-contamination detection.
-    - First pass: Filter by document source (keep only chunks from relevant program documents)
-    - Second pass: AI-based filtering for fine-grained relevance
+    Simple document filtering: keep only docs from detected program + universal docs.
+    If not enough docs after filtering, signal for re-fetch with higher limits.
     """
     logger.info("=== Document Filtering Node ===")
     send_slack_update(state, "Filtering best matches")
@@ -995,13 +1000,15 @@ def document_filtering_node(state: RAGState) -> RAGState:
     filtered_docs = state.get("filtered_docs", [])
     detected_programs = state.get("detected_programs", [])
     query_intent = state.get("query_intent", "general_info")
-    enhanced_query = state.get("enhanced_query", state.get("query", ""))
+    
+    # Clear the refetch flag at start (we're now processing after a potential refetch)
+    metadata = state.get("metadata", {}).copy()
+    metadata["needs_refetch"] = False
     
     if not filtered_docs:
-        return state
+        return {**state, "metadata": metadata}
     
-    # STEP 1: Source-based filtering - keep only chunks from relevant program documents
-    # Universal documents that apply to all programs (always include these)
+    # Universal documents that apply to all programs
     UNIVERSAL_DOCUMENTS = [
         "certifications_2025_07",
         "course_design_overview_2025_07",
@@ -1009,81 +1016,64 @@ def document_filtering_node(state: RAGState) -> RAGState:
         "ironhack_portfolio_overview_2025_07"
     ]
     
-    # Filter detected_programs to only include actual programs (not document names like "certifications")
+    # Get valid programs (actual program IDs, not document names like "certifications")
     valid_programs = [prog_id for prog_id in detected_programs if prog_id in PROGRAM_SYNONYMS]
     
-    # Always keep universal documents regardless of detected programs
+    # Build expected source patterns for detected programs
+    expected_sources = set()
+    for prog_id in valid_programs:
+        prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
+        filenames = prog_info.get("filenames", [])
+        for filename in filenames:
+            expected_sources.add(filename.lower())
+            expected_sources.add(filename.replace(".txt", "").replace(".md", "").lower())
+    
+    # Simple filtering: keep only matching docs
     source_filtered_docs = []
-    universal_docs = []
-    program_docs = []
+    program_doc_count = 0  # Track program-specific docs separately
     
     for doc in filtered_docs:
         source = doc.get("source", "").lower()
         
-        # Check if this is a universal document
-        is_universal = False
-        for universal_doc in UNIVERSAL_DOCUMENTS:
-            if universal_doc in source:
-                is_universal = True
-                universal_docs.append(doc)
-                source_filtered_docs.append(doc)
-                logger.debug(f"Keeping universal document: {doc.get('source', 'unknown')}")
-                break
-        
-        if is_universal:
+        # Keep universal documents (but don't count toward program docs)
+        if any(univ in source for univ in UNIVERSAL_DOCUMENTS):
+            source_filtered_docs.append(doc)
             continue
         
-        # For program-specific documents, only keep if they match detected programs
-        if valid_programs:
-            # Build list of expected document filename patterns for detected programs
-            expected_sources = set()
-            for prog_id in valid_programs:
-                prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
-                filenames = prog_info.get("filenames", [])
-                for filename in filenames:
-                    # Add both .txt and .md variants, and handle case variations
-                    expected_sources.add(filename.lower())
-                    expected_sources.add(filename.replace(".txt", "").lower())
-                    expected_sources.add(filename.replace(".md", "").lower())
-            
-            # Check if source matches any expected program document
-            matches = False
-            for expected in expected_sources:
-                if expected in source:
-                    matches = True
-                    break
-            
-            # Also check if source contains program name keywords
-            if not matches:
-                for prog_id in valid_programs:
-                    prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
-                    # Check program name variations
-                    if prog_id.replace("_", " ") in source or prog_id.replace("_", "_") in source:
-                        matches = True
-                        break
-            
-            if matches:
-                program_docs.append(doc)
-                source_filtered_docs.append(doc)
-            else:
-                logger.debug(f"Filtered out chunk from wrong document: {doc.get('source', 'unknown')}")
+        # If no program detected, keep all docs
+        if not valid_programs:
+            source_filtered_docs.append(doc)
+            program_doc_count += 1
+            continue
+        
+        # Keep only docs matching detected program
+        if any(expected in source for expected in expected_sources):
+            source_filtered_docs.append(doc)
+            program_doc_count += 1
         else:
-            # No valid programs detected, but keep universal docs (already added above)
-            # Also keep any docs if no program filtering needed
-            if not detected_programs:
-                source_filtered_docs.append(doc)
+            logger.debug(f"Filtered out: {doc.get('source', 'unknown')}")
     
-    # Log filtering results (outside the loop)
-    logger.info(f"Source-based filtering: {len(filtered_docs)} → {len(source_filtered_docs)} docs "
-               f"({len(program_docs)} program-specific, {len(universal_docs)} universal)")
+    logger.info(f"Source filtering: {len(filtered_docs)} → {len(source_filtered_docs)} docs ({program_doc_count} program-specific)")
     
-    # If source filtering removed too many, be more permissive
-    if len(source_filtered_docs) < 2 and len(filtered_docs) >= 2:
-        logger.warning(f"Source filtering too strict ({len(source_filtered_docs)} docs), keeping top 3 by relevance")
-        source_filtered_docs = filtered_docs[:3]
-    elif len(source_filtered_docs) == 0:
-        logger.warning(f"Source filtering removed all docs, keeping top 3 as fallback")
-        source_filtered_docs = filtered_docs[:3]
+    # If we have very few PROGRAM-SPECIFIC docs, signal for re-fetch (universal docs don't count)
+    needs_refetch = program_doc_count < 2 and valid_programs
+    
+    if needs_refetch:
+        # Check if we already did a re-fetch (to avoid infinite loop)
+        refetch_count = state.get("metadata", {}).get("refetch_count", 0)
+        if refetch_count < 2:
+            logger.warning(f"Only {program_doc_count} program-specific docs after filtering, signaling re-fetch (attempt {refetch_count + 1})")
+            return {
+                **state,
+                "filtered_docs": source_filtered_docs,
+                "metadata": {
+                    **state.get("metadata", {}),
+                    "needs_refetch": True,
+                    "refetch_count": refetch_count + 1
+                }
+            }
+        else:
+            logger.warning(f"Max re-fetch attempts reached, proceeding with {len(source_filtered_docs)} docs")
     
     filtered_docs = source_filtered_docs
     
@@ -1224,7 +1214,8 @@ Return as JSON: {{"kept_chunk_ids": [1, 2, 5, ...], "reasoning": "explanation"}}
     
     return {
         **state,
-        "filtered_docs": filtered_docs
+        "filtered_docs": filtered_docs,
+        "metadata": metadata  # Pass through with needs_refetch cleared
     }
 
 # ---------------- Node 6: Coverage Classification ----------------
@@ -1677,6 +1668,17 @@ def route_after_query_enhancement(state: RAGState) -> str:
     # For now, always proceed to program detection
     return "program_detection"
 
+def route_after_document_filtering(state: RAGState) -> str:
+    """Route after document filtering - re-fetch if not enough docs."""
+    needs_refetch = state.get("metadata", {}).get("needs_refetch", False)
+    
+    if needs_refetch:
+        # Clear the flag and go back to retrieval with higher limits
+        logger.info("Routing back to retrieval for re-fetch with doubled limits")
+        return "hybrid_retrieval"
+    
+    return "coverage_classification"
+
 def route_after_coverage_classification(state: RAGState) -> str:
     """Route to coverage verification or generation."""
     # Skip coverage verification for comparison queries - they need full generation
@@ -1924,7 +1926,16 @@ def build_workflow() -> StateGraph:
     workflow.add_edge("program_detection", "hybrid_retrieval")
     workflow.add_edge("hybrid_retrieval", "relevance_assessment")
     workflow.add_edge("relevance_assessment", "document_filtering")
-    workflow.add_edge("document_filtering", "coverage_classification")
+    
+    # Conditional routing after document filtering (re-fetch if not enough docs)
+    workflow.add_conditional_edges(
+        "document_filtering",
+        route_after_document_filtering,
+        {
+            "hybrid_retrieval": "hybrid_retrieval",
+            "coverage_classification": "coverage_classification"
+        }
+    )
     
     # Conditional routing after coverage classification
     workflow.add_conditional_edges(

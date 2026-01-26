@@ -80,6 +80,10 @@ Infer programs from specific technologies mentioned:
 **AI Engineering indicators**:
 - PyTorch + MLOps + cloud platforms → `["ai_engineering"]`
 - "AI deployment", "model serving", "AI infrastructure"
+- "Deep learning", "CNNs", "RNNs", "neural networks", "model training"
+- "LangChain", "RAG systems", "AI agents" (when focused on building AI systems)
+- "TensorFlow", "Keras", "Hugging Face", "model fine-tuning"
+- "Image classification", "NLP", "text generation", "computer vision"
 
 **AI Product Management indicators**:
 - Jira + Confluence + Figma + ChatGPT → `["ai_product_management"]`
@@ -88,6 +92,9 @@ Infer programs from specific technologies mentioned:
 **AI Consulting & Integration indicators**:
 - Python + OpenAI API + n8n + RAG → `["ai_consulting_integration"]`
 - "AI consulting", "workflow automation", "API integration", "EU AI Act", "compliance"
+- "Business transformation", "client presentations", "consulting proposals"
+- "n8n", "no-code automation", "Power BI dashboards"
+- "Use case validation", "stakeholder interviews", "commercial proposals"
 
 **Cloud Engineering indicators**:
 - AWS + Terraform + GitHub Actions → `["cloud_engineering"]`
@@ -127,13 +134,28 @@ Detect comparison or multi-program questions:
 
 **AI Engineering vs AI Product Management vs AI Consulting & Integration vs Cloud Engineering vs Data Engineering**:
 - "PyTorch and MLOps" → `ai_engineering`
+- "Deep learning, CNNs, RNNs, model training" → `ai_engineering`
+- "Model deployment, model serving, AI infrastructure" → `ai_engineering`
+- "LangChain, RAG systems, AI agents" → `ai_engineering` (if focused on building AI systems)
 - "Jira and PRD" → `ai_product_management`
 - "API integration and n8n" → `ai_consulting_integration`
+- "Workflow automation, business consulting, EU AI Act" → `ai_consulting_integration`
+- "AI consulting, client presentations, compliance assessments" → `ai_consulting_integration`
 - "Terraform and AWS" → `cloud_engineering`
 - "Airflow and dbt" → `data_engineering`
 - "AI bootcamp" alone → Consider AI-related programs, use context to disambiguate
+  - If query mentions "engineering", "building models", "deployment" → `ai_engineering`
+  - If query mentions "consulting", "workflow", "automation", "n8n" → `ai_consulting_integration`
+  - If query mentions "product", "PRD", "roadmap" → `ai_product_management`
 - "Cloud bootcamp" alone → Consider Cloud Engineering and DevOps, use context to disambiguate
 - "Data bootcamp" alone → Consider Data Analytics, Data Science, and Data Engineering, use context to disambiguate
+
+**CRITICAL: AI Engineering vs AI Consulting & Integration Disambiguation**:
+- **AI Engineering** focuses on: building AI models, deep learning, MLOps, model deployment, technical AI development
+- **AI Consulting & Integration** focuses on: consulting services, workflow automation, API integration, business transformation, compliance
+- If query explicitly says "AI Engineering" or "AI Engineering course" → `ai_engineering` ONLY
+- If query explicitly says "AI Consulting" or "AI Consulting & Integration" → `ai_consulting_integration` ONLY
+- NEVER mix these two programs unless explicitly comparing them
 
 **Bootcamp vs 1-Year Program**:
 - "bootcamp" keyword → Exclude `data_science_ai_1_year`
