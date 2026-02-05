@@ -57,6 +57,8 @@ Look for direct program names or clear synonyms:
 - "Does the Data Analytics bootcamp include React?" → `["data_analytics"]` ONLY (not `["data_analytics", "web_development"]`)
 - "What does the Web Development bootcamp teach?" → `["web_development"]` ONLY (even if other technologies are mentioned)
 
+**Explicit program name wins over topic keywords**: When the user names a specific program (e.g. "in the Data Science bootcamp", "in data science and machine learning", "in AI Engineering"), detect ONLY that program. Do NOT add another program just because the question topic (e.g. deployment, MLOps, a technology) also appears in another program's indicators. Answer the question from the curriculum of the program the user asked about.
+
 ### 2. Technology-Based Detection
 **ONLY use this when NO program is explicitly mentioned in the query.**
 Infer programs from specific technologies mentioned:
@@ -149,6 +151,10 @@ Detect comparison or multi-program questions:
   - If query mentions "product", "PRD", "roadmap" → `ai_product_management`
 - "Cloud bootcamp" alone → Consider Cloud Engineering and DevOps, use context to disambiguate
 - "Data bootcamp" alone → Consider Data Analytics, Data Science, and Data Engineering, use context to disambiguate
+
+**CRITICAL: Explicit program name overrides topic-based detection**:
+- If the query explicitly names one program (e.g. "data science and machine learning", "the Data Science bootcamp", "AI Engineering"), return ONLY that program's ID. Do not add a second program because the topic (e.g. deployment, MLOps, CI/CD, a framework) is also associated with another program in the indicators above. The user is asking about the curriculum of the program they named.
+- "Is there [topic X] in [Program A]?" → `["program_a"]` ONLY. Retrieve from Program A's document; do not add Program B even if topic X appears in Program B's indicators.
 
 **CRITICAL: AI Engineering vs AI Consulting & Integration Disambiguation**:
 - **AI Engineering** focuses on: building AI models, deep learning, MLOps, model deployment, technical AI development
@@ -266,6 +272,21 @@ Response:
   "confidence": 1.0,
   "detection_method": "explicit",
   "reasoning": "Program name 'Data Analytics' explicitly mentioned. Even though React is mentioned (which is typically associated with Web Development), ONLY detect Data Analytics because the program is explicitly stated. Do NOT add web_development."
+}
+```
+
+**Example 1c: Explicit program + topic that could match another program (single program only)**
+```
+Query: "Does the Web Development bootcamp cover design?"
+Conversation: []
+
+Response:
+{
+  "detected_programs": ["web_development"],
+  "namespace_filter": {"program_id": {"$in": ["web_development"]}},
+  "confidence": 1.0,
+  "detection_method": "explicit",
+  "reasoning": "User explicitly named Web Development. Detect ONLY web_development. Do NOT add ux_ui just because 'design' is associated with UX/UI. Answer from the curriculum of the program the user asked about."
 }
 ```
 
