@@ -15,6 +15,11 @@ from src.nodes.query_nodes import (
     program_detection_node,
 )
 
+# ---------------- Parallel Query Nodes ----------------
+from src.nodes.parallel_query_nodes import (
+    parallel_query_processing_node,
+)
+
 # ---------------- Retrieval Nodes ----------------
 from src.nodes.retrieval_nodes import (
     hybrid_retrieval_node,
@@ -68,6 +73,7 @@ def build_workflow() -> StateGraph:
     # Add all nodes
     workflow.add_node("query_enhancement", query_enhancement_node)
     workflow.add_node("program_detection", program_detection_node)
+    workflow.add_node("parallel_query_processing", parallel_query_processing_node)
     workflow.add_node("hybrid_retrieval", hybrid_retrieval_node)
     workflow.add_node("relevance_assessment", relevance_assessment_node)
     workflow.add_node("document_filtering", document_filtering_node)
