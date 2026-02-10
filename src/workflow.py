@@ -86,12 +86,16 @@ def build_workflow() -> StateGraph:
     workflow.add_node("generate_negative_coverage", generate_negative_coverage_node)
     workflow.add_node("finalize_response", finalize_response_node)
 
-    # Set entry point
-    workflow.set_entry_point("query_enhancement")
+    # Set entry point - use parallel query processing instead of sequential
+    workflow.set_entry_point("parallel_query_processing")
 
     # Add edges
-    workflow.add_edge("query_enhancement", "program_detection")
-    workflow.add_edge("program_detection", "hybrid_retrieval")
+    # OLD: Sequential execution (query_enhancement → program_detection → hybrid_retrieval)
+    # workflow.add_edge("query_enhancement", "program_detection")
+    # workflow.add_edge("program_detection", "hybrid_retrieval")
+
+    # NEW: Parallel execution (both nodes run in parallel within parallel_query_processing)
+    workflow.add_edge("parallel_query_processing", "hybrid_retrieval")
     workflow.add_edge("hybrid_retrieval", "document_filtering")
     workflow.add_edge("document_filtering", "relevance_assessment")
 
