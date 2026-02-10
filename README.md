@@ -72,19 +72,36 @@ knowledge_base/
 
 ```
 src/
-└── app_rag_v2.py                     # RAG v2 Pipeline (PRODUCTION)
+├── app.py                            # Flask app initialization & main entry point
+├── app_rag_v2.py                     # Compatibility shim (re-exports modular components)
+├── config.py                         # Environment variables & configuration loading
+├── state.py                          # RAGState TypedDict for workflow state management
+├── utils.py                          # Utility functions (markdown, OpenAI calls, formatting)
+├── routes.py                         # LangGraph routing functions for conditional edges
+├── workflow.py                       # RAG workflow builder (LangGraph StateGraph)
+├── slack_helpers.py                  # Slack event deduplication & conversation history
+├── slack_integration.py              # Slack event handlers (mentions, DMs, MPIMs)
+└── nodes/                            # LangGraph node modules (RAG pipeline stages)
+    ├── __init__.py                   # Nodes package initialization
+    ├── query_nodes.py                # Query enhancement & program detection nodes
+    ├── retrieval_nodes.py            # Hybrid retrieval (keyword + semantic search)
+    ├── assessment_nodes.py           # Relevance assessment & document filtering
+    ├── verification_nodes.py         # Coverage & faithfulness verification
+    ├── generation_nodes.py           # Response generation (positive/negative coverage)
+    └── fallback_nodes.py             # Iterative refinement, fun fallbacks, finalization
 
 Procfile                              # Heroku deployment configuration
-requirements.txt                      # Python dependencies  
+requirements.txt                      # Python dependencies
 runtime.txt                          # Python version specification
 ```
 
-**RAG v2 Architecture**: Advanced 14-node workflow with:
-- **State Management** - Comprehensive state tracking across nodes
-- **Conditional Routing** - AI-driven decision points for optimal responses
+**RAG v2 Architecture**: Advanced 14-node workflow with modular organization:
+- **State Management** (`state.py`) - Comprehensive state tracking across nodes
+- **Conditional Routing** (`routes.py`) - AI-driven decision points for optimal responses
 - **Error Recovery** - Graceful handling of API failures with retry logic
 - **Memory Integration** - Automatic conversation context management
 - **Parallel Processing** - Efficient AI node execution
+- **Modular Design** - Clean separation of concerns with domain-specific modules
 
 ### 3. 🧪 Development & Testing Tools
 
@@ -187,7 +204,17 @@ pip install -r requirements.txt
 
 ### 3. Run Application
 ```bash
-python src/app_rag_v2.py
+# Option 1: Run directly using Python module
+python -m src.app
+
+# Option 2: Run the app.py file directly
+python src/app.py
+
+# Option 3: Use Flask's development server
+FLASK_APP=src.app.py flask run
+
+# The application will start on http://localhost:3000 (default)
+# Set PORT environment variable to use a different port
 ```
 
 ### 4. Test with Manual Questions
@@ -289,15 +316,37 @@ All AI behavior controlled via config files:
 ## 🛠️ Development
 
 ### Adding New AI Nodes
-1. Create new node function in `app_rag_v2.py`
-2. Add to workflow with `workflow.add_node()`
-3. Define routing with `workflow.add_conditional_edges()`
-4. Test with `rag_v2_test.py`
+1. Create new node function in appropriate module under `src/nodes/`:
+   - `query_nodes.py` - Query enhancement, program detection
+   - `retrieval_nodes.py` - Retrieval operations
+   - `assessment_nodes.py` - Relevance assessment, document filtering
+   - `verification_nodes.py` - Coverage verification, faithfulness checks
+   - `generation_nodes.py` - Response generation
+   - `fallback_nodes.py` - Refinement, fallbacks, finalization
+2. Add node to workflow in `src/workflow.py` with `workflow.add_node()`
+3. Define routing logic in `src/routes.py` with `workflow.add_conditional_edges()`
+4. Test with `tests/rag_v2_test.py`
 
 ### Updating AI Behavior
 1. Edit relevant config file in `assistant_config/`
 2. Test locally with manual questions
 3. Deploy via Heroku restart
+
+### Module Import Examples
+```python
+# Import core components
+from src.config import OPENAI_API_KEY, MASTER_PROMPT
+from src.state import RAGState
+from src.workflow import rag_workflow
+from src.app import flask_app
+
+# Import specific nodes
+from src.nodes.query_nodes import query_enhancement_node
+from src.nodes.generation_nodes import generate_response_node
+
+# Import routing functions
+from src.routes import route_after_coverage_verification
+```
 
 ### LangGraph State Management
 ```python

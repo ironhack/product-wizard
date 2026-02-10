@@ -17,17 +17,24 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List
 
-# Ensure src/ is on the path
+# Load .env file if it exists
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed
+
+# Ensure workspace root is on the path (not src/, because modules use "src.*" imports)
 WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
-SRC_PATH = WORKSPACE_ROOT / "src"
-if str(SRC_PATH) not in sys.path:
-    sys.path.append(str(SRC_PATH))
+if str(WORKSPACE_ROOT) not in sys.path:
+    sys.path.append(str(WORKSPACE_ROOT))
 
 # Set mock Slack credentials to avoid auth errors on import
 os.environ.setdefault("SLACK_BOT_TOKEN", "xoxb-test-token-for-testing")
 os.environ.setdefault("SLACK_SIGNING_SECRET", "test-signing-secret-for-testing")
 
-from app_rag_v2 import rag_workflow, call_openai_json  # noqa: E402
+from src.workflow import rag_workflow  # noqa: E402
+from src.utils import call_openai_json  # noqa: E402
 from langchain_core.messages import HumanMessage, AIMessage  # noqa: E402
 
 DEFAULT_FIXTURE_PATH = WORKSPACE_ROOT / "tests" / "fixtures" / "rag_judge_fixtures.json"

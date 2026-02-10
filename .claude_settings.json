@@ -1,0 +1,39 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(./**)",
+      "Write(./**)",
+      "Edit(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "Read(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/003-split-monolithic-app-rag-v2-py-2227-lines-into-dom/**)",
+      "Write(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/003-split-monolithic-app-rag-v2-py-2227-lines-into-dom/**)",
+      "Edit(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/003-split-monolithic-app-rag-v2-py-2227-lines-into-dom/**)",
+      "Glob(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/003-split-monolithic-app-rag-v2-py-2227-lines-into-dom/**)",
+      "Grep(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/003-split-monolithic-app-rag-v2-py-2227-lines-into-dom/**)",
+      "Read(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/003-split-monolithic-app-rag-v2-py-2227-lines-into-dom/.auto-claude/specs/003-split-monolithic-app-rag-v2-py-2227-lines-into-dom/**)",
+      "Write(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/003-split-monolithic-app-rag-v2-py-2227-lines-into-dom/.auto-claude/specs/003-split-monolithic-app-rag-v2-py-2227-lines-into-dom/**)",
+      "Edit(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/003-split-monolithic-app-rag-v2-py-2227-lines-into-dom/.auto-claude/specs/003-split-monolithic-app-rag-v2-py-2227-lines-into-dom/**)",
+      "Read(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/**)",
+      "Write(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/**)",
+      "Edit(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/**)",
+      "Glob(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/**)",
+      "Grep(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/**)",
+      "Bash(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "mcp__context7__resolve-library-id(*)",
+      "mcp__context7__get-library-docs(*)",
+      "mcp__graphiti-memory__search_nodes(*)",
+      "mcp__graphiti-memory__search_facts(*)",
+      "mcp__graphiti-memory__add_episode(*)",
+      "mcp__graphiti-memory__get_episodes(*)",
+      "mcp__graphiti-memory__get_entity_edge(*)"
+    ]
+  }
+}
