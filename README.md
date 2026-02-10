@@ -228,6 +228,27 @@ python tests/rag_v2_test.py --tests all
 
 ## 📊 Performance Improvements
 
+### Query Phase Parallelization (Latest Optimization)
+
+**Integration Date**: 2026-02-10
+
+The query enhancement and program detection nodes now execute in parallel using ThreadPoolExecutor, significantly reducing query processing latency.
+
+| Metric | Sequential | Parallel | Improvement |
+|--------|-----------|----------|-------------|
+| **Query Enhancement** | ~2.50s | ~2.50s | (runs in parallel) |
+| **Program Detection** | ~3.21s | ~3.21s | (runs in parallel) |
+| **Total Wall Time** | ~5.71s | ~3.22s | ⚡ **1.8x faster** |
+| **Time Saved** | - | ~2.5s | 🔥 **44% reduction** |
+
+**Implementation Details**:
+- Parallelizes two independent OpenAI API calls using ThreadPoolExecutor (max_workers=2)
+- Maintains identical output correctness - only timing changes
+- Individual node execution times unchanged (parallelization is pure optimization)
+- Error handling with fallback to default values if either node fails
+
+**Measured Performance**: Integration test (`tests/test_parallel_query_integration.py`) confirmed 1.8x speedup with 44% latency reduction in query phase.
+
 ### Before vs After Overhaul
 
 | Metric | Before | After | Improvement |

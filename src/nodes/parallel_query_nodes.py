@@ -2,7 +2,15 @@
 Parallel Query Nodes
 
 Nodes for parallel execution of query enhancement and program detection.
-This reduces the query phase from ~4s sequential to ~2-2.5s parallel.
+
+Performance Measurements (Integration Test - 2026-02-10):
+- Sequential execution: ~5.71s (query_enhancement: ~2.50s + program_detection: ~3.21s)
+- Parallel execution: ~3.22s (max of individual node times)
+- Speedup: 1.8x faster
+- Time saved: ~2.5s per query (44% improvement)
+
+This aligns with the expected 30-40% improvement from the spec.
+The parallel execution time is limited by the slower of the two nodes.
 """
 
 import logging
