@@ -86,13 +86,13 @@ def build_workflow() -> StateGraph:
     # Add edges
     workflow.add_edge("query_enhancement", "program_detection")
     workflow.add_edge("program_detection", "hybrid_retrieval")
-    workflow.add_edge("hybrid_retrieval", "relevance_assessment")
-    workflow.add_edge("relevance_assessment", "document_filtering")
+    workflow.add_edge("hybrid_retrieval", "document_filtering")
+    workflow.add_edge("document_filtering", "relevance_assessment")
 
-    # Conditional routing after document filtering (re-fetch if not enough docs)
+    # Conditional routing after relevance assessment (re-fetch if not enough docs)
     workflow.add_conditional_edges(
-        "document_filtering",
-        route_after_document_filtering,
+        "relevance_assessment",
+        route_after_document_filtering,  # Reuse the same routing logic
         {
             "hybrid_retrieval": "hybrid_retrieval",
             "coverage_classification": "coverage_classification"

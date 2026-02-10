@@ -23,20 +23,23 @@ logger = logging.getLogger(__name__)
 
 def relevance_assessment_node(state: RAGState) -> RAGState:
     """
-    AI-powered relevance scoring for each retrieved document.
+    AI-powered relevance scoring for pre-filtered documents.
     - Score 0-1 for each chunk
     - Filter out low-relevance docs
     - Detect cross-contamination
+    - Now runs AFTER document_filtering to save API costs
     """
     logger.info("=== Relevance Assessment Node ===")
     send_slack_update(state, "Assessing document relevance")
 
-    retrieved_docs = state.get("retrieved_docs", [])
+    # Use filtered_docs from document_filtering (cheaper: only assess relevant program docs)
+    docs_to_assess = state.get("filtered_docs", []) or state.get("retrieved_docs", [])
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
     detected_programs = state.get("detected_programs", [])
     query_intent = state.get("query_intent", "general_info")
+    conversation_history = state.get("conversation_history", [])
 
-    if not retrieved_docs:
+    if not docs_to_assess:
         logger.warning("No documents to assess")
         return {
             **state,
@@ -44,6 +47,20 @@ def relevance_assessment_node(state: RAGState) -> RAGState:
             "relevance_scores": [],
             "rejection_reasons": ["No documents retrieved"]
         }
+
+    # Format conversation context for relevance assessment
+    conv_context = ""
+    if conversation_history:
+        # Get last 2 turns for context
+        recent_history = conversation_history[-4:] if len(conversation_history) > 4 else conversation_history
+        conv_lines = []
+        for msg in recent_history:
+            role = msg.type if hasattr(msg, 'type') else 'unknown'
+            content = msg.content if hasattr(msg, 'content') else str(msg)
+            if content and len(content) < 500:  # Only include short context
+                conv_lines.append(f"{role}: {content}")
+        if conv_lines:
+            conv_context = f"\nConversation Context:\n" + "\n".join(conv_lines)
 
     # Assess relevance for each chunk in parallel
     def assess_single_doc(idx_doc_pair):
@@ -55,7 +72,7 @@ def relevance_assessment_node(state: RAGState) -> RAGState:
         user_prompt = f"""
 Query: "{enhanced_query}"
 Query Intent: {query_intent}
-Detected Programs: {detected_programs}
+Detected Programs: {detected_programs}{conv_context}
 
 Document Chunk {idx+1}:
 Source: {doc_source}
@@ -74,7 +91,7 @@ Assess this chunk's relevance to the query.
 
             # For comparison and certification queries, use lower threshold and be more permissive
             # Comparison queries need chunks from multiple programs
-            # Certification queries need chunks from universal documents (Certifications doc) which may score lower
+            # Certification queries need chunks from universal documents (Certifications doc, Portfolio Overview) which may score lower
             if query_intent == "comparison":
                 threshold = 0.2
                 # For comparison queries, override should_include if score is high enough
@@ -83,9 +100,18 @@ Assess this chunk's relevance to the query.
                     should_include = True
             elif query_intent == "certification":
                 threshold = 0.2
-                # For certification queries, be more permissive with universal documents
-                # Certification chunks from Certifications doc are highly relevant even if score is moderate
-                if relevance_score >= 0.4:
+                # BOOST: For certification queries, automatically include universal/overview documents
+                # These contain the certification information even if AI gives them low scores
+                doc_source_lower = doc_source.lower()
+                is_universal_or_overview = any(univ in doc_source_lower for univ in [
+                    "certifications_2025_07",
+                    "ironhack_portfolio_overview",
+                    "course_design_overview"
+                ])
+                if is_universal_or_overview:
+                    relevance_score = max(relevance_score, 0.8)  # Boost to high relevance
+                    should_include = True
+                elif relevance_score >= 0.4:
                     should_include = True
             else:
                 threshold = 0.3
@@ -117,24 +143,25 @@ Assess this chunk's relevance to the query.
     relevance_scores = []
     rejection_reasons = []
 
-    # For comparison and certification queries, assess all retrieved docs
+    # For comparison and certification queries, assess all filtered docs
     # Comparison queries need chunks from all programs
     # Certification queries need chunks from universal documents which may be lower in retrieval order
-    max_docs_to_assess = len(retrieved_docs) if query_intent in ["comparison", "certification"] else 15
-    docs_to_assess = list(enumerate(retrieved_docs[:max_docs_to_assess]))
+    # After filtering, we have fewer docs, so we can assess more (or all) of them
+    max_docs_to_assess = len(docs_to_assess) if query_intent in ["comparison", "certification"] else len(docs_to_assess)
+    docs_to_assess_enumerated = list(enumerate(docs_to_assess[:max_docs_to_assess]))
 
     # Use ThreadPoolExecutor with max_workers (OpenAI API can handle concurrent requests)
     # Increased to 8 concurrent requests for better performance (OpenAI allows higher concurrency)
-    max_workers = min(8, len(docs_to_assess))
+    max_workers = min(8, len(docs_to_assess_enumerated))
 
-    if len(docs_to_assess) > 1:
+    if len(docs_to_assess_enumerated) > 1:
         query_type_note = "comparison/certification queries" if query_intent in ["comparison", "certification"] else "standard queries"
-        logger.info(f"Parallelizing relevance assessment: {len(docs_to_assess)} docs with {max_workers} workers (assessing all docs for {query_type_note})")
+        logger.info(f"Parallelizing relevance assessment: {len(docs_to_assess_enumerated)} docs with {max_workers} workers (assessing all docs for {query_type_note})")
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit all assessment tasks
         future_to_idx = {executor.submit(assess_single_doc, idx_doc): idx_doc[0]
-                        for idx_doc in docs_to_assess}
+                        for idx_doc in docs_to_assess_enumerated}
 
         # Collect results as they complete
         results = []
@@ -178,9 +205,9 @@ Assess this chunk's relevance to the query.
                     logger.warning(f"Red flags for doc {idx+1}: {red_flags}")
 
     # If no docs passed assessment, include top 3 docs anyway as fallback
-    if not assessed_docs and retrieved_docs:
+    if not assessed_docs and docs_to_assess:
         logger.warning("No docs passed relevance assessment, using fallback strategy")
-        assessed_docs = retrieved_docs[:3]
+        assessed_docs = docs_to_assess[:3]
         relevance_scores = [0.6] * len(assessed_docs)  # Give them medium scores
 
     avg_relevance = sum(relevance_scores) / len(relevance_scores) if relevance_scores else 0.0
@@ -198,11 +225,13 @@ def document_filtering_node(state: RAGState) -> RAGState:
     """
     Simple document filtering: keep only docs from detected program + universal docs.
     If not enough docs after filtering, signal for re-fetch with higher limits.
+    Now runs BEFORE relevance assessment to save API costs.
     """
     logger.info("=== Document Filtering Node ===")
     send_slack_update(state, "Filtering best matches")
 
-    filtered_docs = state.get("filtered_docs", [])
+    # Use retrieved_docs if running before relevance assessment, otherwise use filtered_docs
+    docs_to_filter = state.get("retrieved_docs", []) or state.get("filtered_docs", [])
     detected_programs = state.get("detected_programs", [])
     query_intent = state.get("query_intent", "general_info")
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
@@ -211,7 +240,7 @@ def document_filtering_node(state: RAGState) -> RAGState:
     metadata = state.get("metadata", {}).copy()
     metadata["needs_refetch"] = False
 
-    if not filtered_docs:
+    if not docs_to_filter:
         return {**state, "metadata": metadata}
 
     # Universal documents that apply to all programs
@@ -238,7 +267,7 @@ def document_filtering_node(state: RAGState) -> RAGState:
     source_filtered_docs = []
     program_doc_count = 0  # Track program-specific docs separately
 
-    for doc in filtered_docs:
+    for doc in docs_to_filter:
         source = doc.get("source", "").lower()
 
         # Keep universal documents (but don't count toward program docs)
@@ -259,7 +288,7 @@ def document_filtering_node(state: RAGState) -> RAGState:
         else:
             logger.debug(f"Filtered out: {doc.get('source', 'unknown')}")
 
-    logger.info(f"Source filtering: {len(filtered_docs)} → {len(source_filtered_docs)} docs ({program_doc_count} program-specific)")
+    logger.info(f"Source filtering: {len(docs_to_filter)} → {len(source_filtered_docs)} docs ({program_doc_count} program-specific)")
 
     # If we have very few PROGRAM-SPECIFIC docs, signal for re-fetch (universal docs don't count)
     needs_refetch = program_doc_count < 2 and valid_programs
@@ -267,7 +296,7 @@ def document_filtering_node(state: RAGState) -> RAGState:
     if needs_refetch:
         # Check if we already did a re-fetch (to avoid infinite loop)
         refetch_count = state.get("metadata", {}).get("refetch_count", 0)
-        if refetch_count < 2:
+        if refetch_count < 1:  # Only 1 refetch allowed: 30 → 50
             logger.warning(f"Only {program_doc_count} program-specific docs after filtering, signaling re-fetch (attempt {refetch_count + 1})")
             return {
                 **state,
@@ -279,14 +308,15 @@ def document_filtering_node(state: RAGState) -> RAGState:
                 }
             }
         else:
-            logger.warning(f"Max re-fetch attempts reached, proceeding with {len(source_filtered_docs)} docs")
+            logger.warning(f"Max re-fetch (30 → 50) completed, proceeding with {len(source_filtered_docs)} docs")
 
     filtered_docs = source_filtered_docs
 
     # STEP 2: AI-based fine-grained filtering (only if we have enough docs after source filtering)
     # For comparison and certification queries, use higher threshold and ensure proper representation
     # Optimized: Only run AI filtering if we have more than 5 docs (reduces unnecessary calls)
-    if len(filtered_docs) > 5:
+    # SKIP AI filtering for certification queries - they need all available chunks and relevance assessment handles it better
+    if len(filtered_docs) > 5 and query_intent != "certification":
         # For comparison queries, process more docs and ensure balanced representation
         # For certification queries, process more docs to ensure we get certification chunks
         max_docs_for_filtering = 20 if query_intent == "comparison" else (15 if query_intent == "certification" else 12)

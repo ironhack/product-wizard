@@ -37,6 +37,8 @@ def handle_mention(event, say):
 
     # Remove bot mention from text
     query = re.sub(r'<@[A-Z0-9]+>', '', text).strip()
+    # Remove bot summon phrases (case-insensitive)
+    query = re.sub(r'^product\s+wizard\s*', '', query, flags=re.IGNORECASE).strip()
 
     logger.info(f"Processing mention from {user_id} in {channel} ({channel_type}): {query}")
 
@@ -125,6 +127,8 @@ def handle_message(event, say):
         return
 
     query = event.get("text", "")
+    # Remove bot summon phrases (case-insensitive)
+    query = re.sub(r'^product\s+wizard\s*', '', query, flags=re.IGNORECASE).strip()
     channel = event.get("channel", "")
     event_ts = event.get("ts") or event.get("event_ts", "")
     thread_ts = event.get("thread_ts", event_ts)

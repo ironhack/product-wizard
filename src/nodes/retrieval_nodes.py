@@ -73,21 +73,20 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
     retrieval_query = f"{enhanced_query} | KEYWORDS: {keywords}".strip()
 
     # Determine top_k based on query type and iteration
-    top_k = 10
+    # Strategy: 30 → 50 on refetch (2 attempts max, efficient API usage)
+    top_k = 30
     if query_intent == "comparison":
-        top_k = 25  # Comparison queries need more docs to cover all programs being compared
+        top_k = 50  # Comparison queries need max docs upfront
     elif query_intent == "certification":
-        top_k = 15  # Certification queries need both universal doc + program doc
+        top_k = 30  # Certification queries need universal doc + program doc
     if "EXPAND_CHUNKS" in refinement_strategy:
-        top_k = 15 if iteration_count == 1 else 20
+        top_k = 40 if iteration_count == 1 else 50
 
-    # Double limits if this is a re-fetch after filtering removed too many docs
+    # Jump to max if this is a re-fetch after filtering removed too many docs
     refetch_count = state.get("metadata", {}).get("refetch_count", 0)
     if refetch_count > 0:
-        top_k = top_k * 2 * refetch_count  # Double for each refetch attempt
-        # Cap at OpenAI's max_num_results limit of 50
-        top_k = min(top_k, 50)
-        logger.info(f"Re-fetch attempt {refetch_count}: doubling top_k to {top_k}")
+        top_k = 50  # Max out on first refetch (30 → 50, or 40 → 50)
+        logger.info(f"Re-fetch attempt {refetch_count}: using top_k={top_k}")
 
     logger.info(f"Retrieval Query: {retrieval_query[:100]}...")
     logger.info(f"Top-K: {top_k} | Namespace Filter: {namespace_filter}")
