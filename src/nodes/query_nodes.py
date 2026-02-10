@@ -6,6 +6,7 @@ Nodes for query enhancement and program detection in the RAG workflow.
 
 import logging
 import json
+import time
 
 from src.state import RAGState
 from src.config import (
@@ -32,6 +33,8 @@ def query_enhancement_node(state: RAGState) -> RAGState:
     """
     logger.info("=== Query Enhancement Node ===")
     send_slack_update(state, "Analyzing your question")
+
+    start_time = time.perf_counter()
 
     query = state.get("query", "")
     conversation_history = state.get("conversation_history", [])
@@ -65,6 +68,9 @@ Analyze and enhance this query following the guidelines.
 
     logger.info(f"Enhanced: '{enhanced_query}' | Intent: {query_intent} | Ambiguity: {ambiguity_score}")
 
+    duration = time.perf_counter() - start_time
+    logger.info(f"query_enhancement_node completed in {duration:.2f}s")
+
     return {
         **state,
         "enhanced_query": enhanced_query,
@@ -82,6 +88,8 @@ def program_detection_node(state: RAGState) -> RAGState:
     """
     logger.info("=== Program Detection Node ===")
     send_slack_update(state, "Detecting program focus")
+
+    start_time = time.perf_counter()
 
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
     conversation_history = state.get("conversation_history", [])
@@ -111,6 +119,9 @@ Detect which programs this query is about and build appropriate namespace filter
 
     logger.info(f"Detected Programs: {detected_programs} | Confidence: {confidence}")
     logger.info(f"Namespace Filter: {namespace_filter}")
+
+    duration = time.perf_counter() - start_time
+    logger.info(f"program_detection_node completed in {duration:.2f}s")
 
     return {
         **state,
