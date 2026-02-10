@@ -84,6 +84,7 @@ src/
 └── nodes/                            # LangGraph node modules (RAG pipeline stages)
     ├── __init__.py                   # Nodes package initialization
     ├── query_nodes.py                # Query enhancement & program detection nodes
+    ├── parallel_query_nodes.py       # Parallel query processing (query_enhancement + program_detection)
     ├── retrieval_nodes.py            # Hybrid retrieval (keyword + semantic search)
     ├── assessment_nodes.py           # Relevance assessment & document filtering
     ├── verification_nodes.py         # Coverage & faithfulness verification
@@ -248,6 +249,12 @@ The query enhancement and program detection nodes now execute in parallel using 
 - Error handling with fallback to default values if either node fails
 
 **Measured Performance**: Integration test (`tests/test_parallel_query_integration.py`) confirmed 1.8x speedup with 44% latency reduction in query phase.
+
+**Monitoring & Rollback**:
+- **Log Verification**: Check logs for "Parallelizing query processing: query_enhancement and program_detection with 2 workers" to confirm parallel execution
+- **Timing Metrics**: Logs show individual node times vs total wall time for performance validation
+- **Rollback Plan**: If needed, comment out `parallel_query_processing` in `workflow.py` and restore sequential edges (documented in code comments)
+- **Output Correctness**: Verified 100% match between parallel and sequential execution for all critical outputs
 
 ### Before vs After Overhaul
 
