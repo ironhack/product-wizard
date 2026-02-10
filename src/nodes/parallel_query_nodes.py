@@ -66,7 +66,10 @@ def parallel_query_processing_node(state: RAGState) -> RAGState:
     results = {}
     errors = []
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
+    max_workers = 2
+    logger.info(f"Parallelizing query processing: query_enhancement and program_detection with {max_workers} workers")
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
         # Submit both tasks
         future_to_node = {
             executor.submit(run_query_enhancement): "query_enhancement",
