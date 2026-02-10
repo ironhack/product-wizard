@@ -10,7 +10,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from src.state import RAGState
-from src.query_nodes import query_enhancement_node, program_detection_node
+from src.nodes.query_nodes import query_enhancement_node, program_detection_node
 from src.slack_helpers import send_slack_update
 
 
