@@ -91,11 +91,12 @@ def handle_mention(event, say):
             try:
                 from slack_sdk import WebClient
                 client = WebClient(token=SLACK_BOT_TOKEN)
+                # Note: Don't include thread_ts when updating a reply in a thread
+                # The ts parameter is sufficient to identify the message to update
                 client.chat_update(
                     channel=channel,
                     ts=_current_progress_message_ts,
-                    text=response,
-                    thread_ts=thread_ts
+                    text=response
                 )
             except Exception as e:
                 logger.warning(f"Failed to update progress message with final answer: {e}")

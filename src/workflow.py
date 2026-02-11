@@ -53,7 +53,6 @@ from src.nodes.fallback_nodes import (
 
 # ---------------- Routing Functions ----------------
 from src.routes import (
-    route_after_query_enhancement,
     route_after_document_filtering,
     route_after_coverage_classification,
     route_after_coverage_verification,
@@ -90,11 +89,6 @@ def build_workflow() -> StateGraph:
     workflow.set_entry_point("parallel_query_processing")
 
     # Add edges
-    # OLD: Sequential execution (query_enhancement → program_detection → hybrid_retrieval)
-    # workflow.add_edge("query_enhancement", "program_detection")
-    # workflow.add_edge("program_detection", "hybrid_retrieval")
-
-    # NEW: Parallel execution (both nodes run in parallel within parallel_query_processing)
     workflow.add_edge("parallel_query_processing", "hybrid_retrieval")
     workflow.add_edge("hybrid_retrieval", "document_filtering")
     workflow.add_edge("document_filtering", "relevance_assessment")

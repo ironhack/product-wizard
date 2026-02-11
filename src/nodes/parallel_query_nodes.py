@@ -19,7 +19,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from src.state import RAGState
 from src.nodes.query_nodes import query_enhancement_node, program_detection_node
-from src.slack_helpers import send_slack_update
 
 
 logger = logging.getLogger(__name__)
@@ -50,7 +49,6 @@ def parallel_query_processing_node(state: RAGState) -> RAGState:
     - Errors are logged and stored in state metadata
     """
     logger.info("=== Parallel Query Processing Node ===")
-    send_slack_update(state, "Analyzing your question")
 
     start_time = time.perf_counter()
 
