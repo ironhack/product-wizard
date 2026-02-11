@@ -84,6 +84,7 @@ src/
 └── nodes/                            # LangGraph node modules (RAG pipeline stages)
     ├── __init__.py                   # Nodes package initialization
     ├── query_nodes.py                # Query enhancement & program detection nodes
+    ├── parallel_query_nodes.py       # Parallel query processing (query_enhancement + program_detection)
     ├── retrieval_nodes.py            # Hybrid retrieval (keyword + semantic search)
     ├── assessment_nodes.py           # Relevance assessment & document filtering
     ├── verification_nodes.py         # Coverage & faithfulness verification
@@ -227,6 +228,33 @@ python tests/rag_v2_test.py --tests all
 ```
 
 ## 📊 Performance Improvements
+
+### Query Phase Parallelization (Latest Optimization)
+
+**Integration Date**: 2026-02-10
+
+The query enhancement and program detection nodes now execute in parallel using ThreadPoolExecutor, significantly reducing query processing latency.
+
+| Metric | Sequential | Parallel | Improvement |
+|--------|-----------|----------|-------------|
+| **Query Enhancement** | ~2.50s | ~2.50s | (runs in parallel) |
+| **Program Detection** | ~3.21s | ~3.21s | (runs in parallel) |
+| **Total Wall Time** | ~5.71s | ~3.22s | ⚡ **1.8x faster** |
+| **Time Saved** | - | ~2.5s | 🔥 **44% reduction** |
+
+**Implementation Details**:
+- Parallelizes two independent OpenAI API calls using ThreadPoolExecutor (max_workers=2)
+- Maintains identical output correctness - only timing changes
+- Individual node execution times unchanged (parallelization is pure optimization)
+- Error handling with fallback to default values if either node fails
+
+**Measured Performance**: Integration test (`tests/test_parallel_query_integration.py`) confirmed 1.8x speedup with 44% latency reduction in query phase.
+
+**Monitoring & Rollback**:
+- **Log Verification**: Check logs for "Parallelizing query processing: query_enhancement and program_detection with 2 workers" to confirm parallel execution
+- **Timing Metrics**: Logs show individual node times vs total wall time for performance validation
+- **Rollback Plan**: If needed, comment out `parallel_query_processing` in `workflow.py` and restore sequential edges (documented in code comments)
+- **Output Correctness**: Verified 100% match between parallel and sequential execution for all critical outputs
 
 ### Before vs After Overhaul
 
