@@ -16,8 +16,8 @@ from src.slack_helpers import (
     get_conversation_history,
     set_slack_say_function,
     clear_slack_say_function,
-    _current_progress_message_ts,
 )
+import src.slack_helpers as slack_helpers
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -87,7 +87,7 @@ def handle_mention(event, say):
         response = result.get("final_response", "I encountered an error processing your question.")
 
         # Update the progress message with the final answer
-        if _current_progress_message_ts:
+        if slack_helpers._current_progress_message_ts:
             try:
                 from slack_sdk import WebClient
                 client = WebClient(token=SLACK_BOT_TOKEN)
@@ -95,7 +95,7 @@ def handle_mention(event, say):
                 # The ts parameter is sufficient to identify the message to update
                 client.chat_update(
                     channel=channel,
-                    ts=_current_progress_message_ts,
+                    ts=slack_helpers._current_progress_message_ts,
                     text=response
                 )
             except Exception as e:
@@ -180,13 +180,13 @@ def handle_message(event, say):
         response = result.get("final_response", "I encountered an error processing your question.")
 
         # Update the progress message with the final answer
-        if _current_progress_message_ts:
+        if slack_helpers._current_progress_message_ts:
             try:
                 from slack_sdk import WebClient
                 client = WebClient(token=SLACK_BOT_TOKEN)
                 client.chat_update(
                     channel=channel,
-                    ts=_current_progress_message_ts,
+                    ts=slack_helpers._current_progress_message_ts,
                     text=response
                 )
             except Exception as e:
