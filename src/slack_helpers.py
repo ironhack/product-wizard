@@ -235,21 +235,39 @@ def send_slack_update(state: RAGState, step_name: str):
                         with _message_lock:
                             _current_progress_message_ts = new_ts
             else:
-                # Send new message and store timestamp
-                response = _current_say_function(
-                    text=progress_text,
-                    thread_ts=state.get("slack_thread_ts"),
-                    channel=state.get("slack_channel")
-                )
-                # Try to extract timestamp from response and update under lock
-                new_ts = None
-                if hasattr(response, 'get') and response.get('ts'):
-                    new_ts = response.get('ts')
-                elif hasattr(response, 'ts'):
-                    new_ts = response.ts
-                if new_ts:
-                    with _message_lock:
-                        _current_progress_message_ts = new_ts
+                # Atomically check and create new message under lock
+                # Use a flag to track if we created the message vs another thread
+                created_by_us = False
+                with _message_lock:
+                    # Double-check: another thread may have created the message while we waited
+                    if _current_progress_message_ts is None:
+                        # Send new message and store timestamp
+                        response = _current_say_function(
+                            text=progress_text,
+                            thread_ts=state.get("slack_thread_ts"),
+                            channel=state.get("slack_channel")
+                        )
+                        # Try to extract timestamp from response
+                        new_ts = None
+                        if hasattr(response, 'get') and response.get('ts'):
+                            new_ts = response.get('ts')
+                        elif hasattr(response, 'ts'):
+                            new_ts = response.ts
+                        if new_ts:
+                            _current_progress_message_ts = new_ts
+                            created_by_us = True
+
+                # If we found a message was created by another thread, update it
+                if not created_by_us:
+                    try:
+                        if slack_web_client:
+                            slack_web_client.chat_update(
+                                channel=state.get("slack_channel"),
+                                ts=_current_progress_message_ts,
+                                text=progress_text
+                            )
+                    except Exception as e:
+                        logger.warning(f"Failed to update message after retry: {e}")
 
     except Exception as e:
         logger.warning(f"Failed to send Slack update: {e}")
