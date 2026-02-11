@@ -18,7 +18,6 @@ from src.utils import (
     format_conversation_history,
     call_openai_json,
 )
-from src.slack_helpers import send_slack_update
 
 
 logger = logging.getLogger(__name__)
@@ -32,7 +31,6 @@ def query_enhancement_node(state: RAGState) -> RAGState:
     - Score ambiguity level
     """
     logger.info("=== Query Enhancement Node ===")
-    send_slack_update(state, "Analyzing your question")
 
     start_time = time.perf_counter()
 
@@ -87,7 +85,6 @@ def program_detection_node(state: RAGState) -> RAGState:
     - Build namespace metadata filter
     """
     logger.info("=== Program Detection Node ===")
-    send_slack_update(state, "Detecting program focus")
 
     start_time = time.perf_counter()
 
