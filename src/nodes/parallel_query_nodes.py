@@ -19,6 +19,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from src.state import RAGState
 from src.nodes.query_nodes import query_enhancement_node, program_detection_node
+from src.slack_helpers import send_slack_update
 
 
 logger = logging.getLogger(__name__)
@@ -179,5 +180,8 @@ def parallel_query_processing_node(state: RAGState) -> RAGState:
         logger.warning(f"Parallel execution completed with errors: {errors}")
         final_state["metadata"] = final_state.get("metadata", {})
         final_state["metadata"]["parallel_errors"] = errors
+
+    # Update Slack progress after parallel execution completes
+    send_slack_update(final_state, "Detecting program focus")
 
     return final_state

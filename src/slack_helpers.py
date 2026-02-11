@@ -5,6 +5,7 @@ Includes conversation history retrieval, event deduplication, and Slack message 
 
 import logging
 import re
+import threading
 from collections import deque
 from typing import Dict, List, Optional
 
@@ -152,21 +153,26 @@ _progress_steps = [
 ]
 _current_step = 0
 
+# Lock for thread-safe access to _current_progress_message_ts and _current_step
+_message_lock = threading.Lock()
+
 
 def set_slack_say_function(say_func):
     """Set the current Slack say function for updates."""
     global _current_say_function, _current_progress_message_ts, _current_step
-    _current_say_function = say_func
-    _current_progress_message_ts = None
-    _current_step = 0
+    with _message_lock:
+        _current_say_function = say_func
+        _current_progress_message_ts = None
+        _current_step = 0
 
 
 def clear_slack_say_function():
     """Clear the current Slack say function."""
     global _current_say_function, _current_progress_message_ts, _current_step
-    _current_say_function = None
-    _current_progress_message_ts = None
-    _current_step = 0
+    with _message_lock:
+        _current_say_function = None
+        _current_progress_message_ts = None
+        _current_step = 0
 
 
 def send_slack_update(state: RAGState, step_name: str):
@@ -175,15 +181,17 @@ def send_slack_update(state: RAGState, step_name: str):
         if _current_say_function and state.get("slack_channel"):
             global _current_step, _current_progress_message_ts
 
-            # Find the step index
-            step_index = next((i for i, step in enumerate(_progress_steps) if step_name in step), _current_step)
-            _current_step = step_index
+            # Find the step index and update _current_step under lock
+            with _message_lock:
+                step_index = next((i for i, step in enumerate(_progress_steps) if step_name in step), _current_step)
+                _current_step = step_index
+                current_progress_message_ts = _current_progress_message_ts
 
-            # Create progress message with numbering
+            # Create progress message with numbering (outside lock - no shared state)
             total_steps = len(_progress_steps)
             progress_text = f"({_current_step + 1}/{total_steps}) {_progress_steps[_current_step]}"
 
-            if _current_progress_message_ts:
+            if current_progress_message_ts:
                 # Update existing message using Slack Web API
                 try:
                     if not slack_web_client:
@@ -194,15 +202,19 @@ def send_slack_update(state: RAGState, step_name: str):
                             thread_ts=state.get("slack_thread_ts"),
                             channel=state.get("slack_channel")
                         )
-                        # Try to extract timestamp from response
+                        # Try to extract timestamp from response and update under lock
+                        new_ts = None
                         if hasattr(response, 'get') and response.get('ts'):
-                            _current_progress_message_ts = response.get('ts')
+                            new_ts = response.get('ts')
                         elif hasattr(response, 'ts'):
-                            _current_progress_message_ts = response.ts
+                            new_ts = response.ts
+                        if new_ts:
+                            with _message_lock:
+                                _current_progress_message_ts = new_ts
                     else:
                         slack_web_client.chat_update(
                             channel=state.get("slack_channel"),
-                            ts=_current_progress_message_ts,
+                            ts=current_progress_message_ts,
                             text=progress_text
                         )
                 except Exception as update_error:
@@ -213,23 +225,49 @@ def send_slack_update(state: RAGState, step_name: str):
                         thread_ts=state.get("slack_thread_ts"),
                         channel=state.get("slack_channel")
                     )
-                    # Try to extract timestamp from response
+                    # Try to extract timestamp from response and update under lock
+                    new_ts = None
                     if hasattr(response, 'get') and response.get('ts'):
-                        _current_progress_message_ts = response.get('ts')
+                        new_ts = response.get('ts')
                     elif hasattr(response, 'ts'):
-                        _current_progress_message_ts = response.ts
+                        new_ts = response.ts
+                    if new_ts:
+                        with _message_lock:
+                            _current_progress_message_ts = new_ts
             else:
-                # Send new message and store timestamp
-                response = _current_say_function(
-                    text=progress_text,
-                    thread_ts=state.get("slack_thread_ts"),
-                    channel=state.get("slack_channel")
-                )
-                # Try to extract timestamp from response
-                if hasattr(response, 'get') and response.get('ts'):
-                    _current_progress_message_ts = response.get('ts')
-                elif hasattr(response, 'ts'):
-                    _current_progress_message_ts = response.ts
+                # Atomically check and create new message under lock
+                # Use a flag to track if we created the message vs another thread
+                created_by_us = False
+                with _message_lock:
+                    # Double-check: another thread may have created the message while we waited
+                    if _current_progress_message_ts is None:
+                        # Send new message and store timestamp
+                        response = _current_say_function(
+                            text=progress_text,
+                            thread_ts=state.get("slack_thread_ts"),
+                            channel=state.get("slack_channel")
+                        )
+                        # Try to extract timestamp from response
+                        new_ts = None
+                        if hasattr(response, 'get') and response.get('ts'):
+                            new_ts = response.get('ts')
+                        elif hasattr(response, 'ts'):
+                            new_ts = response.ts
+                        if new_ts:
+                            _current_progress_message_ts = new_ts
+                            created_by_us = True
+
+                # If we found a message was created by another thread, update it
+                if not created_by_us:
+                    try:
+                        if slack_web_client:
+                            slack_web_client.chat_update(
+                                channel=state.get("slack_channel"),
+                                ts=_current_progress_message_ts,
+                                text=progress_text
+                            )
+                    except Exception as e:
+                        logger.warning(f"Failed to update message after retry: {e}")
 
     except Exception as e:
         logger.warning(f"Failed to send Slack update: {e}")
