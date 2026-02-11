@@ -8,6 +8,7 @@ import logging
 import json
 
 import openai
+import slack_sdk
 
 # ---------------- Logging ----------------
 logger = logging.getLogger(__name__)
@@ -20,6 +21,9 @@ VECTOR_STORE_ID = os.environ.get("OPENAI_VECTOR_STORE_ID", "vs_xxx")
 
 # Initialize OpenAI client
 openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+# Initialize Slack WebClient singleton for thread-safe reuse
+slack_web_client = slack_sdk.WebClient(token=SLACK_BOT_TOKEN) if SLACK_BOT_TOKEN else None
 
 # ---------------- Config Loaders ----------------
 def load_config_file(filename):

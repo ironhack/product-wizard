@@ -11,14 +11,14 @@
       "Edit(./**)",
       "Glob(./**)",
       "Grep(./**)",
-      "Read(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/002-parallelize-independent-openai-api-calls-15-25-lat/**)",
-      "Write(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/002-parallelize-independent-openai-api-calls-15-25-lat/**)",
-      "Edit(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/002-parallelize-independent-openai-api-calls-15-25-lat/**)",
-      "Glob(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/002-parallelize-independent-openai-api-calls-15-25-lat/**)",
-      "Grep(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/002-parallelize-independent-openai-api-calls-15-25-lat/**)",
-      "Read(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/002-parallelize-independent-openai-api-calls-15-25-lat/.auto-claude/specs/002-parallelize-independent-openai-api-calls-15-25-lat/**)",
-      "Write(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/002-parallelize-independent-openai-api-calls-15-25-lat/.auto-claude/specs/002-parallelize-independent-openai-api-calls-15-25-lat/**)",
-      "Edit(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/002-parallelize-independent-openai-api-calls-15-25-lat/.auto-claude/specs/002-parallelize-independent-openai-api-calls-15-25-lat/**)",
+      "Read(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/001-create-singleton-slack-webclient-eliminate-repeate/**)",
+      "Write(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/001-create-singleton-slack-webclient-eliminate-repeate/**)",
+      "Edit(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/001-create-singleton-slack-webclient-eliminate-repeate/**)",
+      "Glob(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/001-create-singleton-slack-webclient-eliminate-repeate/**)",
+      "Grep(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/001-create-singleton-slack-webclient-eliminate-repeate/**)",
+      "Read(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/001-create-singleton-slack-webclient-eliminate-repeate/.auto-claude/specs/001-create-singleton-slack-webclient-eliminate-repeate/**)",
+      "Write(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/001-create-singleton-slack-webclient-eliminate-repeate/.auto-claude/specs/001-create-singleton-slack-webclient-eliminate-repeate/**)",
+      "Edit(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/worktrees/tasks/001-create-singleton-slack-webclient-eliminate-repeate/.auto-claude/specs/001-create-singleton-slack-webclient-eliminate-repeate/**)",
       "Read(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/**)",
       "Write(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/**)",
       "Edit(/Users/ruds/Documents/Ironhack-Edu/product-wizard/.auto-claude/**)",
@@ -28,7 +28,12 @@
       "WebFetch(*)",
       "WebSearch(*)",
       "mcp__context7__resolve-library-id(*)",
-      "mcp__context7__get-library-docs(*)"
+      "mcp__context7__get-library-docs(*)",
+      "mcp__graphiti-memory__search_nodes(*)",
+      "mcp__graphiti-memory__search_facts(*)",
+      "mcp__graphiti-memory__add_episode(*)",
+      "mcp__graphiti-memory__get_episodes(*)",
+      "mcp__graphiti-memory__get_entity_edge(*)"
     ]
   }
 }

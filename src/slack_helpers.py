@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 
-from src.config import SLACK_BOT_TOKEN
+from src.config import SLACK_BOT_TOKEN, slack_web_client
 from src.state import RAGState
 
 # Configure logging
@@ -65,12 +65,12 @@ def get_conversation_history(
     - im:history (for direct messages)
     """
     try:
-        from slack_sdk import WebClient
-
-        client = WebClient(token=SLACK_BOT_TOKEN)
+        if not slack_web_client:
+            logger.warning("Slack web client not available")
+            return []
 
         # Get conversation history from the thread
-        response = client.conversations_replies(
+        response = slack_web_client.conversations_replies(
             channel=channel,
             ts=thread_ts,
             limit=limit
@@ -186,14 +186,25 @@ def send_slack_update(state: RAGState, step_name: str):
             if _current_progress_message_ts:
                 # Update existing message using Slack Web API
                 try:
-                    from slack_sdk import WebClient
-                    client = WebClient(token=SLACK_BOT_TOKEN)
-                    client.chat_update(
-                        channel=state.get("slack_channel"),
-                        ts=_current_progress_message_ts,
-                        text=progress_text,
-                        thread_ts=state.get("slack_thread_ts")
-                    )
+                    if not slack_web_client:
+                        logger.warning("Slack web client not available for update")
+                        # Fallback to sending new message
+                        response = _current_say_function(
+                            text=progress_text,
+                            thread_ts=state.get("slack_thread_ts"),
+                            channel=state.get("slack_channel")
+                        )
+                        # Try to extract timestamp from response
+                        if hasattr(response, 'get') and response.get('ts'):
+                            _current_progress_message_ts = response.get('ts')
+                        elif hasattr(response, 'ts'):
+                            _current_progress_message_ts = response.ts
+                    else:
+                        slack_web_client.chat_update(
+                            channel=state.get("slack_channel"),
+                            ts=_current_progress_message_ts,
+                            text=progress_text
+                        )
                 except Exception as update_error:
                     logger.warning(f"Failed to update message, sending new one: {update_error}")
                     # Fallback to sending new message
