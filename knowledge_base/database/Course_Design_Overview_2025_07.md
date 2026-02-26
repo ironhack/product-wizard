@@ -110,7 +110,7 @@
 
 ## File Naming Convention
 
-Course files are named by product line, location, and last update date (e.g., "AI_Driven_UXUI_bootcamp_2025_12", "Data_Science_and_AI_1_Year_Program_Germany_2025_07").
+Course files are named by product line, location, and last update date (e.g., "AI_Driven_UXUI_bootcamp_2025_12", "Data_Science_&_Machine_Learning_bootcamp_2026_02", "Data_Science_and_AI_1_Year_Program_Germany_2025_07").
 
 ## Support Information
 

@@ -126,9 +126,9 @@ Ironhack offers industry-recognized certifications for all bootcamp graduates an
   - *Industry-recognized certification for Infrastructure as Code practices*
 
 #### Data Engineering
-- **Azure Data Engineer Associate (DP-203)** - [Link](https://learn.microsoft.com/en-us/training/courses/dp-203t00)
-  - *Associate level certification in Data Engineering on Cloud*
-  - *Validates skills in designing and implementing data solutions using Azure services*
+- **Microsoft Certified: Fabric Data Engineer Associate** - [Link](https://learn.microsoft.com/en-us/credentials/certifications/fabric-data-engineer-associate/?practice-assessment-type=certification)
+  - *Associate-level certification for data engineering on Microsoft Fabric*
+  - *Validates skills in designing and implementing data solutions using Microsoft Fabric*
   - *Industry-recognized certification for cloud data engineering professionals*
 - **dbt Fundamentals Certification (by dbt Labs)** - [Link](https://www.getdbt.com/certifications/analytics-engineer-certification-exam?utm_source=chatgpt.com)
   - *Popular in data analytics and ELT-driven engineering teams*

@@ -34,9 +34,9 @@ Data Analytics (DAFT/DAPT)
 - Format: Remote delivery with comprehensive analytics curriculum including advanced ML
 
 Data Science & Machine Learning (MLFT/MLPT)
-- Duration: 360-600 hours + 40-50 hours prework
-- Technologies: Python, R, TensorFlow, scikit-learn, AWS, Docker
-- Capstone: End-to-end ML project with deployment
+- Duration: 400 hours (40 hours prework + 360 hours course)
+- Technologies: Python, SQL, Pandas, NumPy, Tableau, Plotly, Scikit-learn, PyTorch and/or TensorFlow/Keras, MLOps, computer vision, NLP, RAG/LLM (e.g., LangChain, OpenAI APIs)
+- Capstone: End-to-end data science solution (data handling, modeling, and presentation)
 
 AI Engineering (AIFT/AIPT)
 - Duration: 360-600 hours + 40-50 hours prework
