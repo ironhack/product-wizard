@@ -1,6 +1,6 @@
 {
   "ai_engineering": {
-    "aliases": ["ai bootcamp", "ai", "ai eng", "ai engineering", "ai engineer", "ai course"],
+    "aliases": ["ai engineering", "ai engineering bootcamp", "ai engineering course", "ai eng", "ai engineer", "ai bootcamp", "ai course", "ai"],
     "filenames": ["AI_Engineering_bootcamp_2025_07"]
   },
   "data_analytics": {
@@ -36,7 +36,7 @@
     "filenames": ["AI_Product_Management_bootcamp_2025_12"]
   },
   "ai_consulting_integration": {
-    "aliases": ["ai consulting", "ai consulting integration", "ai consulting bootcamp", "ai integration", "ac bootcamp"],
+    "aliases": ["ai consulting", "ai consulting and integration", "ai consulting & integration", "consulting and integration", "ai consulting integration", "ai consulting bootcamp", "ai integration", "ac bootcamp"],
     "filenames": ["AI_Consulting_&_Integration_bootcamp_2025_12"]
   },
   "cloud_engineering": {

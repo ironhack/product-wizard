@@ -52,6 +52,14 @@ If the query does NOT explicitly mention a program name or synonym:
 - Set `namespace_filter` to `null`
 - This allows the system to perform a broad search across all documents
 
+## Disambiguation when multiple programs could match
+
+Some program names share words (e.g. the same word appears in several program titles). In those cases:
+
+- Prefer the **longest explicit phrase** the user actually used. If the query contains a multi-word name that matches one program’s full name or synonym, use that match rather than a shorter or generic term that could apply to several programs.
+- Do **not** match a program only because a single word or short substring appears in the query. Require a match to a full program name or to a synonym from PROGRAM_SYNONYMS.
+- When in doubt between two possible programs, choose the one that corresponds to the **most specific** phrase the user said (the phrase that matches one program’s name or synonym most completely).
+
 ## Examples
 
 **Example 1: Explicit program name**
