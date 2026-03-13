@@ -198,6 +198,13 @@ SLACK_BOT_TOKEN=your_slack_token_here
 SLACK_SIGNING_SECRET=your_signing_secret_here
 ```
 
+**Cohort / Calendar path (optional):** To answer questions like "Who is teaching the May AI PT course?" or "Do we have a DV FT course in November?" from the RMT Bootcamps Tracker sheet, set one of:
+
+- `GOOGLE_SHEETS_CREDENTIALS_JSON` – JSON string of the service account credentials (e.g. from Google Cloud Console).
+- `GOOGLE_APPLICATION_CREDENTIALS` – Path to a JSON file containing the service account credentials.
+
+The spreadsheet must be shared with the service account's `client_email`. You can override the sheet with `COHORT_CALENDAR_SHEET_ID` (default: RMT Bootcamps Tracker). If neither credential is set, cohort questions still run but the assistant will respond that the calendar could not be loaded.
+
 ### 2. Install Dependencies
 ```bash
 pip install -r requirements.txt

@@ -51,8 +51,15 @@ from src.nodes.fallback_nodes import (
     finalize_response_node,
 )
 
+# ---------------- Cohort Calendar Nodes ----------------
+from src.nodes.cohort_calendar_nodes import (
+    cohort_calendar_classification_node,
+    cohort_calendar_response_node,
+)
+
 # ---------------- Routing Functions ----------------
 from src.routes import (
+    route_after_cohort_calendar_classification,
     route_after_document_filtering,
     route_after_coverage_classification,
     route_after_coverage_verification,
@@ -84,12 +91,25 @@ def build_workflow() -> StateGraph:
     workflow.add_node("generate_fun_fallback", generate_fun_fallback_node)
     workflow.add_node("generate_negative_coverage", generate_negative_coverage_node)
     workflow.add_node("finalize_response", finalize_response_node)
+    workflow.add_node("cohort_calendar_classification", cohort_calendar_classification_node)
+    workflow.add_node("cohort_calendar_response", cohort_calendar_response_node)
 
     # Set entry point - use parallel query processing instead of sequential
     workflow.set_entry_point("parallel_query_processing")
 
-    # Add edges
-    workflow.add_edge("parallel_query_processing", "hybrid_retrieval")
+    # After parallel query: classify cohort/calendar vs standard path
+    workflow.add_edge("parallel_query_processing", "cohort_calendar_classification")
+    workflow.add_conditional_edges(
+        "cohort_calendar_classification",
+        route_after_cohort_calendar_classification,
+        {
+            "cohort_calendar_response": "cohort_calendar_response",
+            "hybrid_retrieval": "hybrid_retrieval",
+        },
+    )
+    workflow.add_edge("cohort_calendar_response", END)
+
+    # Add edges (standard RAG path)
     workflow.add_edge("hybrid_retrieval", "document_filtering")
     workflow.add_edge("document_filtering", "relevance_assessment")
 

@@ -31,6 +31,8 @@ from src.config import (
     RELEVANCE_ASSESSMENT_PROMPT,
     FAITHFULNESS_VERIFICATION_PROMPT,
     REFINEMENT_STRATEGIES_PROMPT,
+    COHORT_CALENDAR_CLASSIFICATION_PROMPT,
+    COHORT_CALENDAR_SHEET_ID,
     PROGRAM_SYNONYMS,
 )
 
@@ -94,6 +96,7 @@ from src.nodes.fallback_nodes import (
 # ---------------- Routing Functions ----------------
 from src.routes import (
     route_after_query_enhancement,
+    route_after_cohort_calendar_classification,
     route_after_document_filtering,
     route_after_coverage_classification,
     route_after_coverage_verification,

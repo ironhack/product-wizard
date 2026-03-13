@@ -52,6 +52,22 @@ PROGRAM_DETECTION_PROMPT = load_config_file('PROGRAM_DETECTION.md')
 RELEVANCE_ASSESSMENT_PROMPT = load_config_file('RELEVANCE_ASSESSMENT.md')
 FAITHFULNESS_VERIFICATION_PROMPT = load_config_file('FAITHFULNESS_VERIFICATION.md')
 REFINEMENT_STRATEGIES_PROMPT = load_config_file('REFINEMENT_STRATEGIES.md')
+COHORT_CALENDAR_CLASSIFICATION_PROMPT = load_config_file('COHORT_CALENDAR_CLASSIFICATION.md')
+COHORT_CALENDAR_FILTER_EXTRACTION_PROMPT = load_config_file('COHORT_CALENDAR_FILTER_EXTRACTION.md')
+
+# Cohort calendar sheet (optional; if not set, cohort path is disabled)
+COHORT_CALENDAR_SHEET_ID = os.environ.get("COHORT_CALENDAR_SHEET_ID", "1QEDMqp71oRPJ3CRr7f_DP7l6_uNE_lSjV5OJ3BlHRcA")
+# Tab gid from URL (Bootcamps Tracker); we use this tab so layout matches the CSV export
+COHORT_CALENDAR_SHEET_GID = int(os.environ["COHORT_CALENDAR_SHEET_GID"]) if os.environ.get("COHORT_CALENDAR_SHEET_GID", "").strip().isdigit() else 1379215013
+
+
+def cohort_calendar_sheet_edit_url() -> str:
+    """Direct link to the Bootcamps Tracker tab (for user-facing messages)."""
+    return (
+        f"https://docs.google.com/spreadsheets/d/{COHORT_CALENDAR_SHEET_ID}/edit"
+        f"?gid={COHORT_CALENDAR_SHEET_GID}#gid={COHORT_CALENDAR_SHEET_GID}"
+    )
+
 
 # Load program synonyms
 PROGRAM_SYNONYMS_TEXT = load_config_file('PROGRAM_SYNONYMS.json') or '{}'

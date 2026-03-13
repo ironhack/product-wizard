@@ -6,3 +6,5 @@ python-dotenv
 langgraph>=0.2.0
 langchain-core>=0.3.0
 langchain-openai>=0.2.0
+gspread>=6.0.0
+google-auth>=2.0.0

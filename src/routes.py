@@ -9,6 +9,14 @@ from src.state import RAGState
 logger = logging.getLogger(__name__)
 
 
+def route_after_cohort_calendar_classification(state: RAGState) -> str:
+    """Route after cohort/calendar classification: to cohort response or standard retrieval."""
+    if state.get("is_cohort_calendar_question", False):
+        logger.info("Routing to cohort_calendar_response (cohort/calendar question)")
+        return "cohort_calendar_response"
+    return "hybrid_retrieval"
+
+
 def route_after_query_enhancement(state: RAGState) -> str:
     """Route after query enhancement based on ambiguity."""
     ambiguity_score = state.get("ambiguity_score", 0.5)

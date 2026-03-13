@@ -45,6 +45,9 @@ class RAGState(TypedDict, total=False):
     is_coverage_question: bool
     coverage_verification: Dict
 
+    # Cohort Calendar Path
+    is_cohort_calendar_question: bool
+
     # Generation
     generated_response: str
     source_citations: List[str]
