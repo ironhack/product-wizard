@@ -14,7 +14,12 @@ from src.config import (
     COMPARISON_INSTRUCTIONS,
     PROGRAM_SYNONYMS,
 )
-from src.utils import call_openai_text, format_conversation_history
+from src.utils import (
+    call_openai_text,
+    format_conversation_history,
+    docs_for_program_syllabi,
+    unique_citations_from_docs,
+)
 from src.slack_helpers import send_slack_update
 
 
@@ -107,19 +112,16 @@ Generate a comprehensive, accurate answer with proper source citations.
 
     generated_response = call_openai_text(system_prompt, user_prompt)
 
-    # Extract citations from response
-    citations = []
-    # First, try to extract citations from response text (preferred - LLM included them)
-    for doc in filtered_docs:
-        source = doc.get("source", "")
-        if source and source in generated_response:
-            citations.append(source)
-
-    # Fallback: If no citations found in text, include all filtered doc sources
-    # This ensures citations are always available even if LLM doesn't include them in response
+    # Citations = syllabus sources we actually grounded on (trust, not random chunk names)
+    valid_detected = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
+    syllabus_docs = (
+        docs_for_program_syllabi(filtered_docs, valid_detected, PROGRAM_SYNONYMS)
+        if valid_detected
+        else filtered_docs
+    )
+    citations = unique_citations_from_docs(syllabus_docs[:15] if syllabus_docs else filtered_docs[:15])
     if not citations:
-        citations = [doc.get("source", "") for doc in filtered_docs if doc.get("source")]
-        logger.info(f"No citations found in response text, using fallback: {len(citations)} citations from filtered_docs")
+        citations = unique_citations_from_docs(filtered_docs[:10])
 
     logger.info(f"Generated response: {len(generated_response)} chars | Citations: {len(citations)}")
 
@@ -138,8 +140,6 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
     topic = coverage_verification.get("topic", "the requested topic")
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
     detected_programs = state.get("detected_programs", [])
-    filtered_docs = state.get("filtered_docs", [])
-    retrieved_docs = state.get("retrieved_docs", [])
 
     # Validate topic - if it looks like instruction text or is invalid, extract from query
     invalid_topic_indicators = [
@@ -169,88 +169,59 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
                 topic = "the requested topic"
                 logger.warning(f"Could not extract topic from query, using fallback")
 
-    # For negative coverage, we MUST cite the correct program's document
-    # Even if it wasn't retrieved (because the topic isn't in it)
-    # Extract the program name directly from the query to ensure we cite the right program
-    citations = []
-
-    # Extract program name from query - look for patterns like "Does [Program] include..."
-    program_from_query = None
-    query_lower = enhanced_query.lower()
-    for prog_id, prog_info in PROGRAM_SYNONYMS.items():
-        aliases = prog_info.get("aliases", [])
-        filenames = prog_info.get("filenames", [])
-        # Check if any alias or filename appears in query
-        for alias in aliases:
-            if alias.lower() in query_lower:
-                program_from_query = prog_id
-                logger.info(f"Extracted program from query: {prog_id} (matched alias: {alias})")
-                break
-        if program_from_query:
-            break
-        # Also check filenames
-        for filename in filenames:
-            base_name = filename.replace("_", " ").replace(".txt", "").replace(".md", "").lower()
-            if base_name in query_lower:
-                program_from_query = prog_id
-                logger.info(f"Extracted program from query: {prog_id} (matched filename: {filename})")
-                break
-        if program_from_query:
-            break
-
-    # Use program from query if found, otherwise use first detected program
-    primary_program = program_from_query or (detected_programs[0] if detected_programs else None)
+    # Cite exactly what coverage_verification searched (sources_checked), not a guess.
+    citations = list(coverage_verification.get("sources_checked") or [])
+    valid_detected = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
+    primary_program = valid_detected[0] if valid_detected else None
 
     if not primary_program:
-        logger.warning("Could not determine primary program for negative coverage citation")
-    else:
-        logger.info(f"Using primary program for citation: {primary_program}")
+        query_lower = enhanced_query.lower()
 
-    # First, try to find the correct program document in retrieved_docs
-    # IMPORTANT: Only look for documents matching the primary program, ignore others
-    if primary_program and primary_program in PROGRAM_SYNONYMS:
-        prog_info = PROGRAM_SYNONYMS[primary_program]
-        filenames = prog_info.get("filenames", [])
+        def _alias_matches(alias: str) -> bool:
+            a = alias.lower().strip()
+            if not a:
+                return False
+            if len(a) <= 3 and re.match(r"^[a-z0-9]+$", a):
+                return bool(re.search(rf"(?<!\w){re.escape(a)}(?!\w)", query_lower))
+            return a in query_lower
 
-        # Check all retrieved documents (not just filtered) for correct program document
-        for doc in retrieved_docs:
-            source = doc.get("source", "")
-            for filename in filenames:
-                # Match filename (with or without extension, case-insensitive)
-                base_filename = filename.replace(".txt", "").replace(".md", "")
-                if base_filename.lower() in source.lower() or filename.lower() in source.lower():
-                    if source not in citations:
-                        citations.append(source)
-                        logger.debug(f"Found correct program citation in retrieved docs: {source}")
+        alias_candidates = []
+        for prog_id, prog_info in PROGRAM_SYNONYMS.items():
+            for alias in prog_info.get("aliases", []):
+                alias_candidates.append((prog_id, alias))
+        alias_candidates.sort(key=lambda x: -len(x[1]))
+        for prog_id, alias in alias_candidates:
+            if _alias_matches(alias):
+                primary_program = prog_id
+                break
+        if not primary_program:
+            for prog_id, prog_info in PROGRAM_SYNONYMS.items():
+                for filename in prog_info.get("filenames", []):
+                    base_name = filename.replace("_", " ").replace(".txt", "").replace(".md", "").lower()
+                    if len(base_name) >= 4 and base_name in query_lower:
+                        primary_program = prog_id
                         break
+                if primary_program:
+                    break
 
-    # If not found in retrieved docs, use expected filename from PROGRAM_SYNONYMS
-    # This ensures we cite the correct document even if it wasn't retrieved
-    if not citations and primary_program and primary_program in PROGRAM_SYNONYMS:
-        prog_info = PROGRAM_SYNONYMS[primary_program]
-        filenames = prog_info.get("filenames", [])
-        if filenames:
-            # Use the expected filename as citation (prefer .md format for consistency)
-            expected_filename = filenames[0].replace(".txt", ".md").replace(".md.md", ".md")
-            citations.append(expected_filename)
-            logger.info(f"Using expected program document citation: {expected_filename}")
-
-    # Build response with correct citation
-    # For negative coverage, we just need to state clearly that the topic is not included
-    # and cite the correct program document - no need for extra context
-    # Format program name for display
     if primary_program and primary_program in PROGRAM_SYNONYMS:
         prog_info = PROGRAM_SYNONYMS[primary_program]
-        aliases = prog_info.get("aliases", [])
-        program_name = aliases[0] if aliases else primary_program.replace("_", " ")
+        program_name = (prog_info.get("aliases") or [primary_program])[0]
     else:
-        program_name = primary_program.replace("_", " ") if primary_program else "the program"
+        program_name = primary_program.replace("_", " ") if primary_program else "this program"
 
-    if citations:
-        primary_source = citations[0]
-        response = f"No, {program_name} does not include {topic}. Based on the curriculum documents, this topic is not part of the program. [Source: {primary_source}]"
-    else:
-        response = f"No, {program_name} does not include {topic}. Based on the curriculum documents, this topic is not part of the program."
+    # Fallback citations only if verifier had no syllabus chunks (should be rare)
+    if not citations and primary_program and primary_program in PROGRAM_SYNONYMS:
+        fn = PROGRAM_SYNONYMS[primary_program].get("filenames", [])
+        if fn:
+            citations = [fn[0].replace(".txt", ".md").replace(".md.md", ".md")]
+
+    sources_line = ", ".join(citations) if citations else "the scoped curriculum"
+    response = (
+        f"*What we checked:* {sources_line}\n"
+        f"*Result:* *{topic}* is not mentioned in that curriculum, so it is not documented as part of {program_name}. "
+        f"If you need this topic on the syllabus, Product can confirm with the academic team."
+    )
 
     # Convert markdown formatting to Slack-friendly format
     from src.utils import convert_markdown_to_slack

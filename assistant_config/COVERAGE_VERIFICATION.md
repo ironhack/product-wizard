@@ -1,6 +1,11 @@
 Given the retrieved curriculum excerpts, determine if the queried topic(s) are explicitly listed/mentioned.
 Do not infer or assume. Answer strictly based on the text. Return JSON.
 
+TRUST / SCOPE
+- The excerpts you receive are exactly the curriculum text that was scoped for this question (typically one program’s syllabus chunks).
+- If the topic does not appear there, is_present must be false. Do not use outside knowledge.
+- Your decision will be quoted back to users together with the list of source files those excerpts came from.
+
 INPUTS
 - QUERY: {query}
 - PROGRAMS: {programs}

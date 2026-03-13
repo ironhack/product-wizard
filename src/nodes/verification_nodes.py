@@ -14,7 +14,11 @@ from src.config import (
     FAITHFULNESS_VERIFICATION_PROMPT,
     PROGRAM_SYNONYMS,
 )
-from src.utils import call_openai_json
+from src.utils import (
+    call_openai_json,
+    docs_for_program_syllabi,
+    unique_citations_from_docs,
+)
 from src.slack_helpers import send_slack_update
 
 
@@ -64,6 +68,8 @@ Return JSON: {{"is_coverage_question": true/false, "reasoning": "explanation"}}
 def coverage_verification_node(state: RAGState) -> RAGState:
     """
     Verify if topic is explicitly present in retrieved documents.
+    When a program is detected, search only that program's syllabus chunks so
+    negative answers honestly cite what was searched.
     """
     logger.info("=== Coverage Verification Node ===")
     send_slack_update(state, "Verifying topic presence")
@@ -72,18 +78,29 @@ def coverage_verification_node(state: RAGState) -> RAGState:
     filtered_docs = state.get("filtered_docs", [])
     detected_programs = state.get("detected_programs", [])
     query_intent = state.get("query_intent", "general_info")
+    valid_programs = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
 
-    # Compile document content
-    # Include full chunk content - low usage volume makes cost negligible, completeness is more important
+    # Scope: syllabus-only for known program(s); otherwise all filtered chunks
+    syllabus_docs = docs_for_program_syllabi(filtered_docs, valid_programs, PROGRAM_SYNONYMS)
+    docs_for_verification = syllabus_docs if syllabus_docs else filtered_docs
+    if valid_programs and not syllabus_docs:
+        logger.warning(
+            "No syllabus chunks matched detected program(s); verifying full filtered set"
+        )
+
+    sources_checked = unique_citations_from_docs(docs_for_verification[:20])
+
+    # Compile document content (same set we record as sources_checked)
     docs_content = "\n\n---\n\n".join([
         f"Source: {doc.get('source', 'unknown')}\n{doc.get('content', '')}"
-        for doc in filtered_docs[:10]
+        for doc in docs_for_verification[:10]
     ])
 
     user_prompt = f"""
 Query: "{enhanced_query}"
 Programs: {detected_programs}
 
+You are verifying ONLY against the curriculum excerpts below (these are the sources we scoped for this question).
 Retrieved Documents:
 {docs_content}
 
@@ -97,10 +114,15 @@ Return JSON: {{"is_present": true/false, "topic": "extracted topic", "evidence":
     coverage_verification = {
         "is_present": result.get("is_present", False),
         "topic": result.get("topic", ""),
-        "evidence": result.get("evidence", "")
+        "evidence": result.get("evidence", ""),
+        "sources_checked": sources_checked,
+        "chunks_searched": len(docs_for_verification[:10]),
     }
 
-    logger.info(f"Coverage Verification: {coverage_verification}")
+    logger.info(
+        f"Coverage Verification: present={coverage_verification['is_present']} | "
+        f"sources_checked={sources_checked}"
+    )
 
     return {
         **state,

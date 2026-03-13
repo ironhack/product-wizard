@@ -6,7 +6,7 @@ Includes markdown conversion, OpenAI API calls, and conversation formatting.
 import json
 import logging
 import re
-from typing import Dict, List
+from typing import Dict, List, Any
 
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 
@@ -145,3 +145,52 @@ def call_openai_text(system_prompt: str, user_prompt: str, model: str = "gpt-4o"
     except Exception as e:
         logger.error(f"OpenAI text call failed: {e}")
         return ""
+
+
+def normalize_source_citation(source: str) -> str:
+    """Stable syllabus filename for user-facing citations (e.g. chunk source -> Syllabus.md)."""
+    if not source or source == "unknown":
+        return source or "unknown"
+    s = source.strip().replace("\\", "/").split("/")[-1]
+    lower = s.lower()
+    if lower.endswith(".txt"):
+        s = s[:-4] + ".md"
+    elif not lower.endswith(".md") and "." not in s:
+        s = s + ".md"
+    return s
+
+
+def docs_for_program_syllabi(
+    filtered_docs: List[Dict[str, Any]], program_ids: List[str], program_synonyms: Dict
+) -> List[Dict[str, Any]]:
+    """
+    Chunks whose source belongs to the given programs' syllabus files only.
+    Used so coverage verification searches the same curriculum the user asked about.
+    """
+    if not program_ids:
+        return list(filtered_docs)
+    needles = []
+    for pid in program_ids:
+        info = program_synonyms.get(pid) or {}
+        for fn in info.get("filenames", []):
+            needles.append(fn.lower())
+            needles.append(fn.replace(".txt", "").replace(".md", "").lower())
+    out = []
+    for doc in filtered_docs:
+        src = (doc.get("source") or "").lower()
+        if any(n in src for n in needles):
+            out.append(doc)
+    return out
+
+
+def unique_citations_from_docs(docs: List[Dict[str, Any]]) -> List[str]:
+    """Ordered unique normalized citation filenames for docs we actually read."""
+    seen = set()
+    out = []
+    for doc in docs:
+        raw = doc.get("source") or ""
+        c = normalize_source_citation(raw)
+        if c and c != "unknown" and c not in seen:
+            seen.add(c)
+            out.append(c)
+    return out

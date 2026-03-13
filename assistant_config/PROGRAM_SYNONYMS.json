@@ -1,21 +1,21 @@
 {
   "ai_engineering": {
-    "aliases": ["ai", "ai engineering", "ai engineering bootcamp", "ai engineering course", "ai eng", "ai engineer", "ai bootcamp", "ai course", "ai"],
+    "aliases": ["ai", "ai engineering", "ai engineering bootcamp", "ai engineering course", "ai eng", "ai engineer", "ai bootcamp", "ai course"],
     "filenames": ["AI_Engineering_bootcamp_2025_07"],
     "code":"AI"
   },
   "data_analytics": {
-    "aliases": ["da", "data analytics", "analytics bootcamp", "business analytics"],
+    "aliases": ["da", "data analytics", "analytics bootcamp", "analytics course"],
     "filenames": ["Data_Analytics_Remote_bootcamp_2025_07"],
     "code":"DA"
   },
   "data_science_ml": {
-    "aliases": ["ML", "data science", "machine learning", "ml", "ml bootcamp"],
+    "aliases": ["ml", "data science", "machine learning", "ml bootcamp", "dsml"],
     "filenames": ["Data_Science_&_Machine_Learning_bootcamp_2025_07"],
     "code":"ML"
   },
   "web_development": {
-    "aliases": ["wd", "web dev", "web development", "ai web development", "full stack", "javascript bootcamp", "react bootcamp", "mern stack"],
+    "aliases": ["wd", "web dev", "web development", "ai web development", "full stack"],
     "filenames": ["AI_Web_Development_bootcamp_2025_12"],
     "code": "WD"
   },
@@ -25,12 +25,12 @@
     "code":"UX"
   },
   "devops": {
-    "aliases": ["dv", "devops", "cloud devops", "kubernetes", "docker"],
+    "aliases": ["dv", "devops", "cloud devops"],
     "filenames": ["DevOps_bootcamp_2025_07"],
     "code":"DV"
   },
   "cybersecurity": {
-    "aliases": ["cy", "cyber", "security", "cybersecurity bootcamp"],
+    "aliases": ["cy", "cyber", "security", "cybersecurity bootcamp", "cybersecurity"],
     "filenames": ["Cybersecurity_bootcamp_2025_07"],
     "code":"CY"
   },
@@ -50,12 +50,12 @@
     "code":"AC"
   },
   "cloud_engineering": {
-    "aliases": ["ce", "cloud engineering", "cloud engineer", "cloud bootcamp", "ce bootcamp", "aws bootcamp", "terraform bootcamp"],
+    "aliases": ["ce", "cloud engineering", "cloud engineer", "cloud bootcamp", "ce bootcamp"],
     "filenames": ["Cloud_Engineering_bootcamp_2025_12"],
     "code":"CE"
   },
   "data_engineering": {
-    "aliases": ["de", "data engineering", "data engineer", "de bootcamp", "etl bootcamp", "pipeline engineer", "data pipeline"],
+    "aliases": ["de", "data engineering", "data engineer", "de bootcamp"],
     "filenames": ["Data_Engineering_bootcamp_2025_12"],
     "code":"DE"
   },
