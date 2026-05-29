@@ -78,10 +78,10 @@ Ironhack offers industry-recognized certifications for all bootcamp graduates an
   - *Foundation-level certification in usability and user experience design*
   - *Covers UX processes, usability principles, and human-centered design methods*
   - *International standard certification for UX professionals*
-- **Certified Usability Analyst (CUA)** - [Link](https://humanfactors.com/training/cua_exam.asp)
-  - *Professional certification focusing on usability testing and analysis*
-  - *Covers user research methods, usability evaluation, and interface design*
-  - *Validates expertise in user-centered design and usability assessment*
+- **NN/g Understanding LLMs: A Guide for UX Practitioners** - [Link](https://www.nngroup.com/contents/self-paced-courses/understanding-llms-a-guide-for-ux-practitioners/)
+  - *Self-paced Nielsen Norman Group course building practical AI knowledge for UX practitioners*
+  - *Covers essential AI terminology, LLM fundamentals, limitations, hallucinations, and responsible use cases*
+  - *Helps designers and product teams explain AI concepts and make informed decisions about when to use AI*
 
 #### AI-Driven Marketing
 - **Meta Digital Marketing Associate** - [Link](https://www.facebookblueprint.com/student/collection/238354)
@@ -96,14 +96,14 @@ Ironhack offers industry-recognized certifications for all bootcamp graduates an
 **Note for AI-Driven Marketing:** The 2 free credentials (HubSpot and Make) will remain as "recommended" but graduates must choose between Meta and Google paid certifications.
 
 #### AI Product Management
-- **Scrum.org - Professional Scrum Master I (PSM I)** - [Link](https://www.scrum.org/professional-scrum-master-i-certification)
-  - *Recognized entry-level certification for mastering Scrum roles, ceremonies, and Agile collaboration*
-  - *Validates understanding of Scrum framework, roles, events, and artifacts*
-  - *Industry-standard certification for Product Managers working in Agile environments*
-- **Microsoft Certified: Azure AI Fundamentals (AI-900)** - [Link](https://learn.microsoft.com/en-us/certifications/azure-ai-fundamentals/)
-  - *Great entry-level cert showing understanding of AI concepts, use cases, and responsible AI*
-  - *Covers fundamental AI concepts, machine learning, and Azure AI services*
-  - *Validates knowledge of AI workloads and responsible AI principles*
+- **Microsoft Certified: AI Business Professional** - [Link](https://learn.microsoft.com/en-us/credentials/certifications/ai-business-professional/?practice-assessment-type=certification#certification-practice-for-the-exam)
+  - *Beginner-level certification for using generative AI productivity tools to improve business outcomes*
+  - *Covers generative AI fundamentals, prompt and conversation management, and drafting or analyzing business content with AI*
+  - *Designed for business users working with Microsoft 365 Copilot and core Microsoft 365 apps without coding requirements*
+- **Scrum.org - Professional Scrum Product Owner I (PSPO I)** - [Link](https://www.scrum.org/assessments/professional-scrum-product-owner-i-certification)
+  - *Industry-recognized certification validating fundamental Scrum and Product Owner knowledge*
+  - *Covers Product Owner accountabilities, value delivery, product backlog management, and application of Scrum in real situations*
+  - *Relevant for Product Managers working in Agile environments and responsible for maximizing product value*
 
 #### AI Consulting & Integration
 - **Certified Agile Project Manager (IAPM)** - [Link](https://www.iapm.net/en/certification/levels-of-certification/certified-agile-project-manager-iapm/)

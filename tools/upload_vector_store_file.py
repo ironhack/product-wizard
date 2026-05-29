@@ -158,49 +158,49 @@ def upload_file_to_vector_store(file_path: str = None, chunk_size: int = None, c
         
         # Step 3: Monitor batch status (only for batch endpoint)
         if not chunking_strategy:
-        print("3️⃣ Monitoring upload progress...")
-        max_attempts = 30  # Maximum wait time: 30 seconds
-        attempt = 0
-        
-        while attempt < max_attempts:
-            # Check batch status
-            status_url = f"https://api.openai.com/v1/vector_stores/{vector_store_id}/file_batches/{batch_id}"
-            status_req = urllib.request.Request(status_url, headers=headers)
+            print("3️⃣ Monitoring upload progress...")
+            max_attempts = 30  # Maximum wait time: 30 seconds
+            attempt = 0
             
-            try:
-                with urllib.request.urlopen(status_req) as response:
-                    batch_status = json.loads(response.read().decode('utf-8'))
-                    
-                status = batch_status['status']
-                file_counts = batch_status.get('file_counts', {})
+            while attempt < max_attempts:
+                # Check batch status
+                status_url = f"https://api.openai.com/v1/vector_stores/{vector_store_id}/file_batches/{batch_id}"
+                status_req = urllib.request.Request(status_url, headers=headers)
                 
-                if status == "completed":
-                    print(f"   ✅ Upload completed successfully!")
-                    print(f"   📊 Files processed: {file_counts.get('completed', 0)}")
-                    if file_counts.get('failed', 0) > 0:
-                        print(f"   ⚠️  Files failed: {file_counts.get('failed', 0)}")
-                    break
-                elif status == "failed":
-                    print(f"   ❌ Upload failed!")
-                    print(f"   📊 Files failed: {file_counts.get('failed', 0)}")
-                    return False
-                elif status in ["in_progress", "queued"]:
-                    print(f"   ⏳ Status: {status} (attempt {attempt + 1}/{max_attempts})")
-                    time.sleep(1)
-                    attempt += 1
-                else:
-                    print(f"   ❓ Unknown status: {status}")
-                    time.sleep(1)
-                    attempt += 1
+                try:
+                    with urllib.request.urlopen(status_req) as response:
+                        batch_status = json.loads(response.read().decode('utf-8'))
+                        
+                    status = batch_status['status']
+                    file_counts = batch_status.get('file_counts', {})
                     
-            except Exception as e:
-                print(f"   ⚠️  Error checking status: {e}")
-                time.sleep(1)
-                attempt += 1
-        
-        if attempt >= max_attempts:
-            print(f"   ⚠️  Upload monitoring timed out. Status may still be processing.")
-            print(f"   💡 Check the OpenAI dashboard for final status.")
+                    if status == "completed":
+                        print(f"   ✅ Upload completed successfully!")
+                        print(f"   📊 Files processed: {file_counts.get('completed', 0)}")
+                        if file_counts.get('failed', 0) > 0:
+                            print(f"   ⚠️  Files failed: {file_counts.get('failed', 0)}")
+                        break
+                    elif status == "failed":
+                        print(f"   ❌ Upload failed!")
+                        print(f"   📊 Files failed: {file_counts.get('failed', 0)}")
+                        return False
+                    elif status in ["in_progress", "queued"]:
+                        print(f"   ⏳ Status: {status} (attempt {attempt + 1}/{max_attempts})")
+                        time.sleep(1)
+                        attempt += 1
+                    else:
+                        print(f"   ❓ Unknown status: {status}")
+                        time.sleep(1)
+                        attempt += 1
+                        
+                except Exception as e:
+                    print(f"   ⚠️  Error checking status: {e}")
+                    time.sleep(1)
+                    attempt += 1
+            
+            if attempt >= max_attempts:
+                print(f"   ⚠️  Upload monitoring timed out. Status may still be processing.")
+                print(f"   💡 Check the OpenAI dashboard for final status.")
         
         print()
         print("🎉 Vector store update completed!")
