@@ -431,15 +431,15 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
     if primary_program:
         result_line = (
             f"*Result:* *{topic}* is not listed as a taught topic in the {program_name} syllabus, "
-            f"so we can't confirm it's part of that program."
+            f"so I can't confirm it's part of that program."
         )
     else:
         result_line = (
-            f"*Result:* *{topic}* is not mentioned in the documents we checked, "
-            f"so we can't confirm it."
+            f"*Result:* *{topic}* is not mentioned in the documents I checked, "
+            f"so I can't confirm it."
         )
     response_parts = [
-        f"*What we checked:* {sources_line}",
+        f"*What I checked:* {sources_line}",
         result_line,
     ]
 
@@ -450,7 +450,7 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
     if own_mention:
         quote = f" (\"{own_mention['line']}\")" if own_mention.get("line") else ""
         response_parts.append(
-            f"*Worth noting:* the term \"{own_mention['via']}\" does appear in the {program_name} "
+            f"*Worth noting:* I did spot the term \"{own_mention['via']}\" in the {program_name} "
             f"syllabus{quote}, just not as a taught topic. The Education team can confirm how deep it goes."
         )
     if other_programs:
@@ -465,12 +465,12 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
             else:
                 rendered.append(entry["name"])
         response_parts.append(
-            f"*Mentioned elsewhere:* {topic} is mentioned in the syllabus for: {', '.join(rendered)}. "
+            f"*Mentioned elsewhere:* I found {topic} mentioned in the syllabus for: {', '.join(rendered)}. "
             f"Want me to check how it's actually covered there? Ask me in this thread, e.g. "
             f"\"Does {other_programs[0]['name']} cover {topic}?\""
         )
     response_parts.append(
-        "_Note: this check runs against the syllabus summaries. A topic can still get brief hands-on "
+        "_Note: I check against the syllabus summaries. A topic can still get brief hands-on "
         "exposure inside lessons without being listed - the Education team can confirm._"
     )
     response = "\n".join(response_parts)

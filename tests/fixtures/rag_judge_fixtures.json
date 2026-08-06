@@ -236,7 +236,7 @@
     ],
     "judge_criteria": [
       "CRITICAL: The answer must be scoped to Cloud Engineering — not DevOps, not 'dv', not Kubernetes-as-DevOps-only.",
-      "CRITICAL: Citations or 'what we checked' must name Cloud_Engineering_bootcamp_2025_12 (or equivalent Cloud Engineering syllabus), not DevOps_bootcamp_2025_07 or Data Analytics.",
+      "CRITICAL: Citations or 'What I checked' (or 'What we checked') must name Cloud_Engineering_bootcamp_2025_12 (or equivalent Cloud Engineering syllabus), not DevOps_bootcamp_2025_07 or Data Analytics.",
       "If the curriculum checked does not mention Kubernetes, stating that it is not documented in that syllabus is acceptable.",
       "FAIL the test if the response says Data Analytics, DA bootcamp, or DevOps/DV as the program being described for this question.",
       "FAIL if the only cited document is DevOps_bootcamp when the user asked about Cloud Engineering."
