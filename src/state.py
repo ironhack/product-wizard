@@ -51,6 +51,11 @@ class RAGState(TypedDict, total=False):
 
     # Cohort Calendar Path
     is_cohort_calendar_question: bool
+    cohort_filters: Dict
+
+    # Unified triage
+    triage_used: bool
+    triage_coverage_topic: str
 
     # Generation
     generated_response: str

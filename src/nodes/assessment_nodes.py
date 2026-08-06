@@ -6,7 +6,6 @@ Nodes for relevance assessment and document filtering in the RAG workflow.
 
 import logging
 import json
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from src.state import RAGState
 from src.config import (
@@ -74,147 +73,101 @@ def relevance_assessment_node(state: RAGState) -> RAGState:
         if conv_lines:
             conv_context = f"\nConversation Context:\n" + "\n".join(conv_lines)
 
-    # Assess relevance for each chunk in parallel
-    def assess_single_doc(idx_doc_pair):
-        """Assess a single document's relevance."""
-        idx, doc = idx_doc_pair
-        doc_content = doc.get("content", "")[:500]  # Preview
-        doc_source = doc.get("source", "unknown")
-
-        user_prompt = f"""
+    # Batched assessment: ONE structured call scores every chunk, replacing up
+    # to ~30 parallel per-chunk calls (same latency, far fewer API calls)
+    chunks_block = "\n\n".join(
+        f"Chunk {idx+1} | Source: {doc.get('source', 'unknown')}\n{doc.get('content', '')[:400]}"
+        for idx, doc in enumerate(docs_to_assess)
+    )
+    user_prompt = f"""
 Query: "{enhanced_query}"
 Query Intent: {query_intent}
 Detected Programs: {detected_programs}{conv_context}
 
-Document Chunk {idx+1}:
-Source: {doc_source}
-Content Preview: {doc_content}
+Assess EACH chunk below independently against the query, per your assessment guidelines.
 
-Assess this chunk's relevance to the query.
+{chunks_block}
+
+Return one assessment per chunk, keyed by chunk_id (1-based, matching the numbering above).
 """
 
-        try:
-            # Use faster model for relevance assessment (classification task)
-            assessment = call_openai_json(RELEVANCE_ASSESSMENT_PROMPT, user_prompt, timeout=15)
+    logger.info(f"Batched relevance assessment: {len(docs_to_assess)} chunks in one call")
+    result = call_openai_json(
+        RELEVANCE_ASSESSMENT_PROMPT,
+        user_prompt,
+        timeout=45,
+        schema={
+            "type": "object",
+            "properties": {
+                "assessments": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "chunk_id": {"type": "integer"},
+                            "relevance_score": {"type": "number"},
+                            "should_include": {"type": "boolean"},
+                            "reasoning": {"type": "string"},
+                        },
+                        "required": ["chunk_id", "relevance_score", "should_include", "reasoning"],
+                        "additionalProperties": False,
+                    },
+                }
+            },
+            "required": ["assessments"],
+            "additionalProperties": False,
+        },
+        schema_name="relevance_assessments",
+    )
+    by_id = {a.get("chunk_id"): a for a in (result.get("assessments") or [])}
 
-            relevance_score = assessment.get("relevance_score", 0.5)
-            should_include = assessment.get("should_include", False)
-            red_flags = assessment.get("red_flags", [])
-
-            # For comparison and certification queries, use lower threshold and be more permissive
-            # Comparison queries need chunks from multiple programs
-            # Certification queries need chunks from universal documents (Certifications doc, Portfolio Overview) which may score lower
-            if query_intent == "comparison":
-                threshold = 0.2
-                # For comparison queries, override should_include if score is high enough
-                # This ensures we get chunks from all programs even if AI is conservative
-                if relevance_score >= 0.5:
-                    should_include = True
-            elif query_intent == "certification":
-                threshold = 0.2
-                # BOOST: For certification queries, automatically include universal/overview documents
-                # These contain the certification information even if AI gives them low scores
-                doc_source_lower = doc_source.lower()
-                is_universal_or_overview = any(univ in doc_source_lower for univ in [
-                    "certifications_2025_07",
-                    "ironhack_portfolio_overview",
-                    "course_design_overview"
-                ])
-                if is_universal_or_overview:
-                    relevance_score = max(relevance_score, 0.8)  # Boost to high relevance
-                    should_include = True
-                elif relevance_score >= 0.4:
-                    should_include = True
-            else:
-                threshold = 0.3
-
-            return {
-                "idx": idx,
-                "doc": doc,
-                "relevance_score": relevance_score,
-                "should_include": should_include and relevance_score >= threshold,
-                "red_flags": red_flags,
-                "reasoning": assessment.get("reasoning", "Low relevance"),
-                "error": None
-            }
-        except Exception as e:
-            logger.error(f"Assessment failed for doc {idx+1}: {e}")
-            # On error, include the doc with medium score
-            return {
-                "idx": idx,
-                "doc": doc,
-                "relevance_score": 0.6,
-                "should_include": True,
-                "red_flags": [],
-                "reasoning": f"Error: {str(e)}",
-                "error": str(e)
-            }
-
-    # Parallelize assessments using ThreadPoolExecutor
     assessed_docs = []
     relevance_scores = []
     rejection_reasons = []
 
-    # For comparison and certification queries, assess all filtered docs
-    # Comparison queries need chunks from all programs
-    # Certification queries need chunks from universal documents which may be lower in retrieval order
-    # After filtering, we have fewer docs, so we can assess more (or all) of them
-    max_docs_to_assess = len(docs_to_assess) if query_intent in ["comparison", "certification"] else len(docs_to_assess)
-    docs_to_assess_enumerated = list(enumerate(docs_to_assess[:max_docs_to_assess]))
+    for idx, doc in enumerate(docs_to_assess):
+        assessment = by_id.get(idx + 1)
+        if assessment is None:
+            # Missing from the batch (or the whole call failed): include with medium score
+            assessed_docs.append(doc)
+            relevance_scores.append(0.6)
+            continue
 
-    # Use ThreadPoolExecutor with max_workers (OpenAI API can handle concurrent requests)
-    # Increased to 8 concurrent requests for better performance (OpenAI allows higher concurrency)
-    max_workers = min(8, len(docs_to_assess_enumerated))
+        relevance_score = assessment.get("relevance_score", 0.5)
+        should_include = assessment.get("should_include", False)
+        reasoning = assessment.get("reasoning", "Low relevance")
+        doc_source = doc.get("source", "unknown")
 
-    if len(docs_to_assess_enumerated) > 1:
-        query_type_note = "comparison/certification queries" if query_intent in ["comparison", "certification"] else "standard queries"
-        logger.info(f"Parallelizing relevance assessment: {len(docs_to_assess_enumerated)} docs with {max_workers} workers (assessing all docs for {query_type_note})")
+        # For comparison and certification queries, use lower threshold and be more permissive
+        # Comparison queries need chunks from multiple programs
+        # Certification queries need chunks from universal documents (Certifications doc, Portfolio Overview) which may score lower
+        if query_intent == "comparison":
+            threshold = 0.2
+            if relevance_score >= 0.5:
+                should_include = True
+        elif query_intent == "certification":
+            threshold = 0.2
+            # BOOST: universal/overview documents carry the certification info
+            # even when they score low
+            doc_source_lower = doc_source.lower()
+            is_universal_or_overview = any(univ in doc_source_lower for univ in [
+                "certifications_2025_07",
+                "ironhack_portfolio_overview",
+                "course_design_overview"
+            ])
+            if is_universal_or_overview:
+                relevance_score = max(relevance_score, 0.8)
+                should_include = True
+            elif relevance_score >= 0.4:
+                should_include = True
+        else:
+            threshold = 0.3
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        # Submit all assessment tasks
-        future_to_idx = {executor.submit(assess_single_doc, idx_doc): idx_doc[0]
-                        for idx_doc in docs_to_assess_enumerated}
-
-        # Collect results as they complete
-        results = []
-        for future in as_completed(future_to_idx):
-            try:
-                result = future.result()
-                results.append(result)
-            except Exception as e:
-                idx = future_to_idx[future]
-                logger.error(f"Future failed for doc {idx+1}: {e}")
-                # Include doc with medium score on future failure
-                if idx < len(docs_to_assess):
-                    results.append({
-                        "idx": idx,
-                        "doc": docs_to_assess[idx],
-                        "relevance_score": 0.6,
-                        "should_include": True,
-                        "red_flags": [],
-                        "reasoning": f"Future error: {str(e)}",
-                        "error": str(e)
-                    })
-
-        # Sort results by original index to maintain order
-        results.sort(key=lambda x: x["idx"])
-
-        # Process results
-        for result in results:
-            idx = result["idx"]
-            doc = result["doc"]
-            relevance_score = result["relevance_score"]
-            should_include = result["should_include"]
-            red_flags = result["red_flags"]
-            reasoning = result["reasoning"]
-
-            if should_include:
-                assessed_docs.append(doc)
-                relevance_scores.append(relevance_score)
-            else:
-                rejection_reasons.append(f"Doc {idx+1}: {reasoning}")
-                if red_flags:
-                    logger.warning(f"Red flags for doc {idx+1}: {red_flags}")
+        if should_include and relevance_score >= threshold:
+            assessed_docs.append(doc)
+            relevance_scores.append(relevance_score)
+        else:
+            rejection_reasons.append(f"Doc {idx+1}: {reasoning}")
 
     # If no docs passed assessment, include top 3 docs anyway as fallback
     if not assessed_docs and docs_to_assess:

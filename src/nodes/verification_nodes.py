@@ -46,6 +46,11 @@ def coverage_classification_node(state: RAGState) -> RAGState:
             "is_coverage_question": False
         }
 
+    # Unified triage already classified this in its single structured call
+    if state.get("triage_used", False):
+        logger.info(f"Coverage Question (from triage): {state.get('is_coverage_question', False)}")
+        return state
+
     # Quick heuristic check first
     coverage_keywords = ["does", "is", "include", "cover", "teach", "contain", "have"]
     has_coverage_keyword = any(kw in enhanced_query.lower() for kw in coverage_keywords)

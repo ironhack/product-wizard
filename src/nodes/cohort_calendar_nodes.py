@@ -94,7 +94,13 @@ def cohort_calendar_response_node(state: RAGState) -> RAGState:
             }
         send_slack_update(state, "Filtering matching cohorts...")
         rows = parse_cohort_rows(raw_rows)
-        filters = _extract_cohort_filters_from_query(query)
+        # Unified triage already extracted filters in its single call; validate
+        # and apply the deterministic backstops either way
+        triage_filters = state.get("cohort_filters") or {}
+        if state.get("triage_used") and any(v for v in triage_filters.values()):
+            filters = _validate_cohort_filters(query, triage_filters)
+        else:
+            filters = _extract_cohort_filters_from_query(query)
         rows = _filter_cohorts_for_query(rows, query, filters)
 
         if not rows:
@@ -199,24 +205,33 @@ def _extract_cohort_filters_from_query(query: str) -> dict:
         },
         schema_name="cohort_filters",
     )
+    return _validate_cohort_filters(query, result)
+
+
+def _validate_cohort_filters(query: str, raw: dict) -> dict:
+    """
+    Validate raw filter values (from unified triage or the extraction call)
+    and apply the deterministic backstops for "next"/year wording.
+    """
+    raw = raw or {}
     out = {}
-    if result.get("track"):
-        t = str(result["track"]).upper().strip()
+    if raw.get("track"):
+        t = str(raw["track"]).upper().strip()
         if t in _TRACK_CODES:
             out["track"] = t
-    if result.get("type"):
-        typ = str(result["type"]).upper().strip()
+    if raw.get("type"):
+        typ = str(raw["type"]).upper().strip()
         if typ in ("PT", "FT"):
             out["type"] = typ
-    if result.get("month"):
-        m = str(result["month"]).lower().strip()
+    if raw.get("month"):
+        m = str(raw["month"]).lower().strip()
         if m in _MONTH_NAMES:
             out["month"] = m
-    if result.get("year"):
-        y = str(result["year"]).strip()
+    if raw.get("year"):
+        y = str(raw["year"]).strip()
         if re.fullmatch(r"20\d{2}", y):
             out["year"] = int(y)
-    if result.get("future_only"):
+    if raw.get("future_only"):
         out["future_only"] = True
     # Deterministic backstop: "next"/"upcoming" wording always means future cohorts
     if re.search(r"\b(next|upcoming|soonest|from now)\b", (query or "").lower()):
@@ -226,7 +241,7 @@ def _extract_cohort_filters_from_query(query: str) -> dict:
         m = re.search(r"\b(20\d{2})\b", query or "")
         if m:
             out["year"] = int(m.group(1))
-    logger.info("Cohort filters extracted: %s", out)
+    logger.info("Cohort filters validated: %s", out)
     return out
 
 

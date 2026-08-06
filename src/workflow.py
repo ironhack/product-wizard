@@ -15,9 +15,9 @@ from src.nodes.query_nodes import (
     program_detection_node,
 )
 
-# ---------------- Parallel Query Nodes ----------------
-from src.nodes.parallel_query_nodes import (
-    parallel_query_processing_node,
+# ---------------- Unified Triage Node ----------------
+from src.nodes.triage_nodes import (
+    unified_triage_node,
 )
 
 # ---------------- Retrieval Nodes ----------------
@@ -53,7 +53,6 @@ from src.nodes.fallback_nodes import (
 
 # ---------------- Cohort Calendar Nodes ----------------
 from src.nodes.cohort_calendar_nodes import (
-    cohort_calendar_classification_node,
     cohort_calendar_response_node,
 )
 
@@ -79,7 +78,7 @@ def build_workflow() -> StateGraph:
     # Add all nodes
     workflow.add_node("query_enhancement", query_enhancement_node)
     workflow.add_node("program_detection", program_detection_node)
-    workflow.add_node("parallel_query_processing", parallel_query_processing_node)
+    workflow.add_node("unified_triage", unified_triage_node)
     workflow.add_node("hybrid_retrieval", hybrid_retrieval_node)
     workflow.add_node("relevance_assessment", relevance_assessment_node)
     workflow.add_node("document_filtering", document_filtering_node)
@@ -91,16 +90,15 @@ def build_workflow() -> StateGraph:
     workflow.add_node("generate_fun_fallback", generate_fun_fallback_node)
     workflow.add_node("generate_negative_coverage", generate_negative_coverage_node)
     workflow.add_node("finalize_response", finalize_response_node)
-    workflow.add_node("cohort_calendar_classification", cohort_calendar_classification_node)
     workflow.add_node("cohort_calendar_response", cohort_calendar_response_node)
 
-    # Set entry point - use parallel query processing instead of sequential
-    workflow.set_entry_point("parallel_query_processing")
+    # Entry: one unified triage call replaces query enhancement + program
+    # detection + cohort classification + coverage classification
+    workflow.set_entry_point("unified_triage")
 
-    # After parallel query: classify cohort/calendar vs standard path
-    workflow.add_edge("parallel_query_processing", "cohort_calendar_classification")
+    # After triage: cohort/calendar path vs standard retrieval path
     workflow.add_conditional_edges(
-        "cohort_calendar_classification",
+        "unified_triage",
         route_after_cohort_calendar_classification,
         {
             "cohort_calendar_response": "cohort_calendar_response",
