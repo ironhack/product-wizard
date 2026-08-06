@@ -232,6 +232,54 @@ def program_display_name(prog_id: Optional[str], program_synonyms: Dict) -> str:
     return prog_id.replace("_", " ").title()
 
 
+_MONTH_DISPLAY = {
+    "01": "January", "02": "February", "03": "March", "04": "April",
+    "05": "May", "06": "June", "07": "July", "08": "August",
+    "09": "September", "10": "October", "11": "November", "12": "December",
+}
+
+_UNIVERSAL_DOC_DISPLAY = {
+    "certifications": "Certifications guide",
+    "computer_specs_min_requirements": "Computer requirements",
+    "course_design_overview": "Course design overview",
+    "ironhack_portfolio_overview": "Ironhack portfolio overview",
+    "mein_now_title_equivalence": "MeinNOW course title mapping",
+}
+
+
+def humanize_source_citation(source: str, program_synonyms: Dict) -> str:
+    """
+    User-friendly name for a source file, for people who don't care about .md files:
+    'Cloud_Engineering_bootcamp_2025_12.md' -> 'Cloud Engineering bootcamp syllabus (December 2025)'
+    'Certifications_2025_07.md'             -> 'Certifications guide (July 2025)'
+    Unknown names degrade gracefully to de-underscored text.
+    """
+    if not source:
+        return source or ""
+    s = source.strip().replace("\\", "/").split("/")[-1]
+    s = re.sub(r"\.(txt|md)$", "", s, flags=re.IGNORECASE)
+
+    date_suffix = ""
+    m = re.search(r"_(20\d{2})_(\d{2})$", s)
+    if m:
+        month = _MONTH_DISPLAY.get(m.group(2), "")
+        date_suffix = f" ({month} {m.group(1)})" if month else f" ({m.group(1)})"
+    base = re.sub(r"_20\d{2}_\d{2}$", "", s)
+    base_lower = base.lower()
+
+    pid = program_for_source(source, program_synonyms)
+    if pid:
+        name = program_display_name(pid, program_synonyms)
+        label = f"{name} bootcamp syllabus" if "bootcamp" in base_lower and "bootcamp" not in name.lower() else f"{name} syllabus"
+        return label + date_suffix
+
+    for needle, display in _UNIVERSAL_DOC_DISPLAY.items():
+        if needle in base_lower:
+            return display + date_suffix
+
+    return base.replace("_", " ").strip() + date_suffix
+
+
 def program_for_source(source: str, program_synonyms: Dict) -> Optional[str]:
     """Map a chunk source filename to its program id, version-tolerant. None if no match."""
     src_base = strip_doc_version(source or "")

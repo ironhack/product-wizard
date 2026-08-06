@@ -44,6 +44,7 @@ JUDGE_SYSTEM_PROMPT = """
 You are a meticulous evaluator for a sales-enablement RAG system. Score each answer on a 0-10 scale.
 - Base accuracy on the provided expected_answer and evidence.
 - Verify that citations reference the expected documents and support the claims. Accept citations in any format (raw strings, structured objects, inline references) as long as they correctly identify the source documents.
+- Citations may appear as human-readable document names instead of raw filenames - e.g. "Cloud Engineering bootcamp syllabus (December 2025)" is the same document as "Cloud_Engineering_bootcamp_2025_12.md", and "Certifications guide (July 2025)" is "Certifications_2025_07.md". Treat matching human-readable names as correct citations.
 - Focus on answer accuracy and content quality, not citation format structure.
 - Penalize hallucinations, missing required details, or tone that contradicts expectations.
 - Accept paraphrasing and different wording as long as the core information is accurate.

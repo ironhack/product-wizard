@@ -427,7 +427,11 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
     exclude_ids = [primary_program] if primary_program else []
     other_programs = _find_other_programs_covering(topic, exclude_ids)
 
-    sources_line = ", ".join(citations) if citations else "the scoped curriculum"
+    from src.utils import humanize_source_citation
+    sources_line = (
+        ", ".join(humanize_source_citation(c, PROGRAM_SYNONYMS) for c in citations)
+        if citations else "the scoped curriculum"
+    )
     if primary_program:
         result_line = (
             f"*Result:* *{topic}* is not listed as a taught topic in the {program_name} syllabus, "

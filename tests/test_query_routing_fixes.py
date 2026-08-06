@@ -143,6 +143,21 @@ def test_dsml_matches_any_version():
     assert len(matched) == 2
 
 
+def test_humanize_source_citation():
+    from src.utils import humanize_source_citation
+    assert humanize_source_citation("Cloud_Engineering_bootcamp_2025_12.md", PROGRAM_SYNONYMS) == \
+        "Cloud Engineering bootcamp syllabus (December 2025)"
+    assert humanize_source_citation("Certifications_2025_07.md", PROGRAM_SYNONYMS) == \
+        "Certifications guide (July 2025)"
+    assert humanize_source_citation("Data_Science_&_Machine_Learning_bootcamp_2026_02.txt", PROGRAM_SYNONYMS) == \
+        "Data Science & Machine Learning bootcamp syllabus (February 2026)"
+    assert humanize_source_citation("mein_now_title_equivalence.md", PROGRAM_SYNONYMS) == \
+        "MeinNOW course title mapping"
+    # unknown files degrade gracefully, never crash
+    assert humanize_source_citation("Some_Other_Doc_2025_03.md", PROGRAM_SYNONYMS) == \
+        "Some Other Doc (March 2025)"
+
+
 def test_program_for_source():
     assert program_for_source("Cloud_Engineering_bootcamp_2025_12.md", PROGRAM_SYNONYMS) == "cloud_engineering"
     assert program_for_source("Certifications_2025_07.md", PROGRAM_SYNONYMS) is None
