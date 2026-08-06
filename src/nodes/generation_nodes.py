@@ -142,6 +142,7 @@ def generate_response_node(state: RAGState) -> RAGState:
     entity_emphasis = ""
     _known_short_terms = {
         "AI", "IT", "PT", "FT", "EN", "ES", "UX", "UI", "THE", "AND", "FOR", "HOW", "WHAT",
+        "FYI", "ASAP", "BTW", "IMO", "EOD", "PS", "OK",
     } | {(info.get("code") or "").upper() for info in PROGRAM_SYNONYMS.values()}
     _query_acronyms = set(re.findall(r"\b[A-Z]{2,6}\b", f"{state.get('query', '')} {enhanced_query}"))
     _missing_entities = sorted(
@@ -184,10 +185,35 @@ Generate a comprehensive, accurate answer with proper source citations.
 
     generated_response = call_openai_text(system_prompt, user_prompt)
 
-    # Citations = syllabus sources we actually grounded on (trust, not random chunk names)
+    # Deterministic disclaimer: never trust the model to follow the
+    # undocumented-entity instruction (it intermittently ignored it and dumped
+    # generic info for the IHK question). If the answer doesn't address the
+    # missing entity, prepend the honest statement ourselves.
+    if _missing_entities and generated_response and not any(
+        e.lower() in generated_response.lower() for e in _missing_entities
+    ):
+        _ents = ", ".join(_missing_entities)
+        generated_response = (
+            f"I don't have any documentation about '{_ents}' - the Education team can "
+            f"confirm whether it exists.\n\n_Related information from our documentation:_\n"
+            f"{generated_response}"
+        )
+        logger.info(f"Prepended undocumented-entity disclaimer for: {_missing_entities}")
+
+    # Citations = syllabus sources we actually grounded on (trust, not random chunk names).
+    # Universal docs (Certifications, Computer specs, ...) are legitimate grounding too:
+    # excluding them attributed certification answers to the wrong file.
     valid_detected = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
+    universal_docs = [
+        d for d in filtered_docs
+        if any(u in (d.get("source") or "").lower() for u in (
+            "certifications_2025_07", "computer_specs_min_requirements",
+            "course_design_overview", "ironhack_portfolio_overview",
+            "mein_now_title_equivalence",
+        ))
+    ]
     syllabus_docs = (
-        docs_for_program_syllabi(filtered_docs, valid_detected, PROGRAM_SYNONYMS)
+        docs_for_program_syllabi(filtered_docs, valid_detected, PROGRAM_SYNONYMS) + universal_docs
         if valid_detected
         else filtered_docs
     )
@@ -202,6 +228,9 @@ Generate a comprehensive, accurate answer with proper source citations.
         # Pass docs back including any injected term-index doc, so faithfulness
         # verification checks the answer against the same evidence generation saw
         "filtered_docs": filtered_docs,
+        # Routing uses this to finalize deliberate "entity not documented"
+        # answers instead of looping them through refinement
+        "undocumented_entities": _missing_entities,
         "generated_response": generated_response,
         "source_citations": citations
     }

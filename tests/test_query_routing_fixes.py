@@ -179,6 +179,24 @@ def test_local_topic_index_ignores_stopwords():
     assert idx == []
 
 
+def test_local_topic_index_drops_non_discriminative_terms():
+    # Ubiquitous terms ("projects", "work" via "workflow") appear in every
+    # syllabus - the index must drop them or a portfolio-wide question
+    # produces an index doc citing all 13 files (the empty-IHK-answer bug)
+    idx = local_topic_index("which bootcamp includes projects?", PROGRAM_SYNONYMS)
+    assert idx == []
+
+    idx = local_topic_index(
+        "How does the IHK certification work? For which bootcamp does it apply?",
+        PROGRAM_SYNONYMS,
+    )
+    programs_per_term = {}
+    for e in idx:
+        programs_per_term.setdefault(e["term"], set()).add(e["program_id"])
+    for term, programs in programs_per_term.items():
+        assert len(programs) <= len(PROGRAM_SYNONYMS) // 2, f"{term} spans too many programs"
+
+
 # ---------------- Sibling-program suggestion (local phrase scan) ----------------
 
 def test_sibling_check_finds_kubernetes_in_devops_not_ce():

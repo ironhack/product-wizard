@@ -81,6 +81,20 @@ def route_after_faithfulness_verification(state: RAGState) -> str:
     iteration_count = state.get("iteration_count", 0)
     query_intent = state.get("query_intent", "general_info")
 
+    # Deliberate "entity not documented" answers finalize immediately: when the
+    # query names an entity absent from every retrieved doc and the answer
+    # explicitly addresses that entity, that IS the correct answer - looping it
+    # through refinement can't improve it and previously ended in a dead fallback
+    undocumented_entities = state.get("undocumented_entities") or []
+    generated_response = state.get("generated_response", "")
+    if undocumented_entities and len(generated_response) > 100 and any(
+        e.lower() in generated_response.lower() for e in undocumented_entities
+    ):
+        logger.info(
+            f"Finalizing deliberate undocumented-entity answer ({undocumented_entities})"
+        )
+        return "finalize_response"
+
     # Adjust threshold based on query type
     # Comparison queries synthesize multiple documents, so lower threshold
     # RAG systems cannot retrieve full curricula, so be realistic about what can be verified

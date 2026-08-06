@@ -111,6 +111,15 @@ Generate an appropriate fun fallback response using the templates and routing ru
     # Use faster model for fallback generation (simpler task)
     fallback_response = call_openai_text(system_prompt, user_prompt, timeout=20)
 
+    # The fallback is the last resort - it must NEVER be empty (a failed API
+    # call here once produced a literally blank Slack reply)
+    if not (fallback_response or "").strip():
+        fallback_response = (
+            "I couldn't find a reliable answer to this in the documentation I have access to. "
+            "Rather than guess, I'd suggest asking the *Education team* here on Slack - "
+            "they can confirm the details directly."
+        )
+
     # Convert markdown formatting to Slack-friendly format
     fallback_response = convert_markdown_to_slack(fallback_response)
 

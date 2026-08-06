@@ -10,9 +10,10 @@ from langgraph.checkpoint.memory import MemorySaver
 from src.state import RAGState
 
 # ---------------- Query Nodes ----------------
+# (query_enhancement is kept for the ENHANCE_QUERY_KEYWORDS refinement retry;
+# program_detection is triage's job now and is no longer in the graph)
 from src.nodes.query_nodes import (
     query_enhancement_node,
-    program_detection_node,
 )
 
 # ---------------- Unified Triage Node ----------------
@@ -77,7 +78,6 @@ def build_workflow() -> StateGraph:
 
     # Add all nodes
     workflow.add_node("query_enhancement", query_enhancement_node)
-    workflow.add_node("program_detection", program_detection_node)
     workflow.add_node("unified_triage", unified_triage_node)
     workflow.add_node("hybrid_retrieval", hybrid_retrieval_node)
     workflow.add_node("relevance_assessment", relevance_assessment_node)
@@ -169,6 +169,11 @@ def build_workflow() -> StateGraph:
             "generate_fun_fallback": "generate_fun_fallback"
         }
     )
+
+    # After the ENHANCE_QUERY_KEYWORDS refinement re-enhances the query,
+    # retry retrieval with it. Without this edge the graph dead-ended here
+    # and the bot returned an EMPTY response for that refinement strategy.
+    workflow.add_edge("query_enhancement", "hybrid_retrieval")
 
     # Fun fallback and finalize both go to END
     workflow.add_edge("generate_fun_fallback", END)

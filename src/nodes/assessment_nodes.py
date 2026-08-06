@@ -73,13 +73,41 @@ def relevance_assessment_node(state: RAGState) -> RAGState:
         if conv_lines:
             conv_context = f"\nConversation Context:\n" + "\n".join(conv_lines)
 
-    # Batched assessment: ONE structured call scores every chunk, replacing up
-    # to ~30 parallel per-chunk calls (same latency, far fewer API calls)
-    chunks_block = "\n\n".join(
-        f"Chunk {idx+1} | Source: {doc.get('source', 'unknown')}\n{doc.get('content', '')[:400]}"
-        for idx, doc in enumerate(docs_to_assess)
-    )
-    user_prompt = f"""
+    # Batched assessment: sub-batches of chunks scored in parallel structured
+    # calls (2-4 calls total, replacing up to ~50 per-chunk calls). Sub-batching
+    # keeps each call small enough to finish inside the timeout - one 50-chunk
+    # call blew through 25s and burned ~75s in SDK retries.
+    _RELEVANCE_SCHEMA = {
+        "type": "object",
+        "properties": {
+            "assessments": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "chunk_id": {"type": "integer"},
+                        "relevance_score": {"type": "number"},
+                        "should_include": {"type": "boolean"},
+                        "reasoning": {"type": "string"},
+                    },
+                    "required": ["chunk_id", "relevance_score", "should_include", "reasoning"],
+                    "additionalProperties": False,
+                },
+            }
+        },
+        "required": ["assessments"],
+        "additionalProperties": False,
+    }
+
+    _BATCH_SIZE = 15
+
+    def _assess_batch(batch):
+        """batch: list of (global_idx, doc). Returns {global_chunk_id: assessment}."""
+        chunks_block = "\n\n".join(
+            f"Chunk {gidx+1} | Source: {doc.get('source', 'unknown')}\n{doc.get('content', '')[:400]}"
+            for gidx, doc in batch
+        )
+        user_prompt = f"""
 Query: "{enhanced_query}"
 Query Intent: {query_intent}
 Detected Programs: {detected_programs}{conv_context}
@@ -88,40 +116,31 @@ Assess EACH chunk below independently against the query, per your assessment gui
 
 {chunks_block}
 
-Return one assessment per chunk, keyed by chunk_id (1-based, matching the numbering above).
+Return one assessment per chunk, keyed by chunk_id (matching the numbering above).
 """
+        # Short timeout on purpose: a failed/slow call degrades gracefully (its
+        # chunks are kept at medium score), so waiting long here buys nothing
+        result = call_openai_json(
+            RELEVANCE_ASSESSMENT_PROMPT,
+            user_prompt,
+            timeout=25,
+            schema=_RELEVANCE_SCHEMA,
+            schema_name="relevance_assessments",
+        )
+        return {a.get("chunk_id"): a for a in (result.get("assessments") or [])}
 
-    logger.info(f"Batched relevance assessment: {len(docs_to_assess)} chunks in one call")
-    # Short timeout on purpose: a failed/slow call degrades gracefully (all
-    # chunks kept at medium score), so waiting long here buys nothing
-    result = call_openai_json(
-        RELEVANCE_ASSESSMENT_PROMPT,
-        user_prompt,
-        timeout=25,
-        schema={
-            "type": "object",
-            "properties": {
-                "assessments": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "chunk_id": {"type": "integer"},
-                            "relevance_score": {"type": "number"},
-                            "should_include": {"type": "boolean"},
-                            "reasoning": {"type": "string"},
-                        },
-                        "required": ["chunk_id", "relevance_score", "should_include", "reasoning"],
-                        "additionalProperties": False,
-                    },
-                }
-            },
-            "required": ["assessments"],
-            "additionalProperties": False,
-        },
-        schema_name="relevance_assessments",
-    )
-    by_id = {a.get("chunk_id"): a for a in (result.get("assessments") or [])}
+    indexed = list(enumerate(docs_to_assess))
+    batches = [indexed[i:i + _BATCH_SIZE] for i in range(0, len(indexed), _BATCH_SIZE)]
+    logger.info(f"Batched relevance assessment: {len(docs_to_assess)} chunks in {len(batches)} call(s)")
+
+    by_id = {}
+    if len(batches) == 1:
+        by_id = _assess_batch(batches[0])
+    else:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=min(4, len(batches))) as executor:
+            for partial in executor.map(_assess_batch, batches):
+                by_id.update(partial)
 
     assessed_docs = []
     relevance_scores = []

@@ -368,6 +368,7 @@ def local_topic_index(query: str, program_synonyms: Dict) -> List[Dict[str, Any]
         return []
 
     entries = []
+    programs_per_term = {}
     for pid in program_synonyms:
         docs = load_full_syllabus_docs([pid], program_synonyms)
         if not docs:
@@ -378,6 +379,7 @@ def local_topic_index(query: str, program_synonyms: Dict) -> List[Dict[str, Any]
         for term in terms:
             if term not in content_lower:
                 continue
+            programs_per_term[term] = programs_per_term.get(term, 0) + 1
             evidence = next(
                 (ln.strip() for ln in lines if term in ln.lower() and len(ln.strip()) > len(term)),
                 "",
@@ -389,6 +391,12 @@ def local_topic_index(query: str, program_synonyms: Dict) -> List[Dict[str, Any]
                 "source": docs[0]["source"],
                 "evidence": evidence[:200],
             })
+
+    # Drop non-discriminative terms: a word found in more than half the programs
+    # (e.g. "certification", "project") identifies nothing and bloats the index
+    # into a doc citing every syllabus
+    max_programs = max(1, len(program_synonyms) // 2)
+    entries = [e for e in entries if programs_per_term.get(e["term"], 0) <= max_programs]
     return entries
 
 
