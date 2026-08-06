@@ -43,8 +43,17 @@ Return JSON: {{"is_cohort_calendar_question": true/false, "reason": "brief expla
     result = call_openai_json(
         COHORT_CALENDAR_CLASSIFICATION_PROMPT or "You classify whether the user question is about cohort/calendar (teachers, PM, schedule). Return JSON with is_cohort_calendar_question (boolean) and reason (string).",
         user_prompt,
-        model="gpt-4o-mini",
         timeout=15,
+        schema={
+            "type": "object",
+            "properties": {
+                "is_cohort_calendar_question": {"type": "boolean"},
+                "reason": {"type": "string"},
+            },
+            "required": ["is_cohort_calendar_question", "reason"],
+            "additionalProperties": False,
+        },
+        schema_name="cohort_calendar_classification",
     )
     is_cohort = result.get("is_cohort_calendar_question", False)
     reason = result.get("reason", "")
@@ -124,7 +133,7 @@ def cohort_calendar_response_node(state: RAGState) -> RAGState:
             f"When the question is about who teaches: always give both Lead Teacher and Co-Teacher when present, and clearly label who is who (e.g. 'Lead teacher: X. Co-teacher: Y.')."
         )
         user_content = f"Cohort calendar data (canceled cohorts are marked):\n\n{context}\n\nUser question: {query}"
-        answer = call_openai_text(system, user_content, model="gpt-4o-mini", timeout=30)
+        answer = call_openai_text(system, user_content, timeout=30)
         if not answer:
             answer = "I couldn't generate an answer from the calendar. Please try again."
         final_response = convert_markdown_to_slack(answer)
@@ -172,7 +181,24 @@ def _extract_cohort_filters_from_query(query: str) -> dict:
         COHORT_CALENDAR_FILTER_EXTRACTION_PROMPT
         or "Extract from the user question: track (WD, DA, UX, ML, AI, DV, CY, MK, PM, AC, CE, DE), type (PT or FT), month (lowercase), year (4-digit), future_only (true if asking about next/upcoming cohorts). Return JSON: {\"track\": null or code, \"type\": null or \"PT\" or \"FT\", \"month\": null or \"may\", \"year\": null or 2026, \"future_only\": true or false}"
     )
-    result = call_openai_json(prompt, f'User question: "{query}"', model="gpt-4o-mini", timeout=10)
+    result = call_openai_json(
+        prompt,
+        f'User question: "{query}"',
+        timeout=10,
+        schema={
+            "type": "object",
+            "properties": {
+                "track": {"type": ["string", "null"]},
+                "type": {"type": ["string", "null"]},
+                "month": {"type": ["string", "null"]},
+                "year": {"type": ["integer", "null"]},
+                "future_only": {"type": "boolean"},
+            },
+            "required": ["track", "type", "month", "year", "future_only"],
+            "additionalProperties": False,
+        },
+        schema_name="cohort_filters",
+    )
     out = {}
     if result.get("track"):
         t = str(result["track"]).upper().strip()

@@ -108,7 +108,16 @@ def route_after_faithfulness_verification(state: RAGState) -> str:
     # These queries synthesize information and may not be perfectly grounded but still accurate
     if query_intent in ["comparison", "technical_detail"] and faithfulness_score >= threshold:
         return "finalize_response"
-    elif is_grounded and faithfulness_score >= threshold:
+    elif faithfulness_score >= threshold and not state.get("is_fallback", False):
+        # Critical violations were already handled above; a high score with no critical
+        # violations finalizes even if the verifier's is_grounded boolean disagrees.
+        # Some models return score=0.9 with is_grounded=false, which sent correct
+        # answers into pointless refinement loops ending in a fallback.
+        if not is_grounded:
+            logger.info(
+                f"Verifier score {faithfulness_score:.2f} >= {threshold} but is_grounded=false; "
+                "trusting the score (no critical violations)"
+            )
         return "finalize_response"
     # Allow refinement attempts based on query type
     elif iteration_count < max_iterations:

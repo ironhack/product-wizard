@@ -10,6 +10,7 @@ from src.state import RAGState
 from src.config import (
     VECTOR_STORE_ID,
     PROGRAM_SYNONYMS,
+    MODEL_FAST,
     openai_client,
 )
 from src.slack_helpers import send_slack_update
@@ -145,7 +146,7 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
 
         logger.info(f"🔍 Calling OpenAI Responses API with vector store search...")
         resp = openai_client.responses.create(
-            model="gpt-4o-mini",
+            model=MODEL_FAST,
             input=[{"role": "user", "content": retrieval_query}],
             instructions=instructions,
             tools=[{

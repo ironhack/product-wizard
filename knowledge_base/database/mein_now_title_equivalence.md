@@ -1,0 +1,640 @@
+On **MeinNOW.de**, we use multiple course titles to:
+
+- Improve keyword visibility
+- Match search intent (e.g. “SQL”, “Webentwickler”, “Data Mining”)
+- Increase course discovery
+
+⚠️ **Important:** These titles are **not separate courses**.
+
+They all map to one of our official Ironhack bootcamps listed below. As per 2026-08-06
+
+## 🟦 1. Web Development
+
+- AI Web Development mit JavaScript, React und Künstlicher Intelligenz
+- AI Web Development: Moderne Workflows mit KI-Unterstützung
+- AI Web Development: Full-Stack mit Node.js, APIs und KI
+- AI Web Development: Development with AI Tools
+- AI Web Development: Full-Stack and AI Integration
+- AI Web Development: JavaScript, React and AI
+- AI Web Development: Frontend, Backend und KI
+- AI Web Development: Fundamentals of Modern Web Development and AI
+- AI Web Development: Grundlagen für Anfänger:innen
+- AI Web Development: Step-by-Step Web Development for Beginners Using AI Tools
+- Full-Stack JavaScript Developer
+- React Frontend Mastery
+- Node.js Backend Essentials
+- MongoDB Database Integration
+- Git Workflow Collaboration
+- Responsive HTML CSS Design Advanced
+- JavaScript ES6+
+- API Development with Express
+- AI-Assisted Coding Practices
+- Modern Web App Building
+- Frontend Webentwicklung
+- Fullstack Programmierung
+- JavaScript React Anfänge
+- Backend Node.js Praxis
+- HTML CSS Responsive
+- MongoDB Daten modellieren
+- GitHub Versionskontrolle
+- Express API Erstellen
+- KI Coding Tools nutzen
+- Web Apps entwickeln
+- Webentwickler
+- Webentwickler Grundlagen
+- Webentwickler: Webentwicklung
+- Webentwickler: Webseiten programmieren
+- Webentwickler Website erstellen
+- Webentwickler HTML5 & CSS
+- Webentwickler JavaScript Einstieg
+- Webentwickler Frontend Praxis
+- Webentwickler Backend Basis
+- Webentwickler Full-Stack Start
+- Webentwickler für moderne Webentwicklun
+- Website erstellen
+- Website erstellen Grundlagen
+- Website erstellen für Webentwickler
+- Website erstellen mit HTML5 & CSS
+- Website erstellen mit JavaScript
+- Website erstellen: Webentwicklung für Anfänger
+- Website erstellen mit dem Fokus Frontend
+- Website erstellen mit dem Fokus Backend
+- Website erstellen mit SCSS
+- Website erstellen und Webdesign
+- JavaScript
+- JavaScript Grundlagen
+- JavaScript für Webentwicklung
+- JavaScript fürs Frontend
+- JavaScript und CSS
+- JavaScript mit HTML5
+- JavaScript für Webentwickler
+- JavaScript in der Webentwicklung
+- JavaScript DOM & Events
+- JavaScript Module & Build
+- JavaScript Performance
+
+## 🟪 2. UX/UI Design
+
+- UX UI Design
+- UX UI Design Grundlagen
+- UX UI Design und UX Design
+- UX UI Design & Interaction Design
+- UX UI Design im Webdesign
+- UX UI Design für Screendesign
+- UX UI Design und Interaktionsdesign
+- UX UI Design mit User Research
+- UX UI Design für Webdesigner
+- UX UI Design mit CPUX
+- UX UI Design Prototyping
+- Webdesign
+- Webdesign Grundlagen
+- Webdesign und UX Design
+- Webdesign & UI Design
+- Webdesign für Interaction Design
+- Webdesign im Screendesign
+- Webdesign und Interaktionsdesign
+- Webdesign mit UX Research
+- Webdesign für Webdesigner
+- Webdesign mit CPUX
+- Webdesign Barrierefreiheit
+- UX Management
+- UX Management Grundlagen
+- UX Management und Web Usability
+- UX Management für Designer
+- UX Management in UI Design
+- UX Management und Usability
+- UX Management für User Experience
+- UX Management mit Research
+- UX Management Responsive Webdesign
+- UX Management für UI Designer
+- UX Management Stakeholder
+- UX Product Design Basics
+- UI Product Interface Creation
+- Product Design Wireframing
+- User Research for Products
+- Prototyping Product Flows
+- Visual UI Product Elements
+- Design Systems for Products
+- Responsive Product Layouts
+- Accessibility in Product Design
+- Interaction Product Design
+- Produkt Design UX Grundlagen
+- UI Schnittstellen Produkt
+- Wireframes Produkt Erstellen
+- User Research Design
+- Prototypen Produkt Flows
+- Visuelle UI Elemente
+- Design Systeme Produkt
+- Responsive Layouts Design
+- Barrierefreies Produkt Design
+- Interaktions Design Produkt
+
+## **🟩 3. Data Analytics**
+
+- SQL
+- SQL Grundlagen
+- SQL Datenbanken
+- SQL für Data Analysten
+- SQL für Data Science
+- SQL Datenanalyse
+- SQL für Business-Intelligence-Analysten
+- SQL mit Power BI
+- SQL fürs Data Warehouse
+- SQL für Data Mining
+- SQL und Tableau
+- Data Analyst
+- Data Analyst Grundlagen
+- Data Analyst SQL
+- Data Analyst und Excel
+- Data Analyst und Power BI
+- Data Analyst Python
+- Data Analyst und Datenanalyse
+- Data Analyst Tableau
+- Data Analyst und Statistik
+- Data Analyst und Data Science
+- Data Analyst Datenbanken
+- Datenanalyse
+- Datenanalyse Grundlagen
+- Datenanalyse mit Python
+- Datenanalyse mit SQL
+- Datenanalyse für Data Analysten
+- Datenanalyse mit Power BI
+- Datenanalyse und Statistik
+- Datenanalyse in Data Science
+- Datenanalyse mit Tableau
+- Datenanalyse und Datenbanken
+- Datenanalyse Data Mining
+- Tableau
+- Tableau Grundlagen
+- Tableau Datenanalyse
+- Tableau fürs Data Warehouse
+- Tableau & Data Science
+- Tableau mit Python
+- Tableau und SQL
+- Tableau für Data Analysten
+- Tableau mit Power BI
+- Tableau Statistik
+- Tableau Dashboards
+- SQL Query Fundamentals
+- Python Data Manipulation
+- Excel Advanced Analytics
+- Power BI Dashboard Creation
+- Tableau Visualization Tools
+- Statistical Data Insights
+- Data Cleaning Techniques
+- Business Intelligence Queries
+- ETL Process Basics
+- Exploratory Data Analysis
+- SQL Abfragen Basis
+- Python Daten Verarbeiten
+- Excel Datenanalyse Fortgeschritten
+- Power BI Dashboards bauen
+- Tableau Visualisierungen
+- Statistische Analysen
+- Daten Bereinigen Methoden
+- Business Intelligence SQL
+- ETL Prozesse Einführung
+- Explorative Datenuntersuchung
+
+## **🟨 4. Data Science & Machine Learning**
+
+- Data Science & Machine Learning Fundamentals
+- Data Science & Machine Learning: Python and Statistics
+- Data Science & Machine Learning: Supervised and Unsupervised Learning
+- Data Science & Machine Learning: Deep Learning Anwendungen verstehen
+- Data Science & Machine Learning: Grundlagen für Einsteiger:innen
+- Data Science & Machine Learning: Essential Skills
+- Data Science & Machine Learning: Praxisorientierte Strategien
+- Data Science & Machine Learning: Projekte mit Python
+- Data Science & Machine Learning: Practical Learning for Beginners
+- Data Science & Machine Learning with Applied AI
+- Data Mining
+- Data Mining Grundlagen
+- Data Mining für Big Data
+- Data Mining & Machine Learning
+- Data Mining mit R Statistik
+- Data Mining und NoSQL
+- Data Mining mit TensorFlow
+- Data Mining und Big Data Analytics
+- Data Mining fürs Data Warehouse
+- Data Mining mit Tableau
+- Data Mining Prozesse
+- Big Data
+- Big Data Grundlagen
+- Big Data Analytics
+- Big Data und NoSQL
+- Big Data für Data Mining
+- Big Data: Deep Learning
+- Big Data mit TensorFlow
+- Big Data Azure und Data Engineer
+- Big Data Transact-SQL
+- Big Data Neuronale Netze
+- Big Data Architektur
+- Python ML Foundations
+- Supervised Learning Models
+- Unsupervised Clustering Tech
+- Deep Learning Basics
+- Statistics for Data Science
+- Scikit-Learn Algorithms
+- Neural Network Introduction
+- MLOps Deployment Practices
+- Predictive Modeling Projects
+- Feature Engineering Skills
+- Python Machine Learning Basis
+- Überwachtes Lernen Modelle
+- Unüberwachtes Clustering
+- Tiefe Lernnetze Einführung
+- Statistik Data Science
+- Scikit-Learn Algorithmen
+- Neuronale Netze Grundlagen
+- MLOps Deployment Praxis
+- Vorhersagemodelle Projekte
+- Feature Engineering Techniken
+
+## **🟧 5. DevOps and Cloud Computing**
+
+- Linux
+- Linux Grundlagen
+- Linux Netzwerktechnik
+- Linux mit Kubernetes
+- Linux und VMware
+- Linux mit Hyper-V
+- Linux: Embedded Linux
+- Linux für DevOps Engineer
+- Linux für Anfänger
+- Linux Netzwerke
+- Linux auf Amazon Web Services
+- DevOps Engineer Grundlagen
+- DevOps Engineer CI/CD
+- DevOps Engineer Container
+- DevOps Engineer Automatisierung
+- DevOps Engineer Tools
+- DevOps Engineer Cloud
+- DevOps Engineer IaC
+- DevOps Engineer Monitoring
+- DevOps Engineer Agilität
+- DevOps Engineer Karriere
+- CI CD Pipeline Grundlagen
+- CI CD Pipeline mit Jenkins
+- CI CD Pipeline mit GitLab
+- CI CD Pipeline Automatisierung
+- CI CD Pipeline Testing
+- CI CD Pipeline mit Git
+- CI CD Pipeline Deployment
+- CI CD Pipeline Best Practices
+- CI CD Pipeline in der Cloud
+- CI CD Pipeline mit Docker
+- Infrastructure as Code Grundlagen
+- Infrastructure as Code mit Ansible
+- Infrastructure as Code mit Terraform
+- Infrastructure as Code Cloud
+- Infrastructure as Code mit Docker
+- Infrastructure as Code Kubernetes
+- Infrastructure as Code mit Puppet
+- Infrastructure as Code Best Practices
+- Infrastructure as Code Monitoring
+- Infrastructure as Code Sicherheit
+- Linux System Administration
+- CI/CD Pipeline Automation
+- Docker Containerization
+- Kubernetes Orchestration
+- Terraform Infrastructure Code
+- Ansible Configuration Mgmt
+- Jenkins Pipeline Building
+- GitOps Workflow Practices
+- Monitoring with Prometheus
+- Agile DevOps Methodologies
+- Linux Systemverwaltung
+- CI/CD Automatisierung
+- Docker Container Technik
+- Kubernetes Orchestrierung
+- Terraform IaC Grundlagen
+- Ansible Konfiguration
+- Jenkins Pipelines erstellen
+- GitOps Workflows
+- Prometheus Monitoring
+- Agile DevOps Methoden
+
+## **🟫 6. Cloud Engineering**
+
+- Netzwerktechnik
+- Netzwerktechnik Cloud Grundlagen
+- Netzwerktechnik Cloud für Azure
+- Netzwerktechnik Cloud für AWS
+- Netzwerktechnik Cloud für GCP
+- Netzwerktechnik Cloud und Kubernetes
+- Netzwerktechnik Cloud mit VMware
+- Netzwerktechnik Cloud mit Hyper-V
+- Netzwerktechnik Cloud Security
+- Netzwerktechnik Cloud Automatisierung
+- Netzwerktechnik Cloud Architektur
+- AWS Cloud Architecture
+- Azure Networking Setup
+- GCP Resource Management
+- VPC Virtual Networks
+- Load Balancer Configuration
+- Multi-Cloud Strategies
+- Security Group Policies
+- Hybrid Cloud Connectivity
+- Cloud Cost Optimization
+- Observability Tools Cloud
+- Cloud Architektur AWS
+- Azure Netzwerk Konfiguration
+- GCP Ressourcen Verwalten
+- VPC Virtuelle Netze
+- Load Balancer Einstellen
+- Multi-Cloud Strategien
+- Sicherheitsgruppen Cloud
+- Hybrid Cloud Verbindungen
+- Cloud Kosten Optimierung
+- Observability Cloud Tools
+
+## **🟥 7. Data Engineering**
+
+- Data Pipeline Grundlagen
+- Data Pipeline mit Airflow
+- Data Pipeline und dbt
+- Data Pipeline Big Data
+- Data Pipeline mit Apache Spark
+- Data Pipeline ETL/ELT
+- Data Pipeline Echtzeit
+- Data Pipeline Automatisierung
+- Data Pipeline für Analytics
+- Data Pipeline Performance
+- Cloud Data Warehouse Grundlagen
+- Cloud Data Warehouse mit Snowflake
+- Cloud Data Warehouse mit BigQuery
+- Cloud Data Warehouse mit Redshift
+- Cloud Data Warehouse in Azure
+- Cloud Data Warehouse mit Terraform
+- Cloud Data Warehouse Multi-Cloud
+- Cloud Data Warehouse und Docker
+- Cloud Data Warehouse Governance
+- Cloud Data Warehouse für KI
+- Python Data Engineering
+- Python Data mit SQL
+- Python Data mit Pandas
+- Python Data NumPy
+- Python Data Schemas
+- Python Data Verarbeitung
+- Python Data Qualität
+- Python Data Git Workflows
+- Python Data für ETL
+- Python Data mit Great Expectations
+- Python ETL Pipelines
+- SQL Data Transformation
+- Pandas Data Wrangling
+- Apache Spark Processing
+- Airflow Workflow Scheduling
+- dbt Modeling Practices
+- Snowflake Warehouse Usage
+- BigQuery Query Optimization
+- Data Quality Testing
+- Real-Time Streaming Kafka
+- Python ETL Rohrleitungen
+- SQL Daten Transformation
+- Pandas Daten Bereinigung
+- Spark Verarbeitung Big Data
+- Airflow Scheduling Workflows
+- dbt Modellierung Praxis
+- Snowflake Data Warehouse
+- BigQuery Optimierung
+- Datenqualität Tests
+- Echtzeit Streaming Kafka
+
+## **🛡 8. Cybersecurity**
+
+- Cybersicherheit Grundlagen
+- Cybersicherheit für Anfänger
+- Cybersicherheit CompTIA Security+
+- Cybersicherheit Netzwerkschutz
+- Cybersicherheit Incident Response
+- Cybersicherheit mit SIEM
+- Cybersicherheit Cyberangriff
+- Cybersicherheit Forensik
+- Cybersicherheit Schwachstellenanalyse
+- Cybersicherheit Berufsstart
+- Netzwerksicherheit
+- Netzwerksicherheit Grundlagen
+- Netzwerksicherheit Protokolle
+- Netzwerksicherheit mit Firewalls
+- Netzwerksicherheit OWASP
+- Netzwerksicherheit Verteidigung
+- Netzwerksicherheit Systemhärtung
+- Netzwerksicherheit Topologien
+- Netzwerksicherheit Konfiguration
+- Netzwerksicherheit Abwehrsystem
+- Netzwerksicherheit in der Cloud
+- IT-Security Analyst
+- IT-Security Analyst Incident Triage
+- IT-Security Analyst Schwachstellenscan
+- IT-Security Analyst Schadensbeurteilung
+- IT-Security Analyst mit SIEM
+- IT-Security Analyst Digitale Beweise
+- IT-Security Analyst Forensik Methoden
+- IT-Security Analyst Architekturbewertung
+- IT-Security Analyst Karriereeinstieg
+- IT-Security Analyst Berichte erstellen
+- Network Security Protocols
+- Firewall Configuration Basics
+- Incident Response Procedures
+- SIEM Tool Monitoring
+- Vulnerability Scanning Tech
+- Ethical Hacking Techniques
+- Digital Forensics Analysis
+- Risk Assessment Methods
+- CompTIA Security Principles
+- Threat Detection Strategies
+- Netzwerksicherheit Protokolle
+- Firewall Konfiguration
+- Incident Response Abläufe
+- SIEM Überwachung Tools
+- Schwachstellen Scanning
+- Ethical Hacking Methoden
+- Digitale Forensik Analyse
+- Risikobewertung Techniken
+- Security+ Prinzipien
+- Bedrohungserkennung Strategien
+
+## **🟪 9. AI Engineering**
+
+- Artificial Intelligence
+- Artificial Intelligence Basics
+- Artificial Intelligence with Python
+- Artificial Intelligence Data Science
+- Artificial Intelligence für Data Analysts
+- Artificial Intelligence Statistics
+- Artificial Intelligence und NLP
+- Artificial Intelligence und SQL
+- Artificial Intelligence und Power BI
+- Artificial Intelligence für Data Scientists
+- Artificial Intelligence Data Analysis
+- NLP Online
+- NLP Online Grundlagen
+- NLP Online für Datenanalyse
+- NLP Online mit Python
+- NLP Online und Data Science
+- NLP Online für Data Analysten
+- NLP Online und KI Programmierung
+- NLP Online und Statistik
+- NLP Online und Künstliche Intelligenz
+- NLP Online Text Mining
+- NLP Online Modelle
+- Python AI Programming
+- Machine Learning Scikit
+- NLP Text Processing
+- Prompt Engineering Techniques
+- Neural Networks PyTorch
+- Computer Vision Basics
+- LLM Fine-Tuning Methods
+- API Integration AI Models
+- MLOps AI Deployment
+- Generative AI Applications
+- Python KI Programmierung
+- Machine Learning Scikit
+- NLP Textverarbeitung
+- Prompt Engineering KI
+- Neuronale Netze PyTorch
+- Computer Vision Grundlagen
+- LLM Feinabstimmung
+- API Integration Modelle
+- MLOps KI Deployment
+- Generative KI Anwendungen
+
+## **🟦 10. AI Consulting & Integration**
+
+- KI Consulting Grundlagen
+- KI Consulting für Business
+- KI Consulting Strategie
+- KI Consulting mit Azure
+- KI Consulting Use Case Validation
+- KI Consulting Business Intelligence
+- KI Consulting für Unternehmen
+- KI Consulting Projektmanagement
+- KI Consulting und Ethik
+- KI Consulting Berufsstart
+- KI Integration Grundlagen
+- KI Integration mit Python
+- KI Integration APIs
+- KI Integration n8n
+- KI Integration Autonome Agenten
+- KI Integration LLMs RAG
+- KI Integration Workflows
+- KI Integration No-Code
+- KI Integration Transformer
+- KI Integration Multimodal
+- Responsible AI Grundlagen
+- Responsible AI EU AI Act
+- Responsible AI Bias erkennen
+- Responsible AI Fairness
+- Responsible AI Nachhaltigkeit
+- Responsible AI Governance
+- Responsible AI Recht
+- Responsible AI Entscheidungsprozesse
+- Responsible AI Dashboarding
+- Responsible AI Capstone
+- AI Strategy Development
+- Python Automation Scripts
+- API Workflow Integration
+- RAG LLM Implementation
+- Responsible AI Ethics
+- EU AI Act Compliance
+- Business Use Case Validation
+- Agile AI Project Mgmt
+- No-Code AI Tools
+- Agentic AI Systems
+- KI Strategie Entwicklung
+- Python Automatisierung
+- API Workflow Integration
+- RAG LLM Umsetzung
+- Verantwortungsvolle KI Ethik
+- EU AI Act Konformität
+- Business Use Cases Validieren
+- Agile KI Projektleitung
+- No-Code KI Tools
+- Agentische KI Systeme
+
+## **🟩 11. AI-Driven Marketing Analyst**
+
+- KI Marketing Strategie
+- KI Marketing Full-Funnel
+- KI Marketing mit ChatGPT
+- KI Marketing Performance Max
+- KI Marketing Analytics
+- KI Marketing Automatisierung
+- KI Marketing Personalisierung
+- KI Marketing Social Media
+- KI Marketing für Growth
+- KI Content Marketing Grundlagen
+- KI Content Marketing SEO
+- KI Content Marketing Inbound
+- KI Content Marketing E-Mail
+- KI Content Marketing Landingpages
+- KI Content Marketing mit LLMs
+- KI Content Marketing mit Generativer KI
+- KI Content Marketing Strategie
+- KI Content Marketing Videoanzeigen
+- KI Content Marketing Conversion
+- Marketing Automation mit KI
+- Marketing Automation mit Make
+- Marketing Automation Workflows
+- Marketing Automation mit CRM
+- Marketing Automation und GA4
+- Marketing Automation Tracking
+- Marketing Automation Dashboards
+- Marketing Automation Retargeting
+- Marketing Automation E-Commerce
+- Marketing Automation KPIs
+- AI Marketing Strategy
+- Full-Funnel Automation
+- ChatGPT Content Generation
+- Performance Max Campaigns
+- SEO AI Optimization
+- Social Media Personalization
+- GA4 Analytics Dashboards
+- CRM Marketing Workflows
+- Predictive Lead Scoring
+- Content Marketing LLMs
+- KI Marketing Strategie
+- Full-Funnel Automatisierung
+- ChatGPT Inhalte Generieren
+- Performance Max Kampagnen
+- SEO KI Optimierung
+- Social Media Personalisierung
+- GA4 Analyse Dashboards
+- CRM Marketing Workflows
+- Vorhersage Lead Scoring
+- Content Marketing LLMs
+
+## **🟨 12. AI Product Manager**
+
+- AI-Driven Product Discovery & Delivery
+- End-to-End AI Product Management
+- Produktmanagement mit KI
+- Product Manager Grundlagen
+- Product Lifecycle Management with AI
+- Building Products with AI
+- AI-Driven Product Management
+- Digital Product Management
+- Product Leadership & Delivery
+- Produktmanagement in der Praxis
+- AI Product Roadmapping
+- Agile Product Development
+- Jira Backlog Management
+- Figma AI Prototyping
+- MVP Building Practices
+- OKR KPI Tracking
+- Stakeholder Communication
+- Product Discovery AI
+- Launch Strategy Planning
+- User Story Writing AI
+- KI Produkt Roadmap
+- Agile Produktentwicklung
+- Jira Backlog Pflege
+- Figma Prototyping KI
+- MVP Aufbau Praxis
+- OKR KPI Verfolgung
+- Stakeholder Kommunikation
+- Produktentdeckung KI
+- Launch Strategie Planung
+- User Stories KI Schreiben

@@ -58,7 +58,7 @@ Analyze and enhance this query following the guidelines.
 """
 
     # Use faster model for query enhancement (can use mini for speed)
-    result = call_openai_json(QUERY_ENHANCEMENT_PROMPT, user_prompt, model="gpt-4o-mini", timeout=15)
+    result = call_openai_json(QUERY_ENHANCEMENT_PROMPT, user_prompt, timeout=15)
 
     enhanced_query = result.get("enhanced_query", query)
     query_intent = result.get("query_intent", "general_info")
@@ -108,7 +108,7 @@ Detect which programs this query is about and build appropriate namespace filter
 """
 
     # Use faster model for program detection (classification task)
-    result = call_openai_json(PROGRAM_DETECTION_PROMPT, user_prompt, model="gpt-4o-mini", timeout=15)
+    result = call_openai_json(PROGRAM_DETECTION_PROMPT, user_prompt, timeout=15)
 
     detected_programs = result.get("detected_programs", [])
     namespace_filter = result.get("namespace_filter")

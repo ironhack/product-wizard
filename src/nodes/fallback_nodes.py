@@ -72,7 +72,7 @@ Determine the best refinement strategy to improve results.
 """
 
     # Use faster model for refinement strategy selection (classification task)
-    result = call_openai_json(REFINEMENT_STRATEGIES_PROMPT, user_prompt, model="gpt-4o-mini", timeout=15)
+    result = call_openai_json(REFINEMENT_STRATEGIES_PROMPT, user_prompt, timeout=15)
 
     selected_strategy = result.get("selected_strategy", "FUN_FALLBACK")
     refinement_params = result.get("parameters", {})
@@ -109,7 +109,7 @@ Programs: {detected_programs}
 Generate an appropriate fun fallback response using the templates and routing rules provided."""
 
     # Use faster model for fallback generation (simpler task)
-    fallback_response = call_openai_text(system_prompt, user_prompt, model="gpt-4o-mini", timeout=20)
+    fallback_response = call_openai_text(system_prompt, user_prompt, timeout=20)
 
     # Convert markdown formatting to Slack-friendly format
     fallback_response = convert_markdown_to_slack(fallback_response)

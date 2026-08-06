@@ -22,6 +22,13 @@ VECTOR_STORE_ID = os.environ.get("OPENAI_VECTOR_STORE_ID", "vs_xxx")
 # Initialize OpenAI client
 openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
+# ---------------- Model Selection ----------------
+# Centralized so the whole pipeline can move to a new model family via env vars,
+# no code changes. FAST runs classification/verification/routing; QUALITY runs
+# user-facing generation.
+MODEL_FAST = os.environ.get("OPENAI_MODEL_FAST", "gpt-4o-mini")
+MODEL_QUALITY = os.environ.get("OPENAI_MODEL_QUALITY", "gpt-4o")
+
 # Initialize Slack WebClient singleton for thread-safe reuse
 slack_web_client = slack_sdk.WebClient(token=SLACK_BOT_TOKEN) if SLACK_BOT_TOKEN else None
 

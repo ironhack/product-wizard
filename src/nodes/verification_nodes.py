@@ -65,7 +65,21 @@ Is this a curriculum coverage question (asking if a program includes/teaches spe
 Return JSON: {{"is_coverage_question": true/false, "reasoning": "explanation"}}
 """
 
-    result = call_openai_json(COVERAGE_CLASSIFICATION_PROMPT, user_prompt, model="gpt-4o-mini", timeout=15)
+    result = call_openai_json(
+        COVERAGE_CLASSIFICATION_PROMPT,
+        user_prompt,
+        timeout=15,
+        schema={
+            "type": "object",
+            "properties": {
+                "is_coverage_question": {"type": "boolean"},
+                "reasoning": {"type": "string"},
+            },
+            "required": ["is_coverage_question", "reasoning"],
+            "additionalProperties": False,
+        },
+        schema_name="coverage_classification",
+    )
     is_coverage = result.get("is_coverage_question", False)
 
     logger.info(f"Coverage Question: {is_coverage}")
@@ -133,7 +147,7 @@ Return JSON: {{"is_present": true/false, "topic": "extracted topic", "evidence":
 """
 
     # Use faster model for verification (classification task)
-    result = call_openai_json(COVERAGE_VERIFICATION_PROMPT, user_prompt, model="gpt-4o-mini", timeout=20)
+    result = call_openai_json(COVERAGE_VERIFICATION_PROMPT, user_prompt, timeout=20)
 
     coverage_verification = {
         "is_present": result.get("is_present", False),
@@ -212,8 +226,59 @@ Generated Answer:
 Verify that every claim in the generated answer is grounded in the retrieved documents.
 """
 
-    # Use faster model for faithfulness verification (can use mini for speed)
-    result = call_openai_json(FAITHFULNESS_VERIFICATION_PROMPT, user_prompt, model="gpt-4o-mini", timeout=25)
+    # Strict schema keeps the score/flags coherent across model families
+    result = call_openai_json(
+        FAITHFULNESS_VERIFICATION_PROMPT,
+        user_prompt,
+        timeout=25,
+        schema={
+            "type": "object",
+            "properties": {
+                "faithfulness_score": {
+                    "type": "number",
+                    "description": "0.0-1.0 per the scoring guidelines",
+                },
+                "is_grounded": {
+                    "type": "boolean",
+                    "description": "true when all material claims are supported by the documents; must be consistent with faithfulness_score >= 0.7",
+                },
+                "is_fallback": {"type": "boolean"},
+                "violations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "severity": {
+                                "type": "string",
+                                "enum": ["critical", "major", "minor"],
+                                "description": "critical ONLY if the violation misleads about the core answer to the user's question; peripheral unsupported additions are minor",
+                            },
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "fabricated_fact",
+                                    "cross_contamination",
+                                    "wrong_numbers",
+                                    "invented_tech",
+                                    "false_citation",
+                                    "entity_not_addressed",
+                                ],
+                            },
+                            "claim": {"type": "string"},
+                            "evidence": {"type": "string"},
+                        },
+                        "required": ["severity", "type", "claim", "evidence"],
+                        "additionalProperties": False,
+                    },
+                },
+                "summary": {"type": "string"},
+                "recommendation": {"type": "string"},
+            },
+            "required": ["faithfulness_score", "is_grounded", "is_fallback", "violations", "summary", "recommendation"],
+            "additionalProperties": False,
+        },
+        schema_name="faithfulness_verification",
+    )
 
     faithfulness_score = result.get("faithfulness_score", 0.5)
     is_grounded = result.get("is_grounded", False)

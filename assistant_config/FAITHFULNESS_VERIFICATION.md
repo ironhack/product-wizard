@@ -83,6 +83,15 @@ For each factual claim in the answer:
 - Absence of concrete facts from the retrieved context
 - Overall response length extremely short without specifics
 
+## Severity Calibration (IMPORTANT)
+
+Severity is about impact on the user's actual question, not about strictness:
+- **critical**: The violation would mislead the user about the CORE answer to their question - wrong numbers for a duration question, wrong program described, an invented main fact, a false citation supporting the central claim. Critical violations block the response entirely.
+- **major**: A substantive supporting claim is unsupported or wrong, but the core answer remains correct.
+- **minor**: A peripheral, incidental addition not central to the question (e.g. a passing remark about delivery format in a duration answer, a stylistic generalization). The core answer is correct and fully supported.
+
+Do NOT rate peripheral additions as critical. If the user asked "how long is X?" and the hours are correct and cited, an unsupported side remark is minor - flag it, but it must not block an otherwise correct answer.
+
 ## Output Format
 
 Return JSON:

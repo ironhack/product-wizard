@@ -260,6 +260,95 @@
       "FAIL if the assistant confuses Databricks (substring 'da') with the DA program code.",
       "Accept a honest negative if Databricks is not in the Data Engineering excerpts retrieved, as long as sourcing is correct."
     ]
+  },
+  {
+    "id": "breakdown_dsml_units",
+    "query": "can you generate a detailed Unit breakdown of the topics covered in the Data Science & Machine Learning Part Time bootcamp?",
+    "expected_answer": "A complete unit-by-unit breakdown of the DSML bootcamp covering the ENTIRE program: prework plus all units from Intro/Python through SQL, statistics/ML, deep learning, MLOps/computer vision, NLP, Generative AI/LLMs, and the final capstone project. Sourced from the Data Science & Machine Learning syllabus.",
+    "expected_citations": [
+      {
+        "document": "Data_Science_&_Machine_Learning_bootcamp_2026_02.md",
+        "reference": "Full syllabus structure",
+        "evidence": "The answer must cover the full unit structure from prework to capstone, not a fragment."
+      }
+    ],
+    "judge_criteria": [
+      "CRITICAL: This is a breakdown request, NOT a coverage question. FAIL immediately if the response says a topic 'is not mentioned in that curriculum' or contains the phrase 'the requested topic'.",
+      "The answer must present a multi-unit structure covering the program from beginning (prework/intro) to end (capstone/final project) - at least 6 distinct units/sections.",
+      "FAIL if the answer covers only 1-2 units and tells the user to contact a team for the rest.",
+      "Citation must reference the Data Science & Machine Learning syllabus (any date version; .txt or .md equivalent).",
+      "Pass with 8+ if the full structure is present and sourced; exact unit numbering variations are acceptable."
+    ]
+  },
+  {
+    "id": "breakdown_de_week_by_week",
+    "query": "can you generate a detailed week by week overview of what will be covered in the Data Engineering Full Time bootcamp?",
+    "expected_answer": "A week-by-week overview of the full 9-week Data Engineering bootcamp: prework, programming foundations, data modeling/storage, ETL/ELT pipelines (Airflow, dbt), Spark, cloud data warehousing, streaming (Kafka), data reliability/governance, and the capstone weeks.",
+    "expected_citations": [
+      {
+        "document": "Data_Engineering_bootcamp_2025_12.md",
+        "reference": "Full week-by-week structure",
+        "evidence": "All weeks including capstone must be present, not only weeks 5-6."
+      }
+    ],
+    "judge_criteria": [
+      "CRITICAL: FAIL immediately if the response contains 'the requested topic' or claims the topic is not mentioned in the curriculum.",
+      "The answer must cover the ENTIRE program week by week - from week 1 (or prework) through the final capstone weeks - not a subset of weeks.",
+      "FAIL if the answer presents only some weeks (e.g. only weeks 5-6) and defers the rest to another team.",
+      "Citation must reference the Data Engineering syllabus.",
+      "Pass with 8+ if all weeks appear with topics; consolidation of capstone weeks (e.g. 'Weeks 8-9') is fine."
+    ]
+  },
+  {
+    "id": "portfolio_linux_sweep",
+    "query": "which course have linux in?",
+    "expected_answer": "Linux appears in the curriculum of DevOps & Cloud Computing, Cybersecurity, and Cloud Engineering. Each program should be named with a short note of how Linux appears, citing each program's syllabus.",
+    "expected_citations": [
+      {
+        "document": "DevOps_bootcamp_2025_07.md",
+        "reference": "Linux fundamentals, scripting, deployment",
+        "evidence": "Linux appears in the DevOps, Cybersecurity, and Cloud Engineering syllabi (confirmed by literal scan of the local syllabus files)."
+      }
+    ],
+    "judge_criteria": [
+      "CRITICAL: This is a portfolio-wide question. The answer must name ALL THREE of: DevOps (or DevOps & Cloud Computing), Cybersecurity, and Cloud Engineering as programs that include Linux.",
+      "FAIL if only one program (e.g. only DevOps) is named as including Linux.",
+      "Each named program should have a citation or clear reference to its own syllabus document.",
+      "Naming additional programs is acceptable ONLY if presented as mentioned in their documentation; do not penalize omission of programs beyond the three.",
+      "Pass with 8+ if all three programs are listed with brief descriptions and sources."
+    ]
+  },
+  {
+    "id": "entity_ihk_undocumented",
+    "query": "How does the IHK certification work? For which bootcamp does it apply?",
+    "expected_answer": "The assistant must explicitly state that it has no documentation about the IHK certification and suggest confirming with the Education team. It may then add clearly-labeled general certification information, but only AFTER the explicit statement that IHK is not documented.",
+    "expected_citations": [],
+    "judge_criteria": [
+      "CRITICAL: The answer MUST explicitly state that IHK is not documented / no documentation about IHK exists, ideally as the opening statement.",
+      "FAIL if the answer describes Ironhack's general certification catalog as if it answered the IHK question, without ever addressing IHK by name.",
+      "Mentioning that the Education team can confirm whether IHK exists is expected.",
+      "Additional general certification info AFTER the explicit disclaimer is acceptable and should not lower the score.",
+      "Pass with 8+ if the IHK gap is stated clearly and nothing about IHK is fabricated."
+    ]
+  },
+  {
+    "id": "negative_ce_kubernetes_sibling",
+    "query": "does Cloud Engineering cover kubernetes?",
+    "expected_answer": "A clear scoped negative: Kubernetes is not listed in the Cloud Engineering syllabus (citing Cloud_Engineering_bootcamp_2025_12), plus a redirect noting that Kubernetes IS covered in the DevOps & Cloud Computing curriculum, and a note that syllabus summaries may omit brief lesson-level exposure (Education team can confirm).",
+    "expected_citations": [
+      {
+        "document": "Cloud_Engineering_bootcamp_2025_12.md",
+        "reference": "Scoped syllabus check",
+        "evidence": "Kubernetes does not appear in the Cloud Engineering syllabus; it does appear in the DevOps syllabus."
+      }
+    ],
+    "judge_criteria": [
+      "The answer must be a negative scoped to Cloud Engineering, citing the Cloud Engineering syllabus as what was checked.",
+      "CRITICAL: The answer must redirect the reader by naming DevOps (or DevOps & Cloud Computing) as a program whose curriculum DOES include Kubernetes.",
+      "The program must be called 'Cloud Engineering' (not a raw code like 'ce').",
+      "A nuance note that syllabus summaries may omit lesson-level exposure is expected and must not be penalized.",
+      "FAIL if the response contains 'the requested topic' or presents DevOps as the program that was asked about.",
+      "Pass with 8+ if scoped negative + DevOps redirect are both present."
+    ]
   }
 ]
-

@@ -95,7 +95,7 @@ Assess this chunk's relevance to the query.
 
         try:
             # Use faster model for relevance assessment (classification task)
-            assessment = call_openai_json(RELEVANCE_ASSESSMENT_PROMPT, user_prompt, model="gpt-4o-mini", timeout=15)
+            assessment = call_openai_json(RELEVANCE_ASSESSMENT_PROMPT, user_prompt, timeout=15)
 
             relevance_score = assessment.get("relevance_score", 0.5)
             should_include = assessment.get("should_include", False)
@@ -265,7 +265,8 @@ def document_filtering_node(state: RAGState) -> RAGState:
         "certifications_2025_07",
         "course_design_overview_2025_07",
         "computer_specs_min_requirements",
-        "ironhack_portfolio_overview_2025_07"
+        "ironhack_portfolio_overview_2025_07",
+        "mein_now_title_equivalence"
     ]
 
     # Get valid programs (actual program IDs, not document names like "certifications")
@@ -412,7 +413,7 @@ Return as JSON: {{"kept_chunk_ids": [1, 2, 5, ...], "reasoning": "explanation"}}
 
         try:
             # Use faster model for document filtering (classification task)
-            result = call_openai_json(DOCUMENT_FILTERING_INSTRUCTIONS, user_prompt, model="gpt-4o-mini", timeout=20)
+            result = call_openai_json(DOCUMENT_FILTERING_INSTRUCTIONS, user_prompt, timeout=20)
             kept_ids = result.get("kept_chunk_ids", [])
 
             # Filter docs based on kept IDs - but be more permissive if too few docs

@@ -97,15 +97,44 @@ def format_conversation_history(messages: List[BaseMessage], limit: int = 5) -> 
     return "\n".join(formatted) if formatted else "No previous conversation."
 
 
-def call_openai_json(system_prompt: str, user_prompt: str, model: str = "gpt-4o-mini", timeout: int = 30) -> Dict:
+def _sampling_kwargs(model: str, temperature: float) -> Dict:
+    """
+    Sampling params compatible with the given model. Newer reasoning families
+    (gpt-5*, o*) only accept the default temperature and reject the param.
+    """
+    if re.match(r"^(gpt-5|o\d)", model or ""):
+        return {}
+    return {"temperature": temperature}
+
+
+def call_openai_json(
+    system_prompt: str,
+    user_prompt: str,
+    model: str = None,
+    timeout: int = 30,
+    schema: Dict = None,
+    schema_name: str = "response",
+) -> Dict:
     """Call OpenAI API and parse JSON response.
 
     Args:
         system_prompt: System prompt for the API call
         user_prompt: User prompt for the API call
-        model: Model to use (default: gpt-4o-mini for speed, use gpt-4o for complex tasks)
+        model: Model to use (default: MODEL_FAST from config)
         timeout: Request timeout in seconds
+        schema: Optional JSON Schema; when given, uses strict structured outputs
+                so the shape is enforced by the API instead of hoped for
+        schema_name: Name for the structured output schema
     """
+    from src.config import MODEL_FAST
+    model = model or MODEL_FAST
+    if schema:
+        response_format = {
+            "type": "json_schema",
+            "json_schema": {"name": schema_name, "strict": True, "schema": schema},
+        }
+    else:
+        response_format = {"type": "json_object"}
     try:
         response = openai_client.chat.completions.create(
             model=model,
@@ -113,9 +142,9 @@ def call_openai_json(system_prompt: str, user_prompt: str, model: str = "gpt-4o-
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            response_format={"type": "json_object"},
-            temperature=0.1,
-            timeout=timeout
+            response_format=response_format,
+            timeout=timeout,
+            **_sampling_kwargs(model, 0.1),
         )
         return json.loads(response.choices[0].message.content)
     except Exception as e:
@@ -123,15 +152,17 @@ def call_openai_json(system_prompt: str, user_prompt: str, model: str = "gpt-4o-
         return {}
 
 
-def call_openai_text(system_prompt: str, user_prompt: str, model: str = "gpt-4o", timeout: int = 60) -> str:
+def call_openai_text(system_prompt: str, user_prompt: str, model: str = None, timeout: int = 60) -> str:
     """Call OpenAI API and get text response.
 
     Args:
         system_prompt: System prompt for the API call
         user_prompt: User prompt for the API call
-        model: Model to use (default: gpt-4o for quality, use gpt-4o-mini for speed)
+        model: Model to use (default: MODEL_QUALITY from config)
         timeout: Request timeout in seconds
     """
+    from src.config import MODEL_QUALITY
+    model = model or MODEL_QUALITY
     try:
         response = openai_client.chat.completions.create(
             model=model,
@@ -139,8 +170,8 @@ def call_openai_text(system_prompt: str, user_prompt: str, model: str = "gpt-4o"
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.3,
-            timeout=timeout
+            timeout=timeout,
+            **_sampling_kwargs(model, 0.3),
         )
         return response.choices[0].message.content
     except Exception as e:

@@ -214,14 +214,14 @@ def _find_other_programs_covering(topic: str, exclude_program_ids: list) -> list
     Grounded: a program is suggested only if the topic literally appears in one of
     its retrieved chunks.
     """
-    from src.config import VECTOR_STORE_ID, openai_client
+    from src.config import VECTOR_STORE_ID, MODEL_FAST, openai_client
     from src.utils import program_for_source, program_display_name
 
     if not topic or not VECTOR_STORE_ID or VECTOR_STORE_ID == "vs_xxx":
         return []
     try:
         resp = openai_client.responses.create(
-            model="gpt-4o-mini",
+            model=MODEL_FAST,
             input=[{"role": "user", "content": f"Which programs mention {topic}?"}],
             instructions="Retrieve curriculum chunks that explicitly mention the topic.",
             tools=[{
@@ -337,10 +337,19 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
     other_programs = _find_other_programs_covering(topic, exclude_ids)
 
     sources_line = ", ".join(citations) if citations else "the scoped curriculum"
+    if primary_program:
+        result_line = (
+            f"*Result:* *{topic}* is not listed in the {program_name} syllabus, "
+            f"so we can't confirm it's part of that program."
+        )
+    else:
+        result_line = (
+            f"*Result:* *{topic}* is not mentioned in the documents we checked, "
+            f"so we can't confirm it."
+        )
     response_parts = [
         f"*What we checked:* {sources_line}",
-        f"*Result:* *{topic}* is not listed in the {program_name} syllabus, "
-        f"so we can't confirm it's part of that program.",
+        result_line,
     ]
     if other_programs:
         response_parts.append(
