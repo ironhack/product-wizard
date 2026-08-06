@@ -13,6 +13,7 @@ from src.config import (
     openai_client,
 )
 from src.slack_helpers import send_slack_update
+from src.utils import load_full_syllabus_docs
 
 
 logger = logging.getLogger(__name__)
@@ -79,6 +80,8 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
         top_k = 50  # Comparison queries need max docs upfront
     elif query_intent == "certification":
         top_k = 30  # Certification queries need universal doc + program doc
+    if state.get("is_portfolio_wide", False):
+        top_k = 50  # Portfolio-wide questions need chunks from every program
     if "EXPAND_CHUNKS" in refinement_strategy:
         top_k = 40 if iteration_count == 1 else 50
 
@@ -113,7 +116,9 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
 - Exact quotes from curriculum documents when possible"""
 
         # Apply namespace filtering through instructions if needed
-        if detected_programs:
+        # Portfolio-wide questions must NOT be scoped to one program - the answer
+        # is the list of programs where the topic appears
+        if detected_programs and not state.get("is_portfolio_wide", False):
             # Filter out non-program IDs like "certifications"
             valid_program_hints = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
             if valid_program_hints:
@@ -257,6 +262,19 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
             "total_retrieved": 0
         }
         logger.warning(f"⚠️  Returning empty results - system will handle gracefully")
+
+    # For breakdown/overview questions, top-k chunks only surface fragments of the
+    # curriculum (users got weeks 5-6 of a 9-week program). Prepend the complete
+    # syllabus document(s) from the local knowledge base so generation sees the
+    # whole structure. Flagged full_syllabus=True so filtering keeps them.
+    if state.get("is_breakdown_request", False):
+        valid_programs = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
+        if valid_programs:
+            full_docs = load_full_syllabus_docs(valid_programs, PROGRAM_SYNONYMS)
+            if full_docs:
+                retrieved_docs = full_docs + retrieved_docs
+                retrieval_stats["full_syllabus_docs"] = [d["source"] for d in full_docs]
+                logger.info(f"Prepended {len(full_docs)} full syllabus doc(s) for breakdown request")
 
     return {
         **state,

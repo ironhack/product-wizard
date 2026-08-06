@@ -5,8 +5,9 @@ Includes markdown conversion, OpenAI API calls, and conversation formatting.
 
 import json
 import logging
+import os
 import re
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 
@@ -160,24 +161,221 @@ def normalize_source_citation(source: str) -> str:
     return s
 
 
+def strip_doc_version(filename: str) -> str:
+    """
+    Normalize a syllabus filename to its versionless base for matching.
+    'Data_Science_&_Machine_Learning_bootcamp_2026_02.md' -> 'data_science_&_machine_learning_bootcamp'
+    Keeps document-filter matching working when a syllabus is re-uploaded with a new date suffix.
+    """
+    if not filename:
+        return ""
+    s = filename.strip().replace("\\", "/").split("/")[-1].lower()
+    s = re.sub(r"\.(txt|md)$", "", s)
+    s = re.sub(r"_20\d{2}_\d{2}$", "", s)
+    return s
+
+
+def program_syllabus_needles(program_ids: List[str], program_synonyms: Dict) -> List[str]:
+    """Versionless syllabus filename bases for the given programs (for source matching)."""
+    needles = []
+    for pid in program_ids:
+        info = program_synonyms.get(pid) or {}
+        for fn in info.get("filenames", []):
+            base = strip_doc_version(fn)
+            if base and base not in needles:
+                needles.append(base)
+    return needles
+
+
+def program_display_name(prog_id: Optional[str], program_synonyms: Dict) -> str:
+    """Human-readable program name for user-facing messages (never a raw code like 'ml')."""
+    if not prog_id:
+        return "this program"
+    info = program_synonyms.get(prog_id) or {}
+    if info.get("display_name"):
+        return info["display_name"]
+    # Fall back to the longest alias (short ones are codes like 'de'), else the id
+    aliases = [a for a in info.get("aliases", []) if len(a) > 3]
+    if aliases:
+        return max(aliases, key=len).title()
+    return prog_id.replace("_", " ").title()
+
+
+def program_for_source(source: str, program_synonyms: Dict) -> Optional[str]:
+    """Map a chunk source filename to its program id, version-tolerant. None if no match."""
+    src_base = strip_doc_version(source or "")
+    if not src_base:
+        return None
+    for pid, info in (program_synonyms or {}).items():
+        for fn in (info or {}).get("filenames", []):
+            base = strip_doc_version(fn)
+            if base and base in src_base:
+                return pid
+    return None
+
+
+_BREAKDOWN_PATTERNS = re.compile(
+    r"week[\s-]*by[\s-]*week|module[\s-]*by[\s-]*module|unit[\s-]*by[\s-]*unit|day[\s-]*by[\s-]*day"
+    r"|weekly (detail|overview|breakdown|schedule)"
+    r"|(detailed|full|complete|comprehensive) (unit |module |week |curriculum |course )?(breakdown|overview|outline|structure)"
+    r"|curriculum (overview|breakdown|outline|structure)"
+    r"|(overview|breakdown|outline) of (the )?(topics|curriculum|units|modules|weeks|what)"
+    r"|what (will|is going to) be covered",
+    re.IGNORECASE,
+)
+
+
+def is_breakdown_request(text: str) -> bool:
+    """True if the user asks for a curriculum overview/breakdown rather than a yes/no coverage check."""
+    return bool(text and _BREAKDOWN_PATTERNS.search(text))
+
+
+_PORTFOLIO_WIDE_PATTERNS = re.compile(
+    r"which (of (our|the) )?(courses?|programs?|bootcamps?|verticals?)"
+    r"|what (courses?|programs?|bootcamps?|verticals?) (has|have|include|includes|cover|covers|teach|teaches|contain|contains|use|uses)"
+    r"|(any|all) (of (our|the) )?(courses?|programs?|bootcamps?) (that|with|covering|teaching|including)"
+    r"|across (all )?(our )?(courses?|programs?|bootcamps?)"
+    r"|in (any|which) (course|program|bootcamp)",
+    re.IGNORECASE,
+)
+
+
+def is_portfolio_wide_query(text: str) -> bool:
+    """True if the question spans the whole portfolio ('which courses have Linux?') instead of one program."""
+    return bool(text and _PORTFOLIO_WIDE_PATTERNS.search(text))
+
+
+def is_valid_coverage_topic(topic: str) -> bool:
+    """True if a coverage-verification topic is a real topic we can honestly say 'not mentioned' about."""
+    if not topic or not topic.strip():
+        return False
+    t = topic.strip().lower()
+    if len(topic) > 100:
+        return False
+    invalid_indicators = (
+        "the requested topic",
+        "multiple_topics",
+        "multiple topics",
+        "single explicit topic",
+        "if the query asks",
+        "broad queries",
+        "else",
+    )
+    return not any(ind in t for ind in invalid_indicators)
+
+
+def load_full_syllabus_docs(program_ids: List[str], program_synonyms: Dict) -> List[Dict[str, Any]]:
+    """
+    Load complete syllabus documents for the given programs from the local knowledge base.
+    Used for breakdown/overview questions where top-k chunk retrieval only surfaces
+    fragments of the curriculum. Returns docs in the same shape as retrieved chunks,
+    flagged with full_syllabus=True so filtering nodes keep them intact.
+    """
+    kb_dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "knowledge_base",
+        "database",
+    )
+    docs = []
+    try:
+        available = sorted(os.listdir(kb_dir))
+    except OSError as e:
+        logger.warning(f"Knowledge base directory unavailable for full-syllabus load: {e}")
+        return docs
+
+    for pid in program_ids:
+        needles = program_syllabus_needles([pid], program_synonyms)
+        # Latest version wins when several files share the same versionless base
+        matches = [f for f in available if any(n in strip_doc_version(f) for n in needles)]
+        if not matches:
+            logger.warning(f"No local syllabus file found for program '{pid}'")
+            continue
+        filename = sorted(matches)[-1]
+        try:
+            with open(os.path.join(kb_dir, filename), "r", encoding="utf-8") as f:
+                content = f.read().strip()
+        except OSError as e:
+            logger.warning(f"Could not read syllabus file {filename}: {e}")
+            continue
+        if content:
+            docs.append({
+                "content": content,
+                "source": filename,
+                "quote": content[:200],
+                "score": 1.0,
+                "full_syllabus": True,
+            })
+            logger.info(f"Loaded full syllabus for '{pid}': {filename} ({len(content)} chars)")
+    return docs
+
+
+_TOPIC_INDEX_STOPWORDS = {
+    "which", "what", "who", "where", "when", "how", "does", "did", "are", "is", "was",
+    "course", "courses", "program", "programs", "bootcamp", "bootcamps", "vertical", "verticals",
+    "have", "has", "had", "include", "includes", "included", "including",
+    "teach", "teaches", "taught", "teaching", "cover", "covers", "covered", "covering",
+    "contain", "contains", "use", "uses", "used", "using", "with", "the", "and", "for",
+    "any", "all", "our", "your", "them", "they", "that", "this", "these", "those",
+    "tools", "tool", "such", "like", "there", "topics", "topic", "learn", "students",
+    "ironhack", "part", "full", "time",
+}
+
+
+def local_topic_index(query: str, program_synonyms: Dict) -> List[Dict[str, Any]]:
+    """
+    Literal, deterministic index of which program syllabi mention the meaningful
+    terms of a portfolio-wide query ("which course have linux in?").
+    Scans the local knowledge base files and returns one entry per (term, program)
+    match with a verbatim evidence line. Ground truth for "which programs mention X".
+    """
+    terms = [
+        t for t in re.findall(r"[a-zA-Z][a-zA-Z+#./-]{2,}", (query or "").lower())
+        if t not in _TOPIC_INDEX_STOPWORDS
+    ]
+    terms = list(dict.fromkeys(terms))  # dedupe, keep order
+    if not terms:
+        return []
+
+    entries = []
+    for pid in program_synonyms:
+        docs = load_full_syllabus_docs([pid], program_synonyms)
+        if not docs:
+            continue
+        content = docs[0]["content"]
+        content_lower = content.lower()
+        lines = content.splitlines()
+        for term in terms:
+            if term not in content_lower:
+                continue
+            evidence = next(
+                (ln.strip() for ln in lines if term in ln.lower() and len(ln.strip()) > len(term)),
+                "",
+            )
+            entries.append({
+                "term": term,
+                "program_id": pid,
+                "program_name": program_display_name(pid, program_synonyms),
+                "source": docs[0]["source"],
+                "evidence": evidence[:200],
+            })
+    return entries
+
+
 def docs_for_program_syllabi(
     filtered_docs: List[Dict[str, Any]], program_ids: List[str], program_synonyms: Dict
 ) -> List[Dict[str, Any]]:
     """
     Chunks whose source belongs to the given programs' syllabus files only.
     Used so coverage verification searches the same curriculum the user asked about.
+    Version-tolerant: matches on the versionless filename base, so a re-uploaded
+    syllabus with a new date suffix still matches its program.
     """
     if not program_ids:
         return list(filtered_docs)
-    needles = []
-    for pid in program_ids:
-        info = program_synonyms.get(pid) or {}
-        for fn in info.get("filenames", []):
-            needles.append(fn.lower())
-            needles.append(fn.replace(".txt", "").replace(".md", "").lower())
+    needles = program_syllabus_needles(program_ids, program_synonyms)
     out = []
     for doc in filtered_docs:
-        src = (doc.get("source") or "").lower()
+        src = strip_doc_version(doc.get("source") or "")
         if any(n in src for n in needles):
             out.append(doc)
     return out

@@ -20,6 +20,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from src.state import RAGState
 from src.nodes.query_nodes import query_enhancement_node, program_detection_node
 from src.slack_helpers import send_slack_update
+from src.utils import is_breakdown_request, is_portfolio_wide_query
 
 
 logger = logging.getLogger(__name__)
@@ -174,6 +175,17 @@ def parallel_query_processing_node(state: RAGState) -> RAGState:
             f"(query_enhancement: {qa_time:.2f}s, program_detection: {pd_time:.2f}s) "
             f"| Speedup: {speedup:.1f}x"
         )
+
+    # Deterministic query-shape flags (checked on both original and enhanced query).
+    # Breakdown requests get full-syllabus context; portfolio-wide questions sweep all programs.
+    query_text = state.get("query", "")
+    enhanced_text = final_state.get("enhanced_query", "")
+    final_state["is_breakdown_request"] = is_breakdown_request(query_text) or is_breakdown_request(enhanced_text)
+    final_state["is_portfolio_wide"] = is_portfolio_wide_query(query_text) or is_portfolio_wide_query(enhanced_text)
+    if final_state["is_breakdown_request"]:
+        logger.info("Query flagged as breakdown/overview request")
+    if final_state["is_portfolio_wide"]:
+        logger.info("Query flagged as portfolio-wide (multi-program) question")
 
     # If any errors occurred, log them and store in metadata for debugging
     if errors:

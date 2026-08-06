@@ -14,7 +14,7 @@ from src.config import (
     DOCUMENT_FILTERING_INSTRUCTIONS,
     PROGRAM_SYNONYMS,
 )
-from src.utils import call_openai_json
+from src.utils import call_openai_json, strip_doc_version
 from src.slack_helpers import send_slack_update
 
 
@@ -46,6 +46,18 @@ def relevance_assessment_node(state: RAGState) -> RAGState:
             "filtered_docs": [],
             "relevance_scores": [],
             "rejection_reasons": ["No documents retrieved"]
+        }
+
+    # Full syllabus docs (injected for breakdown requests) bypass per-chunk assessment:
+    # they ARE the answer and a 500-char preview would misjudge them
+    full_syllabus_docs = [d for d in docs_to_assess if d.get("full_syllabus")]
+    docs_to_assess = [d for d in docs_to_assess if not d.get("full_syllabus")]
+    if full_syllabus_docs and not docs_to_assess:
+        return {
+            **state,
+            "filtered_docs": full_syllabus_docs,
+            "relevance_scores": [1.0] * len(full_syllabus_docs),
+            "rejection_reasons": []
         }
 
     # Format conversation context for relevance assessment
@@ -173,10 +185,10 @@ Assess this chunk's relevance to the query.
                 idx = future_to_idx[future]
                 logger.error(f"Future failed for doc {idx+1}: {e}")
                 # Include doc with medium score on future failure
-                if idx < len(retrieved_docs):
+                if idx < len(docs_to_assess):
                     results.append({
                         "idx": idx,
-                        "doc": retrieved_docs[idx],
+                        "doc": docs_to_assess[idx],
                         "relevance_score": 0.6,
                         "should_include": True,
                         "red_flags": [],
@@ -209,6 +221,11 @@ Assess this chunk's relevance to the query.
         logger.warning("No docs passed relevance assessment, using fallback strategy")
         assessed_docs = docs_to_assess[:3]
         relevance_scores = [0.6] * len(assessed_docs)  # Give them medium scores
+
+    # Re-attach full syllabus docs at the front (they were exempt from assessment)
+    if full_syllabus_docs:
+        assessed_docs = full_syllabus_docs + assessed_docs
+        relevance_scores = [1.0] * len(full_syllabus_docs) + relevance_scores
 
     avg_relevance = sum(relevance_scores) / len(relevance_scores) if relevance_scores else 0.0
     logger.info(f"Assessed {len(assessed_docs)} docs | Avg Relevance: {avg_relevance:.2f}")
@@ -254,14 +271,23 @@ def document_filtering_node(state: RAGState) -> RAGState:
     # Get valid programs (actual program IDs, not document names like "certifications")
     valid_programs = [prog_id for prog_id in detected_programs if prog_id in PROGRAM_SYNONYMS]
 
-    # Build expected source patterns for detected programs
+    # Portfolio-wide questions ("which courses include X?") need docs from ALL programs;
+    # scoping to one detected program would hide the other matches
+    if state.get("is_portfolio_wide", False) and valid_programs:
+        logger.info("Portfolio-wide question - keeping docs from all programs")
+        valid_programs = []
+
+    # Build expected source patterns for detected programs.
+    # Version-tolerant: match on the versionless filename base so a syllabus
+    # re-uploaded with a new date suffix (e.g. 2025_07 -> 2026_02) still matches.
     expected_sources = set()
     for prog_id in valid_programs:
         prog_info = PROGRAM_SYNONYMS.get(prog_id, {})
         filenames = prog_info.get("filenames", [])
         for filename in filenames:
-            expected_sources.add(filename.lower())
-            expected_sources.add(filename.replace(".txt", "").replace(".md", "").lower())
+            base = strip_doc_version(filename)
+            if base:
+                expected_sources.add(base)
 
     # Simple filtering: keep only matching docs
     source_filtered_docs = []
@@ -269,6 +295,13 @@ def document_filtering_node(state: RAGState) -> RAGState:
 
     for doc in docs_to_filter:
         source = doc.get("source", "").lower()
+        source_base = strip_doc_version(source)
+
+        # Full syllabus docs were injected deliberately - always keep
+        if doc.get("full_syllabus"):
+            source_filtered_docs.append(doc)
+            program_doc_count += 1
+            continue
 
         # Keep universal documents (but don't count toward program docs)
         if any(univ in source for univ in UNIVERSAL_DOCUMENTS):
@@ -282,7 +315,7 @@ def document_filtering_node(state: RAGState) -> RAGState:
             continue
 
         # Keep only docs matching detected program
-        if any(expected in source for expected in expected_sources):
+        if any(expected in source_base for expected in expected_sources):
             source_filtered_docs.append(doc)
             program_doc_count += 1
         else:
@@ -316,6 +349,10 @@ def document_filtering_node(state: RAGState) -> RAGState:
     # For comparison and certification queries, use higher threshold and ensure proper representation
     # Optimized: Only run AI filtering if we have more than 5 docs (reduces unnecessary calls)
     # SKIP AI filtering for certification queries - they need all available chunks and relevance assessment handles it better
+    # Full syllabus docs are exempt from AI filtering (a 150-char preview would misjudge them)
+    exempt_full_docs = [d for d in filtered_docs if d.get("full_syllabus")]
+    filtered_docs = [d for d in filtered_docs if not d.get("full_syllabus")]
+
     if len(filtered_docs) > 5 and query_intent != "certification":
         # For comparison queries, process more docs and ensure balanced representation
         # For certification queries, process more docs to ensure we get certification chunks
@@ -445,6 +482,10 @@ Return as JSON: {{"kept_chunk_ids": [1, 2, 5, ...], "reasoning": "explanation"}}
         except Exception as e:
             logger.error(f"AI document filtering failed: {e}, keeping source-filtered docs")
             # On error, keep source-filtered docs
+
+    # Re-attach exempt full syllabus docs at the front
+    if exempt_full_docs:
+        filtered_docs = exempt_full_docs + filtered_docs
 
     logger.info(f"Final filtering result: {len(state.get('filtered_docs', []))} → {len(filtered_docs)} docs")
 

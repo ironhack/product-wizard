@@ -45,6 +45,10 @@ class RAGState(TypedDict, total=False):
     is_coverage_question: bool
     coverage_verification: Dict
 
+    # Query shape flags (deterministic, set after query processing)
+    is_breakdown_request: bool
+    is_portfolio_wide: bool
+
     # Cohort Calendar Path
     is_cohort_calendar_question: bool
 

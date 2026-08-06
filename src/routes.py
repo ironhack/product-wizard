@@ -5,6 +5,7 @@ Defines conditional routing logic for the RAG pipeline.
 
 import logging
 from src.state import RAGState
+from src.utils import is_valid_coverage_topic
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,11 @@ def route_after_coverage_classification(state: RAGState) -> str:
     query_intent = state.get("query_intent", "general_info")
     if query_intent == "comparison":
         return "generate_response"
+    # Portfolio-wide questions ("which courses include X?") span all programs;
+    # per-program coverage verification would give a wrongly-scoped negative answer
+    if state.get("is_portfolio_wide", False):
+        logger.info("Portfolio-wide question - skipping per-program coverage verification")
+        return "generate_response"
     if state.get("is_coverage_question", False):
         return "coverage_verification"
     return "generate_response"
@@ -56,9 +62,16 @@ def route_after_coverage_verification(state: RAGState) -> str:
 
     if is_present:
         return "generate_response"
-    else:
-        # Generate negative coverage response
-        return "generate_negative_coverage"
+
+    # Only emit the "not mentioned" template when we have a real topic to name.
+    # If topic extraction failed, a templated negative would read as
+    # "*the requested topic* is not mentioned" - answer from the docs instead.
+    topic = coverage_verification.get("topic", "")
+    if not is_valid_coverage_topic(topic):
+        logger.info(f"Coverage negative but topic invalid ({topic!r}) - routing to standard generation")
+        return "generate_response"
+
+    return "generate_negative_coverage"
 
 
 def route_after_faithfulness_verification(state: RAGState) -> str:

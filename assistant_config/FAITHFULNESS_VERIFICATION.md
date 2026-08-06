@@ -63,6 +63,12 @@ For each factual claim in the answer:
    - Verify no wrong program information
    - Ensure no invented details
 
+## Entity-Dodge Detection
+
+**If the user's query asks about a specific named entity** (a certification name like "IHK", a tool like "DBT Cloud", a partner, a specific program feature) **and the retrieved documents never mention that entity:**
+- A faithful answer must explicitly say the entity is not documented
+- An answer that talks around the entity with generic related information (e.g. describing general certification options when asked about IHK specifically) is NOT grounded for this query: set is_grounded=false, is_fallback=true, and add a violation with type "entity_not_addressed", severity "major", claim = the entity that was dodged
+
 ## Fallback Detection
 
 **Also detect if the response is a fallback/non-answer:**
@@ -70,6 +76,7 @@ For each factual claim in the answer:
 - Provides no substantive, document-grounded details relevant to the user's query
 - Generic safety or process messages without answering the specific question
 - Very short responses without concrete facts
+- Answers a question about a specific named entity without ever addressing that entity (see Entity-Dodge Detection)
 
 **Signals of fallback responses:**
 - Phrases: "I don't have", "reach out to", "contact the team", "can't find"
@@ -87,7 +94,7 @@ Return JSON:
   "violations": [
     {
       "severity": "critical|major|minor",
-      "type": "fabricated_fact|cross_contamination|wrong_numbers|invented_tech|false_citation",
+      "type": "fabricated_fact|cross_contamination|wrong_numbers|invented_tech|false_citation|entity_not_addressed",
       "claim": "The specific claim that's problematic",
       "evidence": "What was actually in retrieved docs (or 'NOT FOUND')"
     }

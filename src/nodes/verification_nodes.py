@@ -17,6 +17,7 @@ from src.config import (
 from src.utils import (
     call_openai_json,
     docs_for_program_syllabi,
+    load_full_syllabus_docs,
     unique_citations_from_docs,
 )
 from src.slack_helpers import send_slack_update
@@ -34,6 +35,16 @@ def coverage_classification_node(state: RAGState) -> RAGState:
 
     enhanced_query = state.get("enhanced_query", state.get("query", ""))
     query_intent = state.get("query_intent", "general_info")
+
+    # Breakdown/overview requests are NOT coverage questions - they ask for the
+    # curriculum's structure, not whether one topic is present. Misrouting them into
+    # the coverage path produced false "topic not mentioned" answers in production.
+    if state.get("is_breakdown_request", False):
+        logger.info("Breakdown/overview request - skipping coverage path")
+        return {
+            **state,
+            "is_coverage_question": False
+        }
 
     # Quick heuristic check first
     coverage_keywords = ["does", "is", "include", "cover", "teach", "contain", "have"]
@@ -80,13 +91,26 @@ def coverage_verification_node(state: RAGState) -> RAGState:
     query_intent = state.get("query_intent", "general_info")
     valid_programs = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
 
-    # Scope: syllabus-only for known program(s); otherwise all filtered chunks
-    syllabus_docs = docs_for_program_syllabi(filtered_docs, valid_programs, PROGRAM_SYNONYMS)
-    docs_for_verification = syllabus_docs if syllabus_docs else filtered_docs
-    if valid_programs and not syllabus_docs:
-        logger.warning(
-            "No syllabus chunks matched detected program(s); verifying full filtered set"
-        )
+    # Scope: verify against the COMPLETE local syllabus for known program(s).
+    # Retrieved chunks are fragments - "absent from the chunks" is not "absent from
+    # the syllabus" (this produced false negatives citing unrelated documents, e.g.
+    # a DA/React check that only ever saw universal overview docs).
+    docs_for_verification = []
+    if valid_programs:
+        docs_for_verification = load_full_syllabus_docs(valid_programs, PROGRAM_SYNONYMS)
+        if docs_for_verification:
+            logger.info(
+                f"Verifying against full local syllabus for {valid_programs}: "
+                f"{[d['source'] for d in docs_for_verification]}"
+            )
+    if not docs_for_verification:
+        # Fallback: retrieved syllabus chunks, then all filtered chunks
+        syllabus_docs = docs_for_program_syllabi(filtered_docs, valid_programs, PROGRAM_SYNONYMS)
+        docs_for_verification = syllabus_docs if syllabus_docs else filtered_docs
+        if valid_programs and not syllabus_docs:
+            logger.warning(
+                "No syllabus chunks matched detected program(s); verifying full filtered set"
+            )
 
     sources_checked = unique_citations_from_docs(docs_for_verification[:20])
 
