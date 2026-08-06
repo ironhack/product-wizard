@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Ironhack offers a comprehensive portfolio of technology education programs designed to transform beginners into industry-ready professionals. Our programs span 9-15 week intensive bootcamps, a comprehensive 1-year program, and specialized AI productivity courses, all focused on practical, hands-on learning with immediate career impact.
+Ironhack offers a comprehensive portfolio of technology education programs designed to transform beginners into industry-ready professionals. Our programs span 9-15 week intensive bootcamps and specialized AI productivity courses, all focused on practical, hands-on learning with immediate career impact.
 
 ## Product Lines Summary
 
@@ -78,16 +78,7 @@ Ironhack offers a comprehensive portfolio of technology education programs desig
 - **Technologies**: Ethical hacking, penetration testing, security tools
 - **Capstone**: Security assessment project
 
-### 2. 1-Year Program
-**Comprehensive program for deep specialization**
-
-#### **Data Science and AI 1-Year Program Germany**
-- **Duration**: 1,582 hours over 12 months
-- **Format**: Part-time, evenings and weekends
-- **Technologies**: Advanced Python, ML, AI, data engineering
-- **Location**: Germany (Munich)
-
-### 3. Specialized AI Courses
+### 2. Specialized AI Courses
 **Focused programs for specific AI applications**
 
 #### **Intensive Program in Applied AI - AI Async Productivity Course**
@@ -102,12 +93,11 @@ Ironhack offers a comprehensive portfolio of technology education programs desig
 | Program Type | Duration | Format | Target Audience |
 |--------------|----------|--------|-----------------|
 | **Bootcamps** | 9 weeks | Full-Time/Part-Time Remote | Career changers |
-| **1-Year Program** | 12 months | Part-Time | Deep specialization |
 | **AI Productivity** | 61-83 hours | Self-paced | Working professionals |
 
 ## Prerequisites
 
-### **Bootcamps & 1-Year Program**
+### **Bootcamps**
 - No prior coding experience required
 - Basic computer literacy
 - English proficiency (B2 level)
@@ -122,7 +112,6 @@ Ironhack offers a comprehensive portfolio of technology education programs desig
 ## Career Outcomes
 
 - **Bootcamps**: 85%+ job placement rate within 6 months
-- **1-Year Program**: Advanced roles in data science and AI
 - **AI Productivity**: Immediate productivity improvements in current role
 
 ## Next Steps

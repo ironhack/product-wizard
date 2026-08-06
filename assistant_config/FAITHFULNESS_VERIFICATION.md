@@ -78,6 +78,8 @@ For each factual claim in the answer:
 - Very short responses without concrete facts
 - Answers a question about a specific named entity without ever addressing that entity (see Entity-Dodge Detection)
 
+**NOT a fallback (do not flag):** an answer that explicitly states a specific asked-about entity is not documented and then provides clearly-labeled related grounded information. That IS the correct answer when the entity is absent from the documents - set is_fallback=false and score it on the grounded content it provides. Only flag as fallback when the response contains NO substantive grounded information at all.
+
 **Signals of fallback responses:**
 - Phrases: "I don't have", "reach out to", "contact the team", "can't find"
 - Absence of concrete facts from the retrieved context

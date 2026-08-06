@@ -111,6 +111,15 @@ Generate an appropriate fun fallback response using the templates and routing ru
     # Use faster model for fallback generation (simpler task)
     fallback_response = call_openai_text(system_prompt, user_prompt, timeout=20)
 
+    # The fallback is the last resort - it must NEVER be empty (a failed API
+    # call here once produced a literally blank Slack reply)
+    if not (fallback_response or "").strip():
+        fallback_response = (
+            "I couldn't find a reliable answer to this in the documentation I have access to. "
+            "Rather than guess, I'd suggest asking the *Education team* here on Slack - "
+            "they can confirm the details directly."
+        )
+
     # Convert markdown formatting to Slack-friendly format
     fallback_response = convert_markdown_to_slack(fallback_response)
 
@@ -135,12 +144,33 @@ def finalize_response_node(state: RAGState) -> RAGState:
     faithfulness_score = state.get("faithfulness_score", 0.0)
     detected_programs = state.get("detected_programs", [])
 
-    # Format citations if not already in response
+    from src.config import PROGRAM_SYNONYMS
+    from src.utils import humanize_source_citation
+    import re as _re
+
+    # Format citations if not already in response - human-friendly names,
+    # sales users don't care about .md filenames
     if source_citations and "[Source:" not in generated_response:
-        citation_text = "\n\nSources: " + ", ".join(set(source_citations))
-        final_response = generated_response + citation_text
+        friendly = []
+        for c in source_citations:
+            h = humanize_source_citation(c, PROGRAM_SYNONYMS)
+            if h and h not in friendly:
+                friendly.append(h)
+        final_response = generated_response + "\n\nSources: " + ", ".join(friendly)
     else:
         final_response = generated_response
+
+    # Humanize inline [Source: file.md] citations the model wrote itself
+    def _humanize_inline(match):
+        parts = [p.strip() for p in match.group(1).split(",")]
+        names = []
+        for p in parts:
+            h = humanize_source_citation(p, PROGRAM_SYNONYMS)
+            if h and h not in names:
+                names.append(h)
+        return "[Source: " + ", ".join(names) + "]"
+
+    final_response = _re.sub(r"\[Source:\s*([^\]]+)\]", _humanize_inline, final_response)
 
     # Convert markdown formatting to Slack-friendly format
     final_response = convert_markdown_to_slack(final_response)

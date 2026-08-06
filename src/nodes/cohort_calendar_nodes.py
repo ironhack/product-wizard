@@ -108,11 +108,11 @@ def cohort_calendar_response_node(state: RAGState) -> RAGState:
             _sheet = cohort_calendar_sheet_edit_url()
             if filters.get("future_only"):
                 no_match_line = (
-                    f"There are no upcoming cohorts (starting after {date.today().strftime('%B %d, %Y')}) "
+                    f"I couldn't find any upcoming cohorts (starting after {date.today().strftime('%B %d, %Y')}) "
                     "matching that criteria in the current calendar."
                 )
             else:
-                no_match_line = "There are no cohorts matching that criteria in the current calendar."
+                no_match_line = "I couldn't find any cohorts matching that criteria in the current calendar."
             return {
                 **state,
                 "final_response": convert_markdown_to_slack(
@@ -127,7 +127,10 @@ def cohort_calendar_response_node(state: RAGState) -> RAGState:
         context = _format_cohort_context(rows)
         today_str = date.today().strftime("%A, %B %d, %Y")
         system = (
+            f"You are the Product Wizard, the Ironhack admissions team's assistant. "
             f"You answer questions about Ironhack cohorts/calendar using only the provided table. "
+            f"Speak in the first person singular ('I found', 'I checked') - warm and direct, "
+            f"like a sharp teammate on Slack, never 'we'. "
             f"Today is {today_str}. "
             f"When the user asks about the 'next' or 'upcoming' cohort/start date, only consider cohorts "
             f"starting AFTER today - never present a past start date as 'next'. "

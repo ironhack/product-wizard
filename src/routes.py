@@ -11,7 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 def route_after_cohort_calendar_classification(state: RAGState) -> str:
-    """Route after cohort/calendar classification: to cohort response or standard retrieval."""
+    """Route after triage: discontinued-program answer, cohort response, or standard retrieval."""
+    if state.get("discontinued_program"):
+        logger.info(f"Routing to discontinued_program_response ({state['discontinued_program']})")
+        return "discontinued_program_response"
     if state.get("is_cohort_calendar_question", False):
         logger.info("Routing to cohort_calendar_response (cohort/calendar question)")
         return "cohort_calendar_response"
@@ -80,6 +83,20 @@ def route_after_faithfulness_verification(state: RAGState) -> str:
     faithfulness_score = state.get("faithfulness_score", 0.0)
     iteration_count = state.get("iteration_count", 0)
     query_intent = state.get("query_intent", "general_info")
+
+    # Deliberate "entity not documented" answers finalize immediately: when the
+    # query names an entity absent from every retrieved doc and the answer
+    # explicitly addresses that entity, that IS the correct answer - looping it
+    # through refinement can't improve it and previously ended in a dead fallback
+    undocumented_entities = state.get("undocumented_entities") or []
+    generated_response = state.get("generated_response", "")
+    if undocumented_entities and len(generated_response) > 100 and any(
+        e.lower() in generated_response.lower() for e in undocumented_entities
+    ):
+        logger.info(
+            f"Finalizing deliberate undocumented-entity answer ({undocumented_entities})"
+        )
+        return "finalize_response"
 
     # Adjust threshold based on query type
     # Comparison queries synthesize multiple documents, so lower threshold

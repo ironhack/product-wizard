@@ -135,6 +135,14 @@ Analyze the query and return the triage JSON.
     is_breakdown = is_breakdown_request(query) or is_breakdown_request(enhanced_query)
     is_portfolio = is_portfolio_wide_query(query) or is_portfolio_wide_query(enhanced_query)
 
+    # Discontinued program interception: if the question is about a discontinued
+    # program (and no ACTIVE program is also in play), answer deterministically -
+    # retrieval can't be trusted to surface the discontinuation note, and worse,
+    # it answered a "1-year program" question with another program's info
+    discontinued_program = _detect_discontinued_program(
+        f"{query} {enhanced_query}", detected_programs
+    )
+
     # Breakdown/overview requests are never coverage questions
     is_coverage = bool(result.get("is_coverage_question", False)) and not is_breakdown
 
@@ -157,5 +165,38 @@ Analyze the query and return the triage JSON.
         "triage_coverage_topic": result.get("coverage_topic") or "",
         "is_breakdown_request": is_breakdown,
         "is_portfolio_wide": is_portfolio,
+        "discontinued_program": discontinued_program,
         "triage_used": True,
     }
+
+
+def _detect_discontinued_program(text: str, detected_programs: list) -> str:
+    """
+    Program id if the text refers to a discontinued program by alias, else "".
+    Not triggered when an ACTIVE program was also detected ("is the Data
+    Analytics bootcamp 1 year long?" is a DA duration question, not a question
+    about the discontinued 1-year program).
+    """
+    import re as _re
+
+    active_detected = [
+        p for p in detected_programs
+        if p in PROGRAM_SYNONYMS and not PROGRAM_SYNONYMS[p].get("discontinued")
+    ]
+    if active_detected:
+        return ""
+
+    text_lower = (text or "").lower()
+    for pid, info in PROGRAM_SYNONYMS.items():
+        if not info.get("discontinued"):
+            continue
+        for alias in info.get("aliases", []):
+            a = alias.lower().strip()
+            if not a:
+                continue
+            if len(a) <= 3:
+                if _re.search(rf"(?<!\w){_re.escape(a)}(?!\w)", text_lower):
+                    return pid
+            elif a in text_lower:
+                return pid
+    return ""

@@ -10,9 +10,10 @@ from langgraph.checkpoint.memory import MemorySaver
 from src.state import RAGState
 
 # ---------------- Query Nodes ----------------
+# (query_enhancement is kept for the ENHANCE_QUERY_KEYWORDS refinement retry;
+# program_detection is triage's job now and is no longer in the graph)
 from src.nodes.query_nodes import (
     query_enhancement_node,
-    program_detection_node,
 )
 
 # ---------------- Unified Triage Node ----------------
@@ -42,6 +43,7 @@ from src.nodes.verification_nodes import (
 from src.nodes.generation_nodes import (
     generate_response_node,
     generate_negative_coverage_node,
+    discontinued_program_response_node,
 )
 
 # ---------------- Fallback Nodes ----------------
@@ -77,7 +79,6 @@ def build_workflow() -> StateGraph:
 
     # Add all nodes
     workflow.add_node("query_enhancement", query_enhancement_node)
-    workflow.add_node("program_detection", program_detection_node)
     workflow.add_node("unified_triage", unified_triage_node)
     workflow.add_node("hybrid_retrieval", hybrid_retrieval_node)
     workflow.add_node("relevance_assessment", relevance_assessment_node)
@@ -96,15 +97,18 @@ def build_workflow() -> StateGraph:
     # detection + cohort classification + coverage classification
     workflow.set_entry_point("unified_triage")
 
-    # After triage: cohort/calendar path vs standard retrieval path
+    # After triage: discontinued program, cohort/calendar path, or standard retrieval
+    workflow.add_node("discontinued_program_response", discontinued_program_response_node)
     workflow.add_conditional_edges(
         "unified_triage",
         route_after_cohort_calendar_classification,
         {
+            "discontinued_program_response": "discontinued_program_response",
             "cohort_calendar_response": "cohort_calendar_response",
             "hybrid_retrieval": "hybrid_retrieval",
         },
     )
+    workflow.add_edge("discontinued_program_response", END)
     workflow.add_edge("cohort_calendar_response", END)
 
     # Add edges (standard RAG path)
@@ -169,6 +173,11 @@ def build_workflow() -> StateGraph:
             "generate_fun_fallback": "generate_fun_fallback"
         }
     )
+
+    # After the ENHANCE_QUERY_KEYWORDS refinement re-enhances the query,
+    # retry retrieval with it. Without this edge the graph dead-ended here
+    # and the bot returned an EMPTY response for that refinement strategy.
+    workflow.add_edge("query_enhancement", "hybrid_retrieval")
 
     # Fun fallback and finalize both go to END
     workflow.add_edge("generate_fun_fallback", END)

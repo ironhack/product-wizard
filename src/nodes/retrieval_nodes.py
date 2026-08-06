@@ -155,7 +155,13 @@ def hybrid_retrieval_node(state: RAGState) -> RAGState:
                 "max_num_results": top_k
             }],
             tool_choice={"type": "file_search"},
-            include=["file_search_call.results"]
+            include=["file_search_call.results"],
+            # We only consume the search results; capping the (discarded) text
+            # answer cuts call latency (~22s -> ~11s measured, same results).
+            # 256, not lower: the cap must never truncate the tool call itself
+            # (status=incomplete at 64 degraded retrieval for long queries)
+            max_output_tokens=256,
+            timeout=30,
         )
 
         logger.info(f"✅ Received response from OpenAI Responses API")

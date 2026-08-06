@@ -1,7 +1,7 @@
 # Ironhack Certifications Guide
 
 ## Overview
-Ironhack offers industry-recognized certifications for all bootcamp graduates and 1-year program students. These certifications are designed to validate skills and enhance career prospects in the tech industry.
+Ironhack offers industry-recognized certifications for all bootcamp graduates. These certifications are designed to validate skills and enhance career prospects in the tech industry.
 
 ## Bootcamp Certifications
 
@@ -135,63 +135,12 @@ Ironhack offers industry-recognized certifications for all bootcamp graduates an
   - *Validates knowledge of dbt for in-warehouse transformations and data modeling*
   - *Essential certification for modern data engineering workflows*
 
-## 1-Year Program Certifications
-
-### Data Science and AI Program
-Students in the 1-year program can earn multiple vendor certifications throughout their journey. These are spaced out to allow for progressive knowledge building and include dedicated study periods.
-
-#### Certification Schedule
-
-**Module 2 (Data Engineering)**
-- **W3Schools SQL Certificate** - [Link](https://www.w3schools.com/sql/sql_exam.asp)
-  - *Online certification testing SQL knowledge and database querying skills*
-  - *Multiple-choice exam format covering SQL syntax, functions, and database operations*
-  - *Accessible entry-level certification for database fundamentals*
-- **Preparation time:** 1 week
-- **Timing:** During Module 2
-
-**Module 4 (Data Visualization)**
-- **Tableau Certified Data Analyst** - [Link](https://www.tableau.com/learn/certification/certified-data-analyst)
-  - *Validates expertise in Tableau for data visualization and analytics*
-  - *Covers data preparation, visualization best practices, and statistical concepts*
-  - *Industry-standard certification for data analysts and visualization professionals*
-- **Preparation time:** 1 week
-- **Timing:** During Module 4
-
-**Module 6 (Gen AI)**
-- **IBM Generative AI for Data Analyst Specialization** - [Link](https://www.coursera.org/specializations/generative-ai-for-data-analysts)  
-- *Specialized certification focusing on generative AI applications in data analysis*
-  - *Covers AI-powered data insights, automated reporting, and ML model integration*
-  - *Industry-leading credential for AI-enhanced data analytics*
-- **Preparation time:** 1/2 week
-- **Timing:** During Module 6
-
-**End of Module 7 (Before Final Project)**
-Students choose between:
-- **Google Advanced Data Analytics Professional Certificate** - [Link](https://www.coursera.org/professional-certificates/google-advanced-data-analytics) (more complete but harder)
-  - *Comprehensive certification covering advanced analytics, machine learning, and statistical analysis*
-  - *Includes Python programming, data modeling, and business intelligence*
-  - *Google-backed credential with strong industry recognition and career advancement potential*
-- **Artificial Intelligence Foundation by The Cloud Credential Council** - [Link](https://www.cloudcredential.org/product/artificial-intelligence-ai-foundation/) (more accessible for students at earlier stages)
-  - *Entry-level certification covering fundamental AI concepts and applications*
-  - *Focuses on AI terminology, machine learning basics, and ethical considerations*
-  - *Vendor-neutral certification suitable for beginners in artificial intelligence*
-
-- **Preparation time:** 2 weeks
-- **Timing:** Just before final project
-
-### Study Support
-- Specific, time-boxed study periods are allocated for each certification
-- Study periods range from 2-3 days to 2 weeks per certification
-- This structured approach helps students prepare confidently and progressively
-
 ## Benefits of Ironhack Certifications
 
 1. **Industry Recognition:** All certifications are from respected industry organizations
 2. **Career Enhancement:** Validates skills for employers and career advancement
-3. **Progressive Learning:** 1-year program certifications build knowledge systematically
-4. **Flexibility:** Students can choose the most relevant certification for their career goals
-5. **Support:** Dedicated study periods ensure proper preparation
+3. **Flexibility:** Students can choose the most relevant certification for their career goals
+4. **Support:** Dedicated study periods ensure proper preparation
 
 ## Contact Information
 For questions about certifications, students should contact their program coordinators or academic advisors.

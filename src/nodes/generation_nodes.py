@@ -142,6 +142,7 @@ def generate_response_node(state: RAGState) -> RAGState:
     entity_emphasis = ""
     _known_short_terms = {
         "AI", "IT", "PT", "FT", "EN", "ES", "UX", "UI", "THE", "AND", "FOR", "HOW", "WHAT",
+        "FYI", "ASAP", "BTW", "IMO", "EOD", "PS", "OK",
     } | {(info.get("code") or "").upper() for info in PROGRAM_SYNONYMS.values()}
     _query_acronyms = set(re.findall(r"\b[A-Z]{2,6}\b", f"{state.get('query', '')} {enhanced_query}"))
     _missing_entities = sorted(
@@ -184,10 +185,35 @@ Generate a comprehensive, accurate answer with proper source citations.
 
     generated_response = call_openai_text(system_prompt, user_prompt)
 
-    # Citations = syllabus sources we actually grounded on (trust, not random chunk names)
+    # Deterministic disclaimer: never trust the model to follow the
+    # undocumented-entity instruction (it intermittently ignored it and dumped
+    # generic info for the IHK question). If the answer doesn't address the
+    # missing entity, prepend the honest statement ourselves.
+    if _missing_entities and generated_response and not any(
+        e.lower() in generated_response.lower() for e in _missing_entities
+    ):
+        _ents = ", ".join(_missing_entities)
+        generated_response = (
+            f"I don't have any documentation about '{_ents}' - the Education team can "
+            f"confirm whether it exists.\n\n_Related information from our documentation:_\n"
+            f"{generated_response}"
+        )
+        logger.info(f"Prepended undocumented-entity disclaimer for: {_missing_entities}")
+
+    # Citations = syllabus sources we actually grounded on (trust, not random chunk names).
+    # Universal docs (Certifications, Computer specs, ...) are legitimate grounding too:
+    # excluding them attributed certification answers to the wrong file.
     valid_detected = [p for p in detected_programs if p in PROGRAM_SYNONYMS]
+    universal_docs = [
+        d for d in filtered_docs
+        if any(u in (d.get("source") or "").lower() for u in (
+            "certifications_2025_07", "computer_specs_min_requirements",
+            "course_design_overview", "ironhack_portfolio_overview",
+            "mein_now_title_equivalence",
+        ))
+    ]
     syllabus_docs = (
-        docs_for_program_syllabi(filtered_docs, valid_detected, PROGRAM_SYNONYMS)
+        docs_for_program_syllabi(filtered_docs, valid_detected, PROGRAM_SYNONYMS) + universal_docs
         if valid_detected
         else filtered_docs
     )
@@ -202,57 +228,158 @@ Generate a comprehensive, accurate answer with proper source citations.
         # Pass docs back including any injected term-index doc, so faithfulness
         # verification checks the answer against the same evidence generation saw
         "filtered_docs": filtered_docs,
+        # Routing uses this to finalize deliberate "entity not documented"
+        # answers instead of looping them through refinement
+        "undocumented_entities": _missing_entities,
         "generated_response": generated_response,
         "source_citations": citations
     }
 
 
+def discontinued_program_response_node(state: RAGState) -> RAGState:
+    """
+    Deterministic answer for questions about a discontinued program. Retrieval
+    can't be trusted to surface the discontinuation note (it once answered a
+    1-year-program question with another program's certifications).
+    """
+    logger.info("=== Discontinued Program Response ===")
+    from src.utils import convert_markdown_to_slack, program_display_name
+
+    pid = state.get("discontinued_program", "")
+    info = PROGRAM_SYNONYMS.get(pid, {})
+    name = program_display_name(pid, PROGRAM_SYNONYMS)
+    since = info.get("discontinued_since", "")
+    note = info.get("discontinued_note", "")
+
+    parts = [
+        f"The *{name}* was discontinued{f' as of {since}' if since else ''} - "
+        f"it's no longer offered and isn't accepting new enrollments."
+    ]
+    if note:
+        parts.append(note)
+    parts.append(
+        "_For questions about students previously enrolled in this program, the Program team "
+        "on Slack can help._"
+    )
+    response = convert_markdown_to_slack("\n\n".join(parts))
+
+    return {
+        **state,
+        "final_response": response,
+        "generated_response": response,
+        "source_citations": ["Discontinued_Programs_2026_08.md"],
+        "metadata": {**(state.get("metadata") or {}), "discontinued_program": pid},
+    }
+
+
+def _topic_aliases(topic: str) -> list:
+    """
+    Strict-equivalent aliases for a topic (Kubernetes -> K8s), via one small
+    structured call. Equivalents ONLY - related/broader concepts would turn the
+    literal mention scan into false claims. Best-effort: [] on any failure.
+    """
+    from src.utils import call_openai_json
+
+    result = call_openai_json(
+        "Given a technical term, return up to 3 alternative names, spellings, or acronyms that "
+        "refer to EXACTLY the same thing, as they might appear in a tech curriculum "
+        "(e.g. Kubernetes -> K8s; JavaScript -> JS; Machine Learning -> ML). "
+        "NEVER include broader, narrower, or merely related concepts "
+        "(e.g. NOT 'Docker' or 'containers' for Kubernetes). "
+        "If no well-known exact equivalent exists, return an empty list.",
+        f'Term: "{topic}"',
+        timeout=8,
+        schema={
+            "type": "object",
+            "properties": {
+                "aliases": {"type": "array", "items": {"type": "string"}},
+            },
+            "required": ["aliases"],
+            "additionalProperties": False,
+        },
+        schema_name="topic_aliases",
+    )
+    aliases = [a.strip() for a in result.get("aliases", []) if isinstance(a, str)]
+    return [a for a in aliases if 1 < len(a) <= 60 and a.lower() != topic.lower()][:3]
+
+
+def _phrase_in_text(phrase: str, text_lower: str) -> bool:
+    """Whole-phrase, word-boundary match so short aliases ('ML') can't match inside words ('html')."""
+    return bool(re.search(rf"(?<!\w){re.escape(phrase.lower())}(?!\w)", text_lower))
+
+
 def _find_other_programs_covering(topic: str, exclude_program_ids: list) -> list:
     """
-    Search the vector store for other programs whose documents mention the topic.
-    Returns display names (max 3). Best-effort: any failure returns [].
-    Grounded: a program is suggested only if the topic literally appears in one of
-    its retrieved chunks.
+    Which other programs' syllabi literally mention the topic (or a strict-
+    equivalent alias), via the local knowledge base. Every claim is literally
+    verified against the files - the AI only proposes candidate spellings.
+    Returns [{"name": display_name, "via": phrase_that_matched}], max 3.
+    Best-effort: any failure returns [].
     """
-    from src.config import VECTOR_STORE_ID, MODEL_FAST, openai_client
-    from src.utils import program_for_source, program_display_name
+    from src.utils import load_full_syllabus_docs, program_display_name
 
-    if not topic or not VECTOR_STORE_ID or VECTOR_STORE_ID == "vs_xxx":
+    phrase = (topic or "").strip()
+    if len(phrase) < 3:
         return []
     try:
-        resp = openai_client.responses.create(
-            model=MODEL_FAST,
-            input=[{"role": "user", "content": f"Which programs mention {topic}?"}],
-            instructions="Retrieve curriculum chunks that explicitly mention the topic.",
-            tools=[{
-                "type": "file_search",
-                "vector_store_ids": [VECTOR_STORE_ID],
-                "max_num_results": 15
-            }],
-            tool_choice={"type": "file_search"},
-            include=["file_search_call.results"],
-            timeout=20,
-        )
-        hits = []
-        for out in getattr(resp, "output", []) or []:
-            res = getattr(out, "results", None)
-            if res:
-                hits = res
-                break
-        topic_lower = topic.lower()
+        phrases = [phrase] + _topic_aliases(phrase)
         found = []
-        for r in hits:
-            text = (getattr(r, "text", None) or getattr(r, "content", None) or "")
-            if topic_lower not in str(text).lower():
+        for pid in PROGRAM_SYNONYMS:
+            if pid in exclude_program_ids:
                 continue
-            fname = getattr(r, "filename", None) or ""
-            pid = program_for_source(fname, PROGRAM_SYNONYMS)
-            if pid and pid not in exclude_program_ids and pid not in found:
-                found.append(pid)
-        return [program_display_name(pid, PROGRAM_SYNONYMS) for pid in found[:3]]
+            docs = load_full_syllabus_docs([pid], PROGRAM_SYNONYMS)
+            if not docs:
+                continue
+            content_lower = docs[0]["content"].lower()
+            via = next((p for p in phrases if _phrase_in_text(p, content_lower)), None)
+            if via:
+                found.append({"name": program_display_name(pid, PROGRAM_SYNONYMS), "via": via})
+        return found[:3]
     except Exception as e:
         logger.warning(f"Cross-program coverage lookup failed (skipping suggestion): {e}")
         return []
+
+
+def _own_syllabus_mention(topic: str, program_id: str) -> dict:
+    """
+    If the ASKED program's own syllabus literally mentions the topic (or a
+    strict alias) even though verification said it isn't covered as a topic,
+    return {"via": phrase, "line": quoted line}. This is the SRE-in-Cloud-
+    Engineering case: mentioned in career outcomes, not taught - a flat
+    "not listed" would be subtly false. Best-effort: {} on any failure.
+    """
+    from src.utils import load_full_syllabus_docs
+
+    if not topic or not program_id:
+        return {}
+    try:
+        docs = load_full_syllabus_docs([program_id], PROGRAM_SYNONYMS)
+        if not docs:
+            return {}
+        content = docs[0]["content"]
+        content_lower = content.lower()
+        for phrase in [topic] + _topic_aliases(topic):
+            if _phrase_in_text(phrase, content_lower):
+                line = next(
+                    (ln.strip() for ln in content.splitlines()
+                     if _phrase_in_text(phrase, ln.lower())),
+                    "",
+                )
+                # Trim long lines to a window AROUND the match - a head-truncated
+                # quote can cut off before the term it's supposed to show
+                if len(line) > 180:
+                    m = re.search(rf"(?<!\w){re.escape(phrase.lower())}(?!\w)", line.lower())
+                    if m:
+                        start = max(0, m.start() - 80)
+                        end = min(len(line), m.end() + 80)
+                        line = ("..." if start > 0 else "") + line[start:end].strip() + ("..." if end < len(line) else "")
+                    else:
+                        line = line[:180]
+                return {"via": phrase, "line": line}
+        return {}
+    except Exception as e:
+        logger.warning(f"Own-syllabus mention check failed: {e}")
+        return {}
 
 
 def generate_negative_coverage_node(state: RAGState) -> RAGState:
@@ -336,27 +463,54 @@ def generate_negative_coverage_node(state: RAGState) -> RAGState:
     exclude_ids = [primary_program] if primary_program else []
     other_programs = _find_other_programs_covering(topic, exclude_ids)
 
-    sources_line = ", ".join(citations) if citations else "the scoped curriculum"
+    from src.utils import humanize_source_citation
+    sources_line = (
+        ", ".join(humanize_source_citation(c, PROGRAM_SYNONYMS) for c in citations)
+        if citations else "the scoped curriculum"
+    )
     if primary_program:
         result_line = (
-            f"*Result:* *{topic}* is not listed in the {program_name} syllabus, "
-            f"so we can't confirm it's part of that program."
+            f"*Result:* *{topic}* is not listed as a taught topic in the {program_name} syllabus, "
+            f"so I can't confirm it's part of that program."
         )
     else:
         result_line = (
-            f"*Result:* *{topic}* is not mentioned in the documents we checked, "
-            f"so we can't confirm it."
+            f"*Result:* *{topic}* is not mentioned in the documents I checked, "
+            f"so I can't confirm it."
         )
     response_parts = [
-        f"*What we checked:* {sources_line}",
+        f"*What I checked:* {sources_line}",
         result_line,
     ]
-    if other_programs:
+
+    # If the asked program's own syllabus mentions the term outside the taught
+    # topics (career outcomes, context), say so - a flat "not listed" reads as
+    # "never appears", which is subtly false and erodes trust
+    own_mention = _own_syllabus_mention(topic, primary_program) if primary_program else {}
+    if own_mention:
+        quote = f" (\"{own_mention['line']}\")" if own_mention.get("line") else ""
         response_parts.append(
-            f"*Covered elsewhere:* {topic} does appear in the curriculum for: {', '.join(other_programs)}."
+            f"*Worth noting:* I did spot the term \"{own_mention['via']}\" in the {program_name} "
+            f"syllabus{quote}, just not as a taught topic. The Education team can confirm how deep it goes."
+        )
+    if other_programs:
+        # "Mentioned", not "covered": this comes from a literal scan of the
+        # syllabus files, which proves the term appears - not how deeply it's
+        # taught. When the match came via an alias (K8s for Kubernetes), say so.
+        # The follow-up question triggers the full AI-verified coverage check.
+        rendered = []
+        for entry in other_programs:
+            if entry["via"].lower() != topic.lower():
+                rendered.append(f"{entry['name']} (as \"{entry['via']}\")")
+            else:
+                rendered.append(entry["name"])
+        response_parts.append(
+            f"*Mentioned elsewhere:* I found {topic} mentioned in the syllabus for: {', '.join(rendered)}. "
+            f"Want me to check how it's actually covered there? Ask me in this thread, e.g. "
+            f"\"Does {other_programs[0]['name']} cover {topic}?\""
         )
     response_parts.append(
-        "_Note: this check runs against the syllabus summaries. A topic can still get brief hands-on "
+        "_Note: I check against the syllabus summaries. A topic can still get brief hands-on "
         "exposure inside lessons without being listed - the Education team can confirm._"
     )
     response = "\n".join(response_parts)

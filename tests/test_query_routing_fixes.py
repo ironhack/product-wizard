@@ -143,6 +143,21 @@ def test_dsml_matches_any_version():
     assert len(matched) == 2
 
 
+def test_humanize_source_citation():
+    from src.utils import humanize_source_citation
+    assert humanize_source_citation("Cloud_Engineering_bootcamp_2025_12.md", PROGRAM_SYNONYMS) == \
+        "Cloud Engineering bootcamp syllabus (December 2025)"
+    assert humanize_source_citation("Certifications_2025_07.md", PROGRAM_SYNONYMS) == \
+        "Certifications guide (July 2025)"
+    assert humanize_source_citation("Data_Science_&_Machine_Learning_bootcamp_2026_02.txt", PROGRAM_SYNONYMS) == \
+        "Data Science & Machine Learning bootcamp syllabus (February 2026)"
+    assert humanize_source_citation("mein_now_title_equivalence.md", PROGRAM_SYNONYMS) == \
+        "MeinNOW course title mapping"
+    # unknown files degrade gracefully, never crash
+    assert humanize_source_citation("Some_Other_Doc_2025_03.md", PROGRAM_SYNONYMS) == \
+        "Some Other Doc (March 2025)"
+
+
 def test_program_for_source():
     assert program_for_source("Cloud_Engineering_bootcamp_2025_12.md", PROGRAM_SYNONYMS) == "cloud_engineering"
     assert program_for_source("Certifications_2025_07.md", PROGRAM_SYNONYMS) is None
@@ -150,12 +165,54 @@ def test_program_for_source():
 
 # ---------------- Full syllabus loading for breakdown requests ----------------
 
-def test_every_program_has_a_loadable_syllabus():
-    for pid in PROGRAM_SYNONYMS:
+def test_every_active_program_has_a_loadable_syllabus():
+    for pid, info in PROGRAM_SYNONYMS.items():
+        if info.get("discontinued"):
+            continue
         docs = load_full_syllabus_docs([pid], PROGRAM_SYNONYMS)
         assert len(docs) == 1, f"no local syllabus found for {pid}"
         assert docs[0]["full_syllabus"] is True
         assert len(docs[0]["content"]) > 1000
+
+
+# ---------------- Discontinued program interception ----------------
+
+def test_discontinued_program_detected():
+    from src.nodes.triage_nodes import _detect_discontinued_program
+    assert _detect_discontinued_program(
+        "Do you offer a 1 year data science program in Germany?", []
+    ) == "data_science_ai_1_year"
+    assert _detect_discontinued_program(
+        "What certifications do 1-year program students get?", []
+    ) == "data_science_ai_1_year"
+
+
+def test_discontinued_not_triggered_with_active_program():
+    from src.nodes.triage_nodes import _detect_discontinued_program
+    # "is DA 1 year long?" is a Data Analytics duration question
+    assert _detect_discontinued_program(
+        "Is the Data Analytics bootcamp 1 year long?", ["data_analytics"]
+    ) == ""
+
+
+def test_discontinued_response_node():
+    from src.nodes.generation_nodes import discontinued_program_response_node
+    state = {"discontinued_program": "data_science_ai_1_year"}
+    result = discontinued_program_response_node(state)
+    resp = result["final_response"]
+    assert "discontinued" in resp.lower()
+    assert "Data Science & AI 1-Year Program" in resp
+    assert "Data Science & Machine Learning" in resp  # redirect guidance
+
+
+def test_discontinued_routing():
+    from src.routes import route_after_cohort_calendar_classification
+    assert route_after_cohort_calendar_classification(
+        {"discontinued_program": "data_science_ai_1_year"}
+    ) == "discontinued_program_response"
+    assert route_after_cohort_calendar_classification(
+        {"is_cohort_calendar_question": True}
+    ) == "cohort_calendar_response"
 
 
 # ---------------- Portfolio-wide local term index ----------------
@@ -177,6 +234,75 @@ def test_local_topic_index_kubernetes_not_in_cloud_engineering():
 def test_local_topic_index_ignores_stopwords():
     idx = local_topic_index("which courses have the tools?", PROGRAM_SYNONYMS)
     assert idx == []
+
+
+def test_local_topic_index_drops_non_discriminative_terms():
+    # Ubiquitous terms ("projects", "work" via "workflow") appear in every
+    # syllabus - the index must drop them or a portfolio-wide question
+    # produces an index doc citing all 13 files (the empty-IHK-answer bug)
+    idx = local_topic_index("which bootcamp includes projects?", PROGRAM_SYNONYMS)
+    assert idx == []
+
+    idx = local_topic_index(
+        "How does the IHK certification work? For which bootcamp does it apply?",
+        PROGRAM_SYNONYMS,
+    )
+    programs_per_term = {}
+    for e in idx:
+        programs_per_term.setdefault(e["term"], set()).add(e["program_id"])
+    for term, programs in programs_per_term.items():
+        assert len(programs) <= len(PROGRAM_SYNONYMS) // 2, f"{term} spans too many programs"
+
+
+# ---------------- Sibling-program suggestion (local phrase scan) ----------------
+
+def test_sibling_check_finds_kubernetes_in_devops_not_ce(monkeypatch):
+    import src.nodes.generation_nodes as gn
+    monkeypatch.setattr(gn, "_topic_aliases", lambda topic: [])  # deterministic: no API
+    entries = gn._find_other_programs_covering("Kubernetes", ["cloud_engineering"])
+    names = [e["name"] for e in entries]
+    assert "DevOps & Cloud Computing" in names
+    assert "Cloud Engineering" not in names
+
+
+def test_sibling_check_whole_phrase_not_tokens(monkeypatch):
+    import src.nodes.generation_nodes as gn
+    monkeypatch.setattr(gn, "_topic_aliases", lambda topic: [])  # deterministic: no API
+    # "engineering" alone appears in many syllabi; the full phrase appears in none.
+    # (With live alias expansion, "SRE" legitimately matches Cloud Engineering -
+    # that behavior is intentional and covered by the judge fixtures.)
+    assert gn._find_other_programs_covering("Site Reliability Engineering", []) == []
+
+
+def test_sibling_check_alias_match_reports_via(monkeypatch):
+    import src.nodes.generation_nodes as gn
+    monkeypatch.setattr(gn, "_topic_aliases", lambda topic: ["SRE"])
+    entries = gn._find_other_programs_covering("Site Reliability Engineering", [])
+    assert any(e["name"] == "Cloud Engineering" and e["via"] == "SRE" for e in entries)
+
+
+def test_own_syllabus_mention_sre_in_cloud_engineering(monkeypatch):
+    import src.nodes.generation_nodes as gn
+    monkeypatch.setattr(gn, "_topic_aliases", lambda topic: ["SRE"])
+    # CE career outcomes mention "Site Reliability Engineer (SRE)" though it's
+    # not a taught topic - the answer must note the mention, not deny it
+    mention = gn._own_syllabus_mention("Site Reliability Engineering", "cloud_engineering")
+    assert mention.get("via")
+    assert "SRE" in mention.get("line", "") or "Site Reliability" in mention.get("line", "")
+
+
+def test_own_syllabus_mention_absent_topic(monkeypatch):
+    import src.nodes.generation_nodes as gn
+    monkeypatch.setattr(gn, "_topic_aliases", lambda topic: [])
+    assert gn._own_syllabus_mention("Quantum Computing", "cloud_engineering") == {}
+
+
+def test_phrase_matching_uses_word_boundaries():
+    from src.nodes.generation_nodes import _phrase_in_text
+    # a short alias must not match inside another word
+    assert not _phrase_in_text("ML", "students learn html and css")
+    assert _phrase_in_text("ML", "an intro to ml and statistics")
+    assert _phrase_in_text("Kubernetes", "kubernetes-based deployments")
 
 
 # ---------------- Cohort calendar date-awareness ----------------
