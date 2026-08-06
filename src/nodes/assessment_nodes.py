@@ -92,10 +92,12 @@ Return one assessment per chunk, keyed by chunk_id (1-based, matching the number
 """
 
     logger.info(f"Batched relevance assessment: {len(docs_to_assess)} chunks in one call")
+    # Short timeout on purpose: a failed/slow call degrades gracefully (all
+    # chunks kept at medium score), so waiting long here buys nothing
     result = call_openai_json(
         RELEVANCE_ASSESSMENT_PROMPT,
         user_prompt,
-        timeout=45,
+        timeout=25,
         schema={
             "type": "object",
             "properties": {

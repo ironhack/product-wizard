@@ -209,45 +209,24 @@ Generate a comprehensive, accurate answer with proper source citations.
 
 def _find_other_programs_covering(topic: str, exclude_program_ids: list) -> list:
     """
-    Search the vector store for other programs whose documents mention the topic.
+    Which other programs' syllabi literally mention the topic PHRASE, via the
+    local knowledge base (instant, deterministic ground truth - no API call).
+    Whole-phrase matching: "Site Reliability Engineering" must not match every
+    syllabus containing the word "engineering".
     Returns display names (max 3). Best-effort: any failure returns [].
-    Grounded: a program is suggested only if the topic literally appears in one of
-    its retrieved chunks.
     """
-    from src.config import VECTOR_STORE_ID, MODEL_FAST, openai_client
-    from src.utils import program_for_source, program_display_name
+    from src.utils import load_full_syllabus_docs, program_display_name
 
-    if not topic or not VECTOR_STORE_ID or VECTOR_STORE_ID == "vs_xxx":
+    phrase = (topic or "").strip().lower()
+    if len(phrase) < 3:
         return []
     try:
-        resp = openai_client.responses.create(
-            model=MODEL_FAST,
-            input=[{"role": "user", "content": f"Which programs mention {topic}?"}],
-            instructions="Retrieve curriculum chunks that explicitly mention the topic.",
-            tools=[{
-                "type": "file_search",
-                "vector_store_ids": [VECTOR_STORE_ID],
-                "max_num_results": 15
-            }],
-            tool_choice={"type": "file_search"},
-            include=["file_search_call.results"],
-            timeout=20,
-        )
-        hits = []
-        for out in getattr(resp, "output", []) or []:
-            res = getattr(out, "results", None)
-            if res:
-                hits = res
-                break
-        topic_lower = topic.lower()
         found = []
-        for r in hits:
-            text = (getattr(r, "text", None) or getattr(r, "content", None) or "")
-            if topic_lower not in str(text).lower():
+        for pid in PROGRAM_SYNONYMS:
+            if pid in exclude_program_ids:
                 continue
-            fname = getattr(r, "filename", None) or ""
-            pid = program_for_source(fname, PROGRAM_SYNONYMS)
-            if pid and pid not in exclude_program_ids and pid not in found:
+            docs = load_full_syllabus_docs([pid], PROGRAM_SYNONYMS)
+            if docs and phrase in docs[0]["content"].lower():
                 found.append(pid)
         return [program_display_name(pid, PROGRAM_SYNONYMS) for pid in found[:3]]
     except Exception as e:

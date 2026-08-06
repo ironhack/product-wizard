@@ -179,6 +179,22 @@ def test_local_topic_index_ignores_stopwords():
     assert idx == []
 
 
+# ---------------- Sibling-program suggestion (local phrase scan) ----------------
+
+def test_sibling_check_finds_kubernetes_in_devops_not_ce():
+    from src.nodes.generation_nodes import _find_other_programs_covering
+    names = _find_other_programs_covering("Kubernetes", ["cloud_engineering"])
+    assert "DevOps & Cloud Computing" in names
+    assert "Cloud Engineering" not in names
+
+
+def test_sibling_check_whole_phrase_not_tokens():
+    from src.nodes.generation_nodes import _find_other_programs_covering
+    # "engineering" alone appears in many syllabi; the full phrase appears in none
+    names = _find_other_programs_covering("Site Reliability Engineering", [])
+    assert names == []
+
+
 # ---------------- Cohort calendar date-awareness ----------------
 
 def _fmt(d: date) -> str:
