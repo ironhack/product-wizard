@@ -165,12 +165,54 @@ def test_program_for_source():
 
 # ---------------- Full syllabus loading for breakdown requests ----------------
 
-def test_every_program_has_a_loadable_syllabus():
-    for pid in PROGRAM_SYNONYMS:
+def test_every_active_program_has_a_loadable_syllabus():
+    for pid, info in PROGRAM_SYNONYMS.items():
+        if info.get("discontinued"):
+            continue
         docs = load_full_syllabus_docs([pid], PROGRAM_SYNONYMS)
         assert len(docs) == 1, f"no local syllabus found for {pid}"
         assert docs[0]["full_syllabus"] is True
         assert len(docs[0]["content"]) > 1000
+
+
+# ---------------- Discontinued program interception ----------------
+
+def test_discontinued_program_detected():
+    from src.nodes.triage_nodes import _detect_discontinued_program
+    assert _detect_discontinued_program(
+        "Do you offer a 1 year data science program in Germany?", []
+    ) == "data_science_ai_1_year"
+    assert _detect_discontinued_program(
+        "What certifications do 1-year program students get?", []
+    ) == "data_science_ai_1_year"
+
+
+def test_discontinued_not_triggered_with_active_program():
+    from src.nodes.triage_nodes import _detect_discontinued_program
+    # "is DA 1 year long?" is a Data Analytics duration question
+    assert _detect_discontinued_program(
+        "Is the Data Analytics bootcamp 1 year long?", ["data_analytics"]
+    ) == ""
+
+
+def test_discontinued_response_node():
+    from src.nodes.generation_nodes import discontinued_program_response_node
+    state = {"discontinued_program": "data_science_ai_1_year"}
+    result = discontinued_program_response_node(state)
+    resp = result["final_response"]
+    assert "discontinued" in resp.lower()
+    assert "Data Science & AI 1-Year Program" in resp
+    assert "Data Science & Machine Learning" in resp  # redirect guidance
+
+
+def test_discontinued_routing():
+    from src.routes import route_after_cohort_calendar_classification
+    assert route_after_cohort_calendar_classification(
+        {"discontinued_program": "data_science_ai_1_year"}
+    ) == "discontinued_program_response"
+    assert route_after_cohort_calendar_classification(
+        {"is_cohort_calendar_question": True}
+    ) == "cohort_calendar_response"
 
 
 # ---------------- Portfolio-wide local term index ----------------

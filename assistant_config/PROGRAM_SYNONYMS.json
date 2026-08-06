@@ -73,8 +73,11 @@
   },
   "data_science_ai_1_year": {
     "display_name": "Data Science & AI 1-Year Program (Germany)",
-    "aliases": ["df", "1 year", "1-year", "germany program", "dsai 1 year"],
-    "filenames": ["Data_Science_and_AI_1_Year_Program_Germany_2025_07"],
-    "code":"DF"
+    "aliases": ["df", "1 year", "1-year", "one year", "germany program", "dsai 1 year", "1 year program", "1-year program"],
+    "filenames": [],
+    "code":"DF",
+    "discontinued": true,
+    "discontinued_since": "August 2026",
+    "discontinued_note": "Prospects interested in data science and AI should be directed to the Data Science & Machine Learning bootcamp, the Data Analytics bootcamp, or the AI Engineering bootcamp, depending on their goals."
   }
 }

@@ -236,6 +236,42 @@ Generate a comprehensive, accurate answer with proper source citations.
     }
 
 
+def discontinued_program_response_node(state: RAGState) -> RAGState:
+    """
+    Deterministic answer for questions about a discontinued program. Retrieval
+    can't be trusted to surface the discontinuation note (it once answered a
+    1-year-program question with another program's certifications).
+    """
+    logger.info("=== Discontinued Program Response ===")
+    from src.utils import convert_markdown_to_slack, program_display_name
+
+    pid = state.get("discontinued_program", "")
+    info = PROGRAM_SYNONYMS.get(pid, {})
+    name = program_display_name(pid, PROGRAM_SYNONYMS)
+    since = info.get("discontinued_since", "")
+    note = info.get("discontinued_note", "")
+
+    parts = [
+        f"The *{name}* was discontinued{f' as of {since}' if since else ''} - "
+        f"it's no longer offered and isn't accepting new enrollments."
+    ]
+    if note:
+        parts.append(note)
+    parts.append(
+        "_For questions about students previously enrolled in this program, the Program team "
+        "on Slack can help._"
+    )
+    response = convert_markdown_to_slack("\n\n".join(parts))
+
+    return {
+        **state,
+        "final_response": response,
+        "generated_response": response,
+        "source_citations": ["Discontinued_Programs_2026_08.md"],
+        "metadata": {**(state.get("metadata") or {}), "discontinued_program": pid},
+    }
+
+
 def _topic_aliases(topic: str) -> list:
     """
     Strict-equivalent aliases for a topic (Kubernetes -> K8s), via one small

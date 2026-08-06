@@ -351,5 +351,18 @@
       "FAIL if the response contains 'the requested topic' or presents DevOps as the program that was asked about.",
       "Pass with 8+ if scoped negative + mention-phrased DevOps redirect are both present."
     ]
+  },
+  {
+    "id": "discontinued_1year_program",
+    "query": "Do you offer a 1 year data science program in Germany?",
+    "expected_answer": "The Data Science & AI 1-Year Program (Germany) was discontinued as of August 2026 and is no longer offered or enrolling. Prospects interested in data science and AI should be directed to the Data Science & Machine Learning, Data Analytics, or AI Engineering bootcamps.",
+    "expected_citations": [],
+    "judge_criteria": [
+      "CRITICAL: The answer must state the 1-year program is discontinued / no longer offered.",
+      "FAIL if the answer describes the 1-year program as currently available, or answers with another program's details as if the 1-year program still existed.",
+      "Redirect guidance toward active data programs (DSML / Data Analytics / AI Engineering) is expected.",
+      "A generic 'I couldn't find information' fallback scores at most 5 - the discontinuation must be stated.",
+      "Pass with 8+ if discontinuation is clear and redirect guidance is present."
+    ]
   }
 ]

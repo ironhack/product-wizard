@@ -11,7 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 def route_after_cohort_calendar_classification(state: RAGState) -> str:
-    """Route after cohort/calendar classification: to cohort response or standard retrieval."""
+    """Route after triage: discontinued-program answer, cohort response, or standard retrieval."""
+    if state.get("discontinued_program"):
+        logger.info(f"Routing to discontinued_program_response ({state['discontinued_program']})")
+        return "discontinued_program_response"
     if state.get("is_cohort_calendar_question", False):
         logger.info("Routing to cohort_calendar_response (cohort/calendar question)")
         return "cohort_calendar_response"

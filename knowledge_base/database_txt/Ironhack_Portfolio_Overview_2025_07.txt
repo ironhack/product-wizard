@@ -1,129 +1,119 @@
-Ironhack Portfolio Overview - 2025
+# Ironhack Portfolio Overview - 2025
 
-Executive Summary
+## Executive Summary
 
-Ironhack offers a comprehensive portfolio of technology education programs designed to transform beginners into industry-ready professionals. Our programs span 9-15 week intensive bootcamps, a comprehensive 1-year program, and specialized AI productivity courses, all focused on practical, hands-on learning with immediate career impact.
+Ironhack offers a comprehensive portfolio of technology education programs designed to transform beginners into industry-ready professionals. Our programs span 9-15 week intensive bootcamps and specialized AI productivity courses, all focused on practical, hands-on learning with immediate career impact.
 
-Product Lines Summary
+## Product Lines Summary
 
-1. Bootcamps (9-15 weeks)
-Intensive, skills-focused programs for career changers and professionals
+### 1. Bootcamps (9-15 weeks)
+**Intensive, skills-focused programs for career changers and professionals**
 
-Formats:
-- Full-Time: 9 weeks (~40 hrs/week), Monday-Friday 9:00–18:00
-- Part-Time: 24 weeks (~15 hrs/week), Evenings + Saturdays
+**Formats:**
+- **Full-Time**: 9 weeks (~40 hrs/week), Monday-Friday 9:00–18:00
+- **Part-Time**: 24 weeks (~15 hrs/week), Evenings + Saturdays
 
-Available Programs:
+**Available Programs:**
 
-AI Web Development (WDFT/WDPT)
-- Duration: 360 hours + 40 hours prework
-- Technologies: JavaScript, React, Node.js, Express, MongoDB, Vite, Codeium, ChatGPT Free, Claude Free, Replit AI
-- Capstone: AI-enhanced full-stack web application with MERN stack
-- Format: Remote delivery with AI-integrated full-stack curriculum
+#### **AI Web Development** (WDFT/WDPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: JavaScript, React, Node.js, Express, MongoDB, Vite, Codeium, ChatGPT Free, Claude Free, Replit AI
+- **Capstone**: AI-enhanced full-stack web application with MERN stack
+- **Format**: Remote delivery with AI-integrated full-stack curriculum
 
-AI-driven UX/UI Design (UXFT/UXPT)
-- Duration: 360 hours + 40 hours prework
-- Technologies: Figma, ChatGPT, FigJam AI, Midjourney, Stark, WAVE, Framer, HTML, CSS, AI plugins/tools
-- Capstone: Real client final project with AI-enhanced workflows
-- Format: Remote delivery with AI-integrated design curriculum
+#### **AI-driven UX/UI Design** (UXFT/UXPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: Figma, ChatGPT, FigJam AI, Midjourney, Stark, WAVE, Framer, HTML, CSS, AI plugins/tools
+- **Capstone**: Real client final project with AI-enhanced workflows
+- **Format**: Remote delivery with AI-integrated design curriculum
 
-Data Analytics (DAFT/DAPT)
-- Duration: 600 hours + 50 hours prework
-- Technologies: Python, SQL, Tableau, Power BI, advanced ML, statistics
-- Capstone: Data-driven business insights project
-- Format: Remote delivery with comprehensive analytics curriculum including advanced ML
+#### **Data Analytics** (DAFT/DAPT)
+- **Duration**: 600 hours + 50 hours prework
+- **Technologies**: Python, SQL, Tableau, Power BI, advanced ML, statistics
+- **Capstone**: Data-driven business insights project
+- **Format**: Remote delivery with comprehensive analytics curriculum including advanced ML
 
-Data Science & Machine Learning (MLFT/MLPT)
-- Duration: 400 hours (40 hours prework + 360 hours course)
-- Technologies: Python, SQL, Pandas, NumPy, Tableau, Plotly, Scikit-learn, PyTorch and/or TensorFlow/Keras, MLOps, computer vision, NLP, RAG/LLM (e.g., LangChain, OpenAI APIs)
-- Capstone: End-to-end data science solution (data handling, modeling, and presentation)
+#### **Data Science & Machine Learning** (MLFT/MLPT)
+- **Duration**: 400 hours (40 hours prework + 360 hours course)
+- **Technologies**: Python, SQL, Pandas, NumPy, Tableau, Plotly, Scikit-learn, PyTorch and/or TensorFlow/Keras, MLOps, computer vision, NLP, RAG/LLM (e.g., LangChain, OpenAI APIs)
+- **Capstone**: End-to-end data science solution (data handling, modeling, and presentation)
 
-AI Engineering (AIFT/AIPT)
-- Duration: 360-600 hours + 40-50 hours prework
-- Technologies: Python, TensorFlow, PyTorch, MLOps, cloud platforms
-- Capstone: Production-ready AI system
+#### **AI Engineering** (AIFT/AIPT)
+- **Duration**: 360-600 hours + 40-50 hours prework
+- **Technologies**: Python, TensorFlow, PyTorch, MLOps, cloud platforms
+- **Capstone**: Production-ready AI system
 
-AI Product Management (PMFT/PMPT)
-- Duration: 360 hours + 40 hours prework
-- Technologies: Jira, Confluence, Figma, ChatGPT, Lovable, Mixpanel, no-code platforms
-- Capstone: End-to-end AI product sprint from discovery to go-to-market
+#### **AI Product Management** (PMFT/PMPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: Jira, Confluence, Figma, ChatGPT, Lovable, Mixpanel, no-code platforms
+- **Capstone**: End-to-end AI product sprint from discovery to go-to-market
 
-AI Consulting & Integration (ACFT/ACPT)
-- Duration: 360 hours + 40 hours prework
-- Technologies: Python, OpenAI API, Anthropic API, Gemini API, n8n, LangChain, Power BI, RAG, MCP
-- Capstone: End-to-end AI consulting engagement with compliance documentation and client presentation
+#### **AI Consulting & Integration** (ACFT/ACPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: Python, OpenAI API, Anthropic API, Gemini API, n8n, LangChain, Power BI, RAG, MCP
+- **Capstone**: End-to-end AI consulting engagement with compliance documentation and client presentation
 
-Cloud Engineering (CEFT/CEPT)
-- Duration: 360 hours + 40 hours prework
-- Technologies: AWS, Terraform, GitHub Actions, Ansible, Prometheus, Grafana, Vault, Keycloak
-- Capstone: Secure, observable, cost-optimized multi-cloud platform with Terraform repos and compliance report
+#### **Cloud Engineering** (CEFT/CEPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: AWS, Terraform, GitHub Actions, Ansible, Prometheus, Grafana, Vault, Keycloak
+- **Capstone**: Secure, observable, cost-optimized multi-cloud platform with Terraform repos and compliance report
 
-Data Engineering (DEFT/DEPT)
-- Duration: 360 hours + 40 hours prework
-- Technologies: Python, SQL, Apache Airflow, dbt, Apache Spark, Apache Kafka, Snowflake, BigQuery, Redshift, Terraform
-- Capstone: Real-time financial transaction pipeline or telecom CDR streaming system with governance
+#### **Data Engineering** (DEFT/DEPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: Python, SQL, Apache Airflow, dbt, Apache Spark, Apache Kafka, Snowflake, BigQuery, Redshift, Terraform
+- **Capstone**: Real-time financial transaction pipeline or telecom CDR streaming system with governance
 
-DevOps (DVFT/DVPT)
-- Duration: 360-600 hours + 40-50 hours prework
-- Technologies: Docker, Kubernetes, AWS, Azure, CI/CD, monitoring
-- Capstone: Infrastructure automation project
+#### **DevOps** (DVFT/DVPT)
+- **Duration**: 360-600 hours + 40-50 hours prework
+- **Technologies**: Docker, Kubernetes, AWS, Azure, CI/CD, monitoring
+- **Capstone**: Infrastructure automation project
 
-AI-Driven Marketing (MKFT/MKPT)
-- Duration: 360 hours + 40 hours prework
-- Technologies: Google Analytics, HubSpot, Meta Ads, Google Ads, ChatGPT, Claude, Midjourney, Canva, Make, AI marketing tools
-- Capstone: Complete AI-enhanced marketing campaign
+#### **AI-Driven Marketing** (MKFT/MKPT)
+- **Duration**: 360 hours + 40 hours prework
+- **Technologies**: Google Analytics, HubSpot, Meta Ads, Google Ads, ChatGPT, Claude, Midjourney, Canva, Make, AI marketing tools
+- **Capstone**: Complete AI-enhanced marketing campaign
 
-Cybersecurity (CSFT/CSPT)
-- Duration: 360-600 hours + 40-50 hours prework
-- Technologies: Ethical hacking, penetration testing, security tools
-- Capstone: Security assessment project
+#### **Cybersecurity** (CSFT/CSPT)
+- **Duration**: 360-600 hours + 40-50 hours prework
+- **Technologies**: Ethical hacking, penetration testing, security tools
+- **Capstone**: Security assessment project
 
-2. 1-Year Program
-Comprehensive program for deep specialization
+### 2. Specialized AI Courses
+**Focused programs for specific AI applications**
 
-Data Science and AI 1-Year Program Germany
-- Duration: 1,582 hours over 12 months
-- Format: Part-time, evenings and weekends
-- Technologies: Advanced Python, ML, AI, data engineering
-- Location: Germany (Munich)
+#### **Intensive Program in Applied AI - AI Async Productivity Course**
+- **Duration**: 61-83 hours (asynchronous)
+- **Format**: Self-paced online learning
+- **Content**: 12 modules covering AI productivity tools and workflows
+- **Technologies**: ChatGPT, Grammarly, SlidesAI, Notion AI, Make.com, and more
+- **Target**: Knowledge workers, managers, solo operators
 
-3. Specialized AI Courses
-Focused programs for specific AI applications
+## Program Comparison
 
-Intensive Program in Applied AI - AI Async Productivity Course
-- Duration: 61-83 hours (asynchronous)
-- Format: Self-paced online learning
-- Content: 12 modules covering AI productivity tools and workflows
-- Technologies: ChatGPT, Grammarly, SlidesAI, Notion AI, Make.com, and more
-- Target: Knowledge workers, managers, solo operators
+| Program Type | Duration | Format | Target Audience |
+|--------------|----------|--------|-----------------|
+| **Bootcamps** | 9 weeks | Full-Time/Part-Time Remote | Career changers |
+| **AI Productivity** | 61-83 hours | Self-paced | Working professionals |
 
-Program Comparison
+## Prerequisites
 
-Program Type | Duration | Format | Target Audience
-Bootcamps | 9 weeks | Full-Time/Part-Time Remote | Career changers
-1-Year Program | 12 months | Part-Time | Deep specialization
-AI Productivity | 61-83 hours | Self-paced | Working professionals
-
-Prerequisites
-
-Bootcamps & 1-Year Program
+### **Bootcamps**
 - No prior coding experience required
 - Basic computer literacy
 - English proficiency (B2 level)
 - Commitment to intensive learning
 
-AI Productivity Course
+### **AI Productivity Course**
 - No technical background required
 - Basic computer skills
 - Access to internet and modern computer
 - Willingness to learn new tools
 
-Career Outcomes
+## Career Outcomes
 
-- Bootcamps: 85%+ job placement rate within 6 months
-- 1-Year Program: Advanced roles in data science and AI
-- AI Productivity: Immediate productivity improvements in current role
+- **Bootcamps**: 85%+ job placement rate within 6 months
+- **AI Productivity**: Immediate productivity improvements in current role
 
-Next Steps
+## Next Steps
 
 Ready to transform your career? Contact our admissions team to discuss which program best fits your goals and schedule.

@@ -79,17 +79,7 @@
 - Duration: 360 hrs + 40 hrs prework
 - Technologies: See official Data Engineering syllabus for detailed curriculum and tools
 
-### 2. 1-Year Program
-
-**Definition:** Intensive, full-time, remote course for the German market.
-
-**Product Code:** DF1Y
-
-**Duration:** 1 year (226 days, 7 hrs/day, ~1582 hrs)
-
-**Technologies:** See official Data Science and AI 1-Year Program syllabus for detailed curriculum and programming languages
-
-### 3. Academy Courses
+### 2. Academy Courses
 
 **Definition:** Shorter, skill-up or upskilling courses, fully on-demand, video and text based including advanced applied AI programs and productivity courses.
 
@@ -104,13 +94,11 @@
 
 2. **Comprehensive Curriculum:** All bootcamps now feature the extended 600-hour curriculum with advanced technologies.
 
-3. **1-Year Program Uniqueness:** Only remote, only for Germany, and far more in-depth than bootcamps.
-
-4. **Academy Target:** Academy courses target working professionals and upskillers with shorter, highly practical formats.
+3. **Academy Target:** Academy courses target working professionals and upskillers with shorter, highly practical formats.
 
 ## File Naming Convention
 
-Course files are named by product line, location, and last update date (e.g., "AI_Driven_UXUI_bootcamp_2025_12", "Data_Science_&_Machine_Learning_bootcamp_2026_02", "Data_Science_and_AI_1_Year_Program_Germany_2025_07").
+Course files are named by product line, location, and last update date (e.g., "AI_Driven_UXUI_bootcamp_2025_12", "Data_Science_&_Machine_Learning_bootcamp_2026_02").
 
 ## Support Information
 

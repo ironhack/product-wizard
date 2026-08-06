@@ -43,6 +43,7 @@ from src.nodes.verification_nodes import (
 from src.nodes.generation_nodes import (
     generate_response_node,
     generate_negative_coverage_node,
+    discontinued_program_response_node,
 )
 
 # ---------------- Fallback Nodes ----------------
@@ -96,15 +97,18 @@ def build_workflow() -> StateGraph:
     # detection + cohort classification + coverage classification
     workflow.set_entry_point("unified_triage")
 
-    # After triage: cohort/calendar path vs standard retrieval path
+    # After triage: discontinued program, cohort/calendar path, or standard retrieval
+    workflow.add_node("discontinued_program_response", discontinued_program_response_node)
     workflow.add_conditional_edges(
         "unified_triage",
         route_after_cohort_calendar_classification,
         {
+            "discontinued_program_response": "discontinued_program_response",
             "cohort_calendar_response": "cohort_calendar_response",
             "hybrid_retrieval": "hybrid_retrieval",
         },
     )
+    workflow.add_edge("discontinued_program_response", END)
     workflow.add_edge("cohort_calendar_response", END)
 
     # Add edges (standard RAG path)

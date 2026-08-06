@@ -240,7 +240,8 @@ def document_filtering_node(state: RAGState) -> RAGState:
         "course_design_overview_2025_07",
         "computer_specs_min_requirements",
         "ironhack_portfolio_overview_2025_07",
-        "mein_now_title_equivalence"
+        "mein_now_title_equivalence",
+        "discontinued_programs"
     ]
 
     # Get valid programs (actual program IDs, not document names like "certifications")

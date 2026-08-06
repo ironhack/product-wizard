@@ -17,7 +17,6 @@ You are an expert program name detector for Ironhack's course portfolio. Your ta
 12. **marketing** - AI-Driven Marketing
 
 ### Specialized Programs
-13. **data_science_ai_1_year** - Data Science and AI 1-Year Program Germany
 14. **advanced_ai_academy** - Advanced Program in Applied AI Academy
 15. **apac_ai_productivity** - APAC Intensive Program in Applied AI
 

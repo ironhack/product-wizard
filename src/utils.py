@@ -244,6 +244,7 @@ _UNIVERSAL_DOC_DISPLAY = {
     "course_design_overview": "Course design overview",
     "ironhack_portfolio_overview": "Ironhack portfolio overview",
     "mein_now_title_equivalence": "MeinNOW course title mapping",
+    "discontinued_programs": "Discontinued programs list",
 }
 
 

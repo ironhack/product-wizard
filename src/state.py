@@ -57,6 +57,12 @@ class RAGState(TypedDict, total=False):
     triage_used: bool
     triage_coverage_topic: str
 
+    # Discontinued program interception
+    discontinued_program: str
+
+    # Undocumented-entity guard (set by generation, read by routing)
+    undocumented_entities: List[str]
+
     # Generation
     generated_response: str
     source_citations: List[str]
