@@ -334,7 +334,7 @@
   {
     "id": "negative_ce_kubernetes_sibling",
     "query": "does Cloud Engineering cover kubernetes?",
-    "expected_answer": "A clear scoped negative: Kubernetes is not listed in the Cloud Engineering syllabus (citing Cloud_Engineering_bootcamp_2025_12), plus a redirect noting that Kubernetes IS covered in the DevOps & Cloud Computing curriculum, and a note that syllabus summaries may omit brief lesson-level exposure (Education team can confirm).",
+    "expected_answer": "A clear scoped negative: Kubernetes is not listed in the Cloud Engineering syllabus (citing Cloud_Engineering_bootcamp_2025_12), plus a redirect noting that Kubernetes is MENTIONED in the DevOps & Cloud Computing syllabus (phrased as 'mentioned', since this comes from a literal syllabus scan, not a depth-of-coverage judgment), an offer to investigate further if asked, and a note that syllabus summaries may omit brief lesson-level exposure (Education team can confirm).",
     "expected_citations": [
       {
         "document": "Cloud_Engineering_bootcamp_2025_12.md",
@@ -344,11 +344,12 @@
     ],
     "judge_criteria": [
       "The answer must be a negative scoped to Cloud Engineering, citing the Cloud Engineering syllabus as what was checked.",
-      "CRITICAL: The answer must redirect the reader by naming DevOps (or DevOps & Cloud Computing) as a program whose curriculum DOES include Kubernetes.",
+      "CRITICAL: The answer must redirect the reader by naming DevOps (or DevOps & Cloud Computing) as a program whose syllabus mentions Kubernetes.",
+      "The redirect must be phrased as 'mentioned' (or equivalent), NOT as a definitive coverage claim - and offering to investigate/verify further on request is expected.",
       "The program must be called 'Cloud Engineering' (not a raw code like 'ce').",
       "A nuance note that syllabus summaries may omit lesson-level exposure is expected and must not be penalized.",
       "FAIL if the response contains 'the requested topic' or presents DevOps as the program that was asked about.",
-      "Pass with 8+ if scoped negative + DevOps redirect are both present."
+      "Pass with 8+ if scoped negative + mention-phrased DevOps redirect are both present."
     ]
   }
 ]

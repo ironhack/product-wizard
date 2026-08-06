@@ -199,18 +199,53 @@ def test_local_topic_index_drops_non_discriminative_terms():
 
 # ---------------- Sibling-program suggestion (local phrase scan) ----------------
 
-def test_sibling_check_finds_kubernetes_in_devops_not_ce():
-    from src.nodes.generation_nodes import _find_other_programs_covering
-    names = _find_other_programs_covering("Kubernetes", ["cloud_engineering"])
+def test_sibling_check_finds_kubernetes_in_devops_not_ce(monkeypatch):
+    import src.nodes.generation_nodes as gn
+    monkeypatch.setattr(gn, "_topic_aliases", lambda topic: [])  # deterministic: no API
+    entries = gn._find_other_programs_covering("Kubernetes", ["cloud_engineering"])
+    names = [e["name"] for e in entries]
     assert "DevOps & Cloud Computing" in names
     assert "Cloud Engineering" not in names
 
 
-def test_sibling_check_whole_phrase_not_tokens():
-    from src.nodes.generation_nodes import _find_other_programs_covering
-    # "engineering" alone appears in many syllabi; the full phrase appears in none
-    names = _find_other_programs_covering("Site Reliability Engineering", [])
-    assert names == []
+def test_sibling_check_whole_phrase_not_tokens(monkeypatch):
+    import src.nodes.generation_nodes as gn
+    monkeypatch.setattr(gn, "_topic_aliases", lambda topic: [])  # deterministic: no API
+    # "engineering" alone appears in many syllabi; the full phrase appears in none.
+    # (With live alias expansion, "SRE" legitimately matches Cloud Engineering -
+    # that behavior is intentional and covered by the judge fixtures.)
+    assert gn._find_other_programs_covering("Site Reliability Engineering", []) == []
+
+
+def test_sibling_check_alias_match_reports_via(monkeypatch):
+    import src.nodes.generation_nodes as gn
+    monkeypatch.setattr(gn, "_topic_aliases", lambda topic: ["SRE"])
+    entries = gn._find_other_programs_covering("Site Reliability Engineering", [])
+    assert any(e["name"] == "Cloud Engineering" and e["via"] == "SRE" for e in entries)
+
+
+def test_own_syllabus_mention_sre_in_cloud_engineering(monkeypatch):
+    import src.nodes.generation_nodes as gn
+    monkeypatch.setattr(gn, "_topic_aliases", lambda topic: ["SRE"])
+    # CE career outcomes mention "Site Reliability Engineer (SRE)" though it's
+    # not a taught topic - the answer must note the mention, not deny it
+    mention = gn._own_syllabus_mention("Site Reliability Engineering", "cloud_engineering")
+    assert mention.get("via")
+    assert "SRE" in mention.get("line", "") or "Site Reliability" in mention.get("line", "")
+
+
+def test_own_syllabus_mention_absent_topic(monkeypatch):
+    import src.nodes.generation_nodes as gn
+    monkeypatch.setattr(gn, "_topic_aliases", lambda topic: [])
+    assert gn._own_syllabus_mention("Quantum Computing", "cloud_engineering") == {}
+
+
+def test_phrase_matching_uses_word_boundaries():
+    from src.nodes.generation_nodes import _phrase_in_text
+    # a short alias must not match inside another word
+    assert not _phrase_in_text("ML", "students learn html and css")
+    assert _phrase_in_text("ML", "an intro to ml and statistics")
+    assert _phrase_in_text("Kubernetes", "kubernetes-based deployments")
 
 
 # ---------------- Cohort calendar date-awareness ----------------
