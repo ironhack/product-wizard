@@ -365,8 +365,13 @@ def load_full_syllabus_docs(program_ids: List[str], program_synonyms: Dict) -> L
 
     for pid in program_ids:
         needles = program_syllabus_needles([pid], program_synonyms)
-        # Latest version wins when several files share the same versionless base
-        matches = [f for f in available if any(n in strip_doc_version(f) for n in needles)]
+        # First needle (filenames[0]) is the primary syllabus doc; latest version
+        # wins when several files share the same versionless base
+        matches = []
+        for needle in needles:
+            matches = [f for f in available if needle in strip_doc_version(f)]
+            if matches:
+                break
         if not matches:
             logger.warning(f"No local syllabus file found for program '{pid}'")
             continue

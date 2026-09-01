@@ -136,6 +136,13 @@ course:
                 - type: html
                   file: "database/Advanced_program_in_applied_AI_academy_course_2025_07.md"
                   mode: read
+        - name: "Crea tu negocio con IA (Build Your Business with AI)"
+          vertical:
+            - name: "Academy course syllabus"
+              component:
+                - type: html
+                  file: "database/Build_your_business_with_AI_academy_course_2026_09.md"
+                  mode: read
 
     - name: "Certifications"
       sequential:

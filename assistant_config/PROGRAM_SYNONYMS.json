@@ -71,6 +71,21 @@
     "filenames": ["Data_Engineering_bootcamp_2025_12"],
     "code":"DE"
   },
+  "build_your_business_ai": {
+    "display_name": "Crea tu negocio con IA (Build Your Business with AI)",
+    "aliases": ["crea tu negocio con ia", "crea tu negocio", "build your business with ai", "launch your business with ai", "business with ai", "negocio con ia", "byb"],
+    "filenames": ["Build_your_business_with_AI_academy_course_2026_09"]
+  },
+  "advanced_ai_academy": {
+    "display_name": "Advanced Program in Applied AI",
+    "aliases": ["advanced program in applied ai", "advanced applied ai", "advanced ai program", "applied ai academy course", "advanced ai academy"],
+    "filenames": ["Advanced_program_in_applied_AI_academy_course_2025_07"]
+  },
+  "apac_ai_productivity": {
+    "display_name": "Intensive Program in Applied AI (APAC)",
+    "aliases": ["apac", "intensive program in applied ai", "ai async productivity", "async productivity course", "ai productivity course", "applied ai intensive"],
+    "filenames": ["APAC_-_Intensive_program_in_applied_AI_-_AI_async_productivity_course_syllabus", "APAC_-_Intensive_program_in_applied_AI_-_AI_async_productivity_course_duration", "APAC_-_Intensive_program_in_applied_AI_-_AI_async_productivity_course_use_cases"]
+  },
   "data_science_ai_1_year": {
     "display_name": "Data Science & AI 1-Year Program (Germany)",
     "aliases": ["df", "1 year", "1-year", "one year", "germany program", "dsai 1 year", "1 year program", "1-year program"],

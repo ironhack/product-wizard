@@ -364,5 +364,40 @@
       "A generic 'I couldn't find information' fallback scores at most 5 - the discontinuation must be stated.",
       "Pass with 8+ if discontinuation is clear and redirect guidance is present."
     ]
+  },
+  {
+    "id": "byb_gdpr_marketing_title",
+    "query": "In the \"launch your business with AI\" course, do you see how to create a website data protection law following European regulations?",
+    "expected_answer": "The answer must be about the 'Crea tu negocio con IA (Build Your Business with AI)' Academy course - NOT about the AI Engineering bootcamp or any other program. It should say that the course's Module 5 legal unit covers the European data protection framework as it applies to digital businesses in Spain: LOPD/RGPD (GDPR), LSSI and the consumer law, including data minimization, user consent and breach-notification obligations - while being honest that it is a legal-awareness unit, not a website-building module. Citation should reference Build_your_business_with_AI_academy_course_2026_09.",
+    "expected_citations": [
+      {
+        "document": "Build_your_business_with_AI_academy_course_2026_09.md",
+        "reference": "Module 5 - Legal and Fiscal Aspects",
+        "evidence": "Module 5 covers LSSI, LOPD/RGPD (GDPR) and consumer law for digital businesses in Spain, including data minimization, explicit consent, right to be forgotten and breach notification."
+      }
+    ],
+    "judge_criteria": [
+      "CRITICAL: The answer must be scoped to the Build Your Business with AI / Crea tu negocio con IA course. FAIL immediately if the answer is about the AI Engineering bootcamp or substitutes any other program.",
+      "The answer must state that GDPR/RGPD (European data protection) is covered in the course's legal unit (Module 5).",
+      "Honest framing is expected: the unit teaches the legal framework and obligations; the answer should not overclaim a hands-on 'build a GDPR-compliant website' module.",
+      "Pass with 8+ if correctly scoped to the right course and grounded in the Module 5 legal content."
+    ]
+  },
+  {
+    "id": "byb_official_name_routing",
+    "query": "Does the Crea tu negocio con IA course cover GDPR?",
+    "expected_answer": "Yes - the Crea tu negocio con IA (Build Your Business with AI) Academy course covers LOPD/RGPD (GDPR) in Module 5 (Legal and Fiscal Aspects), alongside LSSI and the Spanish consumer law, including data minimization, explicit consent and breach-notification obligations. Citation should reference Build_your_business_with_AI_academy_course_2026_09.",
+    "expected_citations": [
+      {
+        "document": "Build_your_business_with_AI_academy_course_2026_09.md",
+        "reference": "Module 5 - Legal and Fiscal Aspects",
+        "evidence": "The legal unit covers LSSI, LOPD/RGPD (GDPR - the European data protection regulation) and consumer law."
+      }
+    ],
+    "judge_criteria": [
+      "CRITICAL: The answer must be about the Crea tu negocio con IA / Build Your Business with AI course, not any bootcamp.",
+      "The answer must confirm GDPR/RGPD appears in the course (Module 5 legal unit).",
+      "Pass with 8+ if the confirmation is grounded and correctly scoped."
+    ]
   }
 ]
