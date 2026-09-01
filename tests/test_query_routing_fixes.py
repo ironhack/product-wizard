@@ -175,6 +175,29 @@ def test_every_active_program_has_a_loadable_syllabus():
         assert len(docs[0]["content"]) > 1000
 
 
+def test_apac_breakdown_loads_syllabus_not_use_cases():
+    # APAC has three KB files; filenames[0] (the syllabus) must win for breakdowns
+    docs = load_full_syllabus_docs(["apac_ai_productivity"], PROGRAM_SYNONYMS)
+    assert len(docs) == 1
+    assert "syllabus" in docs[0]["source"]
+
+
+# ---------------- Short Academy courses are routable ----------------
+
+def test_short_ai_courses_present_in_synonyms():
+    for pid in ("build_your_business_ai", "advanced_ai_academy", "apac_ai_productivity"):
+        assert pid in PROGRAM_SYNONYMS, f"{pid} missing from PROGRAM_SYNONYMS"
+        assert PROGRAM_SYNONYMS[pid].get("filenames"), f"{pid} has no KB filenames"
+
+
+def test_build_your_business_source_mapping():
+    src = "Build_your_business_with_AI_academy_course_2026_09.md"
+    assert program_for_source(src, PROGRAM_SYNONYMS) == "build_your_business_ai"
+    from src.utils import humanize_source_citation
+    assert humanize_source_citation(src, PROGRAM_SYNONYMS) == \
+        "Crea tu negocio con IA (Build Your Business with AI) syllabus (September 2026)"
+
+
 # ---------------- Discontinued program interception ----------------
 
 def test_discontinued_program_detected():

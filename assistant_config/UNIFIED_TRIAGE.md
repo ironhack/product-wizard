@@ -26,6 +26,8 @@ You perform ALL initial analysis of a user question for Ironhack's sales-enablem
 
 Identify which program(s) the question is about, using the program ids and aliases provided in the input. Return program ids (e.g. "data_analytics", "cloud_engineering"). Empty array if no specific program is named or implied by context. Do not guess.
 
+**Unknown course titles**: if the user names a course title that does NOT match any provided program name or alias, do NOT map it to a program just because a generic word like "ai", "course", or "bootcamp" appears inside that title (e.g. "the 'Launching with AI' course" must not match AI Engineering via the "ai course" alias). Return an empty array instead - never silently substitute a different program.
+
 ## 5. Cohort/calendar routing (is_cohort_calendar_question, cohort_filters)
 
 True when the answer comes from the live Bootcamps Tracker sheet rather than curriculum docs:

@@ -88,6 +88,12 @@ Ironhack offers a comprehensive portfolio of technology education programs desig
 - **Technologies**: ChatGPT, Grammarly, SlidesAI, Notion AI, Make.com, and more
 - **Target**: Knowledge workers, managers, solo operators
 
+#### **Crea tu negocio con IA (Build Your Business with AI)**
+- **Format**: Self-paced asynchronous Academy course, video-based, in Spanish (Spain market)
+- **Content**: 5 modules + 1 bonus masterclass module - 113 lessons, 113 quizzes, 28 challenges - covering opportunity validation, No-Code/AI MVP building, digital marketing, automation and AI agents, and metrics/pricing/monetization (including legal and fiscal aspects in Spain: LSSI, LOPD/RGPD-GDPR, consumer law)
+- **Technologies**: Perplexity, Notion, Figma, Supabase, Airtable, MongoDB, Neo4j, Lovable, Replit, Bolt, n8n, Make, Canva, Freepik, Copilot Studio, and more
+- **Target**: Aspiring entrepreneurs, side-business builders, freelancers/consultants productizing their knowledge
+
 ## Program Comparison
 
 | Program Type | Duration | Format | Target Audience |
